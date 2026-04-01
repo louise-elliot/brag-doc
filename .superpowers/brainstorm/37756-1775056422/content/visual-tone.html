@@ -1,0 +1,114 @@
+<h2>Which visual tone feels right?</h2>
+<p class="subtitle">Consider what would make you want to open this app every day</p>
+
+<div class="split">
+  <div class="mockup" data-choice="a" onclick="toggleSelect(this)" style="cursor:pointer">
+    <div class="mockup-header">A: Warm and Encouraging</div>
+    <div class="mockup-body" style="background: linear-gradient(135deg, #FFF5F0, #FDE8E0); padding: 0; overflow: hidden;">
+      <!-- Nav -->
+      <div style="background: #F7E6DC; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDD5C8;">
+        <span style="font-family: Georgia, serif; font-size: 18px; color: #8B5E3C; font-weight: 600;">Confidence Journal</span>
+        <span style="font-size: 13px; color: #B08968;">Settings</span>
+      </div>
+
+      <!-- Greeting -->
+      <div style="padding: 20px 20px 12px;">
+        <p style="font-family: Georgia, serif; font-size: 16px; color: #6B4C3B; margin: 0 0 4px;">Good evening, welcome back</p>
+        <p style="font-size: 12px; color: #B08968; margin: 0;">Tuesday, April 1</p>
+      </div>
+
+      <!-- Prompt card -->
+      <div style="margin: 0 16px 12px; background: white; border-radius: 14px; padding: 16px; box-shadow: 0 1px 4px rgba(139,94,60,0.08);">
+        <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #B08968; margin: 0 0 6px;">Today's prompt</p>
+        <p style="font-family: Georgia, serif; font-size: 14px; color: #6B4C3B; margin: 0 0 12px; line-height: 1.4;">What did you accomplish today that you're proud of?</p>
+        <div style="background: #FFF9F5; border: 1.5px solid #EDD5C8; border-radius: 10px; padding: 10px; min-height: 48px;">
+          <span style="color: #CDAA90; font-size: 13px;">Write about your win...</span>
+        </div>
+      </div>
+
+      <!-- Recent entry -->
+      <div style="margin: 0 16px 12px; background: white; border-radius: 14px; padding: 14px; box-shadow: 0 1px 4px rgba(139,94,60,0.08);">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #B08968;">Recent win</span>
+          <span style="font-size: 11px; color: #CDAA90;">Mar 31</span>
+        </div>
+        <p style="font-size: 13px; color: #6B4C3B; margin: 0 0 8px; line-height: 1.4;">Led the architecture review and got buy-in from the team on the new approach</p>
+        <div style="display: flex; gap: 6px;">
+          <span style="background: #FDE8E0; color: #8B5E3C; font-size: 10px; padding: 3px 8px; border-radius: 20px;">leadership</span>
+          <span style="background: #FDE8E0; color: #8B5E3C; font-size: 10px; padding: 3px 8px; border-radius: 20px;">technical</span>
+        </div>
+      </div>
+
+      <!-- Bottom nav -->
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #EDD5C8; padding: 10px 0 14px; display: flex; justify-content: space-around;">
+        <div style="text-align: center;">
+          <div style="width: 20px; height: 20px; background: #D4956B; border-radius: 50%; margin: 0 auto 3px;"></div>
+          <span style="font-size: 9px; color: #8B5E3C;">Journal</span>
+        </div>
+        <div style="text-align: center;">
+          <div style="width: 20px; height: 20px; background: #EDD5C8; border-radius: 50%; margin: 0 auto 3px;"></div>
+          <span style="font-size: 9px; color: #CDAA90;">Brag Doc</span>
+        </div>
+        <div style="text-align: center;">
+          <div style="width: 20px; height: 20px; background: #EDD5C8; border-radius: 50%; margin: 0 auto 3px;"></div>
+          <span style="font-size: 9px; color: #CDAA90;">Settings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup" data-choice="c" onclick="toggleSelect(this)" style="cursor:pointer">
+    <div class="mockup-header">C: Bold and Empowering</div>
+    <div class="mockup-body" style="background: #0F0F1A; padding: 0; overflow: hidden;">
+      <!-- Nav -->
+      <div style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2A2A40;">
+        <span style="font-family: 'Helvetica Neue', sans-serif; font-size: 18px; color: #FFFFFF; font-weight: 700; letter-spacing: -0.5px;">CONFIDENCE</span>
+        <span style="font-size: 13px; color: #7B6FE0;">Settings</span>
+      </div>
+
+      <!-- Greeting -->
+      <div style="padding: 20px 20px 12px;">
+        <p style="font-size: 22px; color: #FFFFFF; margin: 0 0 4px; font-weight: 700; letter-spacing: -0.5px;">Own your day.</p>
+        <p style="font-size: 12px; color: #8080A0; margin: 0;">Tuesday, April 1</p>
+      </div>
+
+      <!-- Prompt card -->
+      <div style="margin: 0 16px 12px; background: linear-gradient(135deg, #1A1A2E, #252545); border: 1px solid #3A3A5C; border-radius: 10px; padding: 16px;">
+        <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #7B6FE0; margin: 0 0 8px; font-weight: 600;">Today's prompt</p>
+        <p style="font-size: 14px; color: #E0E0F0; margin: 0 0 12px; line-height: 1.4; font-weight: 500;">What impact did you make today?</p>
+        <div style="background: #0F0F1A; border: 1.5px solid #3A3A5C; border-radius: 8px; padding: 10px; min-height: 48px;">
+          <span style="color: #5A5A7A; font-size: 13px;">Claim your win...</span>
+        </div>
+      </div>
+
+      <!-- Recent entry -->
+      <div style="margin: 0 16px 12px; background: #1A1A2E; border: 1px solid #2A2A40; border-radius: 10px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #7B6FE0; font-weight: 600;">Recent win</span>
+          <span style="font-size: 11px; color: #5A5A7A;">Mar 31</span>
+        </div>
+        <p style="font-size: 13px; color: #E0E0F0; margin: 0 0 8px; line-height: 1.4;">Led the architecture review and got buy-in from the team on the new approach</p>
+        <div style="display: flex; gap: 6px;">
+          <span style="background: #2D2B55; color: #A99BFF; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600;">LEADERSHIP</span>
+          <span style="background: #2D2B55; color: #A99BFF; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600;">TECHNICAL</span>
+        </div>
+      </div>
+
+      <!-- Bottom nav -->
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; background: #0F0F1A; border-top: 1px solid #2A2A40; padding: 10px 0 14px; display: flex; justify-content: space-around;">
+        <div style="text-align: center;">
+          <div style="width: 20px; height: 20px; background: #7B6FE0; border-radius: 4px; margin: 0 auto 3px;"></div>
+          <span style="font-size: 9px; color: #E0E0F0; font-weight: 600;">Journal</span>
+        </div>
+        <div style="text-align: center;">
+          <div style="width: 20px; height: 20px; background: #2A2A40; border-radius: 4px; margin: 0 auto 3px;"></div>
+          <span style="font-size: 9px; color: #5A5A7A;">Brag Doc</span>
+        </div>
+        <div style="text-align: center;">
+          <div style="width: 20px; height: 20px; background: #2A2A40; border-radius: 4px; margin: 0 auto 3px;"></div>
+          <span style="font-size: 9px; color: #5A5A7A;">Settings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

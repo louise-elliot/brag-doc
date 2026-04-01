@@ -39,10 +39,9 @@ leadership, technical, collaboration, problem-solving, communication, mentoring
 
 ### Prompt Pool
 
-~10 rotating prompts selected randomly per day, e.g.:
+~9 rotating prompts selected randomly per day, e.g.:
 - "What impact did you make today?"
 - "What challenge did you navigate?"
-- "What did you do that someone more junior couldn't have?"
 - "What decision did you drive forward?"
 - "What did you teach or explain to someone?"
 - "What problem did you solve that others hadn't?"
