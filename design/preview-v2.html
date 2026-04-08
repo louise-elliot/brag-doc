@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confidence Journal -- Design Preview v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-base: #07080C;
+    --color-surface: #0F1117;
+    --color-surface-raised: #161820;
+    --color-border: #1E2028;
+    --color-border-subtle: #15161D;
+    --color-text-primary: #F0ECE4;
+    --color-text-secondary: #8B8693;
+    --color-text-tertiary: #55515E;
+    --color-accent: #D4863C;
+    --color-accent-hover: #E09A52;
+    --color-accent-muted: rgba(212, 134, 60, 0.12);
+    --color-accent-border: rgba(212, 134, 60, 0.25);
+    --color-positive: #4CAF82;
+    --color-positive-muted: rgba(76, 175, 130, 0.12);
+    --color-danger: #CF4444;
+    --color-danger-muted: rgba(207, 68, 68, 0.12);
+
+    /* Tag-specific colors */
+    --tag-leadership: #D4863C;
+    --tag-technical: #6B8AE0;
+    --tag-collaboration: #4CAF82;
+    --tag-problem-solving: #C978D6;
+    --tag-communication: #E0C46B;
+    --tag-mentoring: #E07272;
+
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Outfit', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--color-base);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Grain overlay -- committed, visible */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  /* Ambient glow -- visible, warm */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -20%;
+    right: -10%;
+    width: 900px;
+    height: 900px;
+    background: radial-gradient(circle, rgba(212, 134, 60, 0.07) 0%, rgba(212, 134, 60, 0.02) 40%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    padding: 32px 40px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    font-optical-sizing: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .wordmark-bar {
+    width: 3px;
+    height: 18px;
+    background: var(--color-accent);
+    border-radius: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .header-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.05em;
+  }
+
+  .header-settings {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.05em;
+    background: none;
+    border: 1px solid var(--color-border);
+    padding: 5px 12px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .header-settings:hover {
+    color: var(--color-text-secondary);
+    border-color: var(--color-text-tertiary);
+  }
+
+  /* ---- TABS ---- */
+  nav {
+    display: flex;
+    gap: 0;
+    padding: 28px 40px 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .tab {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 24px 14px;
+    color: var(--color-text-tertiary);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.2s, border-color 0.3s;
+  }
+
+  .tab:hover {
+    color: var(--color-text-secondary);
+  }
+
+  .tab.active {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+  }
+
+  /* ---- MAIN CONTENT ---- */
+  main {
+    padding: 0 40px 80px;
+  }
+
+  /* ---- PROMPT SECTION ---- */
+  .prompt-section {
+    padding: 48px 0 40px;
+    position: relative;
+  }
+
+  .prompt-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 16px;
+  }
+
+  .prompt-text {
+    font-family: var(--font-display);
+    font-size: 38px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: var(--color-text-primary);
+    font-style: italic;
+    font-optical-sizing: auto;
+    max-width: 580px;
+    position: relative;
+    padding-left: 24px;
+  }
+
+  .prompt-text::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    background: linear-gradient(180deg, var(--color-accent), rgba(212, 134, 60, 0.2));
+    border-radius: 2px;
+  }
+
+  /* ---- TEXTAREA ---- */
+  .entry-textarea {
+    width: 100%;
+    min-height: 130px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--color-text-primary);
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 20px;
+  }
+
+  .entry-textarea::placeholder {
+    color: var(--color-text-tertiary);
+    font-style: italic;
+  }
+
+  .entry-textarea:focus {
+    border-color: var(--color-accent-border);
+    box-shadow: 0 0 0 3px var(--color-accent-muted);
+  }
+
+  /* ---- TAGS (color-coded) ---- */
+  .tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tag:hover {
+    border-color: var(--color-text-tertiary);
+    color: var(--color-text-primary);
+  }
+
+  .tag[data-tag="leadership"].selected {
+    background: rgba(212, 134, 60, 0.12);
+    border-color: rgba(212, 134, 60, 0.3);
+    color: var(--tag-leadership);
+  }
+  .tag[data-tag="technical"].selected {
+    background: rgba(107, 138, 224, 0.12);
+    border-color: rgba(107, 138, 224, 0.3);
+    color: var(--tag-technical);
+  }
+  .tag[data-tag="collaboration"].selected {
+    background: rgba(76, 175, 130, 0.12);
+    border-color: rgba(76, 175, 130, 0.3);
+    color: var(--tag-collaboration);
+  }
+  .tag[data-tag="problem-solving"].selected {
+    background: rgba(201, 120, 214, 0.12);
+    border-color: rgba(201, 120, 214, 0.3);
+    color: var(--tag-problem-solving);
+  }
+  .tag[data-tag="communication"].selected {
+    background: rgba(224, 196, 107, 0.12);
+    border-color: rgba(224, 196, 107, 0.3);
+    color: var(--tag-communication);
+  }
+  .tag[data-tag="mentoring"].selected {
+    background: rgba(224, 114, 114, 0.12);
+    border-color: rgba(224, 114, 114, 0.3);
+    color: var(--tag-mentoring);
+  }
+
+  .entry-tag[data-tag="leadership"]   { background: rgba(212,134,60,0.12);  color: var(--tag-leadership); }
+  .entry-tag[data-tag="technical"]    { background: rgba(107,138,224,0.12); color: var(--tag-technical); }
+  .entry-tag[data-tag="collaboration"]{ background: rgba(76,175,130,0.12);  color: var(--tag-collaboration); }
+  .entry-tag[data-tag="problem-solving"]{ background: rgba(201,120,214,0.12); color: var(--tag-problem-solving); }
+  .entry-tag[data-tag="communication"]{ background: rgba(224,196,107,0.12); color: var(--tag-communication); }
+  .entry-tag[data-tag="mentoring"]    { background: rgba(224,114,114,0.12); color: var(--tag-mentoring); }
+
+  /* ---- BUTTONS ---- */
+  .btn-primary {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 32px;
+    background: var(--color-accent);
+    color: var(--color-base);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.01em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-accent-hover);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Save button flash animation */
+  @keyframes saveFlash {
+    0% { box-shadow: 0 0 0 0 rgba(212, 134, 60, 0.5); }
+    50% { box-shadow: 0 0 20px 4px rgba(212, 134, 60, 0.3); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 134, 60, 0); }
+  }
+
+  @keyframes saveCheck {
+    0% { transform: scale(0.8); opacity: 0; }
+    40% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .btn-primary.saved {
+    animation: saveFlash 0.6s ease-out;
+    background: var(--color-positive);
+  }
+
+  .save-toast {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--color-positive);
+    margin-top: 12px;
+  }
+
+  .save-toast.show {
+    display: flex;
+    animation: saveCheck 0.3s ease-out;
+  }
+
+  .save-toast svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .btn-secondary {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 20px;
+    background: var(--color-surface-raised);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  .btn-danger {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 20px;
+    background: var(--color-danger-muted);
+    color: var(--color-danger);
+    border: 1px solid rgba(207, 68, 68, 0.2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-danger:hover {
+    background: rgba(207, 68, 68, 0.2);
+  }
+
+  /* ---- REFRAME CARD ---- */
+  .reframe-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    margin: 32px 0;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .reframe-card.visible {
+    animation: reframeReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes reframeReveal {
+    0% { opacity: 0; transform: translateY(16px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .reframe-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-accent), rgba(212, 134, 60, 0.3), transparent);
+  }
+
+  .reframe-topbar {
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .reframe-header {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .reframe-columns {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    margin-bottom: 0;
+  }
+
+  .reframe-col {
+    padding: 24px 28px;
+  }
+
+  .reframe-divider {
+    width: 1px;
+    background: linear-gradient(180deg, var(--color-accent-border), var(--color-border-subtle));
+    margin: 16px 0;
+  }
+
+  .reframe-col-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .reframe-col-label.yours {
+    color: var(--color-text-tertiary);
+  }
+
+  .reframe-col-label.reframed {
+    color: var(--color-accent);
+  }
+
+  .reframe-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--color-text-tertiary);
+  }
+
+  .reframe-text.reframed {
+    color: var(--color-text-primary);
+  }
+
+  .reframe-text .strikethrough {
+    text-decoration: line-through;
+    opacity: 0.5;
+  }
+
+  .reframe-actions {
+    display: flex;
+    gap: 10px;
+    padding: 0 28px 24px;
+  }
+
+  /* ---- SECTION HEADER ---- */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 48px 0 20px;
+  }
+
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+  }
+
+  .entry-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    background: var(--color-surface);
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+
+  /* ---- ENTRY LIST (timeline style) ---- */
+  .entry-card {
+    padding: 20px 0 20px 24px;
+    position: relative;
+    border-left: 1px solid var(--color-border-subtle);
+    margin-left: 4px;
+  }
+
+  .entry-card::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 26px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-border);
+    border: 2px solid var(--color-base);
+  }
+
+  .entry-card:last-child {
+    border-left-color: transparent;
+  }
+
+  .entry-card:first-child::before {
+    background: var(--color-accent);
+  }
+
+  .entry-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .entry-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.02em;
+  }
+
+  .entry-tags {
+    display: flex;
+    gap: 6px;
+  }
+
+  .entry-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  .entry-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+
+  .entry-toggle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 0 0;
+    letter-spacing: 0.02em;
+    transition: opacity 0.2s;
+  }
+
+  .entry-toggle:hover {
+    opacity: 0.75;
+  }
+
+  .entry-reframed {
+    margin-top: 12px;
+    padding-left: 16px;
+    border-left: 2px solid var(--color-accent-border);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    animation: fadeIn 0.25s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* ---- BRAG DOC ---- */
+  .brag-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin: 40px 0 32px;
+  }
+
+  .select-filter {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238B8693' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+
+  /* Brag doc output -- document preview feel */
+  .brag-output {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 36px 32px;
+    position: relative;
+  }
+
+  .brag-output::before {
+    content: 'GENERATED BRAG DOC';
+    position: absolute;
+    top: -9px;
+    left: 24px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+    background: var(--color-base);
+    padding: 0 8px;
+  }
+
+  .brag-group {
+    margin-bottom: 28px;
+  }
+
+  .brag-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .brag-group-label {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .brag-bullet {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--color-text-secondary);
+    padding: 5px 0 5px 20px;
+    position: relative;
+  }
+
+  .brag-bullet::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 13px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-accent);
+  }
+
+  .brag-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  /* Copy button special state */
+  .btn-copy.copied {
+    color: var(--color-positive);
+    border-color: rgba(76, 175, 130, 0.3);
+    background: var(--color-positive-muted);
+  }
+
+  /* ---- EMPTY STATE ---- */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+  }
+
+  .empty-state-text {
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+  }
+
+  .empty-state-prompt {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-style: italic;
+    color: var(--color-text-secondary);
+    margin-top: 8px;
+  }
+
+  /* ---- SETTINGS (moved to modal-like card) ---- */
+  .settings-section {
+    margin-top: 40px;
+  }
+
+  .settings-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+  }
+
+  .settings-card-header {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+    margin-bottom: 12px;
+  }
+
+  .settings-card-desc {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .confirm-card {
+    background: var(--color-danger-muted);
+    border: 1px solid rgba(207, 68, 68, 0.2);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-top: 12px;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .confirm-text {
+    font-size: 13px;
+    color: var(--color-danger);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  /* ---- ANIMATIONS ---- */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+  }
+
+  .animate-in {
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-delay-1 { animation-delay: 0.06s; }
+  .animate-delay-2 { animation-delay: 0.12s; }
+  .animate-delay-3 { animation-delay: 0.18s; }
+  .animate-delay-4 { animation-delay: 0.24s; }
+  .animate-delay-5 { animation-delay: 0.30s; }
+
+  .loading-text {
+    animation: shimmer 1.8s ease-in-out infinite;
+    color: var(--color-text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- SCROLLBAR ---- */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-tertiary);
+  }
+
+  /* Tab content */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Textarea saved state */
+  .entry-textarea.saved {
+    border-color: rgba(76, 175, 130, 0.4);
+    box-shadow: 0 0 0 3px rgba(76, 175, 130, 0.1);
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="animate-in">
+    <div class="wordmark">
+      <div class="wordmark-bar"></div>
+      Confidence
+    </div>
+    <div class="header-right">
+      <div class="header-date">Apr 01, 2026</div>
+      <button class="header-settings" onclick="switchTab('settings', document.querySelectorAll('.tab')[2])">settings</button>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <nav class="animate-in animate-delay-1">
+    <button class="tab active" onclick="switchTab('journal', this)">Journal</button>
+    <button class="tab" onclick="switchTab('bragdoc', this)">Brag Doc</button>
+    <button class="tab" onclick="switchTab('settings', this)">Settings</button>
+  </nav>
+
+  <main>
+
+    <!-- ==================== JOURNAL TAB ==================== -->
+    <div id="journal" class="tab-content active">
+
+      <!-- Prompt -- oversized, editorial -->
+      <div class="prompt-section animate-in animate-delay-2">
+        <div class="prompt-label">Today's prompt</div>
+        <div class="prompt-text">What decision did you drive forward?</div>
+      </div>
+
+      <!-- Entry form -->
+      <div class="animate-in animate-delay-3">
+        <textarea class="entry-textarea" placeholder="Claim your win..." id="entryText"></textarea>
+
+        <div class="tags-row">
+          <button class="tag" data-tag="leadership" onclick="this.classList.toggle('selected')">leadership</button>
+          <button class="tag" data-tag="technical" onclick="this.classList.toggle('selected')">technical</button>
+          <button class="tag" data-tag="collaboration" onclick="this.classList.toggle('selected')">collaboration</button>
+          <button class="tag" data-tag="problem-solving" onclick="this.classList.toggle('selected')">problem-solving</button>
+          <button class="tag" data-tag="communication" onclick="this.classList.toggle('selected')">communication</button>
+          <button class="tag" data-tag="mentoring" onclick="this.classList.toggle('selected')">mentoring</button>
+        </div>
+
+        <button class="btn-primary" id="saveBtn" onclick="handleSave()">Save</button>
+
+        <div class="save-toast" id="saveToast">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 8.5l3.5 3.5 6.5-7"/>
+          </svg>
+          Win logged
+        </div>
+      </div>
+
+      <!-- Reframe card -->
+      <div id="reframeCard" class="reframe-card">
+        <div class="reframe-topbar">
+          <div class="reframe-header">AI Reframe</div>
+          <div style="font-family: var(--font-mono); font-size: 10px; color: var(--color-text-tertiary);">side-by-side</div>
+        </div>
+        <div class="reframe-columns">
+          <div class="reframe-col">
+            <div class="reframe-col-label yours">Your version</div>
+            <div class="reframe-text">I helped push the team to pick a direction on the migration strategy. I think it was <span class="strikethrough">probably</span> the right call.</div>
+          </div>
+          <div class="reframe-divider"></div>
+          <div class="reframe-col">
+            <div class="reframe-col-label reframed">Reframed</div>
+            <div class="reframe-text reframed">I drove the migration strategy decision, cutting through ambiguity and aligning the team on a clear path forward.</div>
+          </div>
+        </div>
+        <div class="reframe-actions">
+          <button class="btn-primary" onclick="dismissReframe()">Accept</button>
+          <button class="btn-secondary" onclick="dismissReframe()">Dismiss</button>
+        </div>
+      </div>
+
+      <!-- Past entries (timeline) -->
+      <div class="section-header animate-in animate-delay-4">
+        <div class="section-title">Past Entries</div>
+        <div class="entry-count">3 entries</div>
+      </div>
+
+      <div class="animate-in animate-delay-5">
+        <div class="entry-card">
+          <div class="entry-meta">
+            <span class="entry-date">Mar 31, 2026</span>
+            <div class="entry-tags">
+              <span class="entry-tag" data-tag="leadership">leadership</span>
+              <span class="entry-tag" data-tag="technical">technical</span>
+            </div>
+          </div>
+          <div class="entry-text">Led the architecture review and secured team buy-in on the new service decomposition approach.</div>
+          <button class="entry-toggle" onclick="toggleReframed(this)">show reframed</button>
+          <div class="entry-reframed" style="display: none;">Directed the architecture review, presenting a clear technical vision that won unanimous team alignment on the service decomposition strategy.</div>
+        </div>
+
+        <div class="entry-card">
+          <div class="entry-meta">
+            <span class="entry-date">Mar 30, 2026</span>
+            <div class="entry-tags">
+              <span class="entry-tag" data-tag="problem-solving">problem-solving</span>
+            </div>
+          </div>
+          <div class="entry-text">Debugged and fixed the intermittent auth timeout that had been affecting 12% of login attempts for two weeks.</div>
+        </div>
+
+        <div class="entry-card">
+          <div class="entry-meta">
+            <span class="entry-date">Mar 28, 2026</span>
+            <div class="entry-tags">
+              <span class="entry-tag" data-tag="mentoring">mentoring</span>
+              <span class="entry-tag" data-tag="communication">communication</span>
+            </div>
+          </div>
+          <div class="entry-text">Ran a workshop on observability best practices for the junior engineers. Three of them set up their first dashboards afterward.</div>
+          <button class="entry-toggle" onclick="toggleReframed(this)">show reframed</button>
+          <div class="entry-reframed" style="display: none;">Designed and delivered an observability workshop that directly upskilled three junior engineers, each of whom independently built their first production dashboards.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== BRAG DOC TAB ==================== -->
+    <div id="bragdoc" class="tab-content">
+
+      <div class="brag-controls">
+        <select class="select-filter">
+          <option>Last 30 days</option>
+          <option>Last quarter</option>
+          <option>Last 6 months</option>
+          <option selected>All time</option>
+        </select>
+        <button class="btn-primary">Generate</button>
+      </div>
+
+      <div class="brag-output">
+        <div class="brag-group">
+          <div class="brag-group-label">Leadership</div>
+          <div class="brag-bullet">Drove architectural decision-making for the team's service decomposition initiative, securing cross-team alignment</div>
+          <div class="brag-bullet">Identified and championed the migration strategy that reduced deployment complexity by 40%</div>
+        </div>
+
+        <div class="brag-group">
+          <div class="brag-group-label">Technical</div>
+          <div class="brag-bullet">Resolved a persistent authentication timeout affecting 12% of login attempts, improving system reliability</div>
+          <div class="brag-bullet">Designed and implemented the new caching layer that reduced P95 latency from 800ms to 120ms</div>
+        </div>
+
+        <div class="brag-group">
+          <div class="brag-group-label">Mentoring</div>
+          <div class="brag-bullet">Created and delivered observability workshop that directly enabled three junior engineers to build production dashboards independently</div>
+        </div>
+
+        <div class="brag-footer">
+          <button class="btn-secondary btn-copy" onclick="handleCopy(this)">Copy to clipboard</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== SETTINGS TAB ==================== -->
+    <div id="settings" class="tab-content">
+
+      <div class="settings-section">
+        <div class="settings-card">
+          <div class="settings-card-header">Data Management</div>
+          <div class="settings-card-desc">Your journal entries are stored locally in this browser. They never leave your device.</div>
+          <div id="clearBtn">
+            <button class="btn-danger" onclick="showConfirm()">Clear all data</button>
+          </div>
+          <div id="confirmCard" class="confirm-card" style="display: none;">
+            <div class="confirm-text">This will permanently delete all your journal entries. This cannot be undone.</div>
+            <div class="confirm-actions">
+              <button class="btn-danger" onclick="hideConfirm()">Yes, delete everything</button>
+              <button class="btn-secondary" onclick="hideConfirm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+}
+
+function handleSave() {
+  const btn = document.getElementById('saveBtn');
+  const toast = document.getElementById('saveToast');
+  const textarea = document.getElementById('entryText');
+
+  // Flash the button
+  btn.classList.add('saved');
+  btn.textContent = 'Saved';
+  textarea.classList.add('saved');
+
+  // Show toast
+  toast.classList.add('show');
+
+  // After delay, reveal reframe card
+  setTimeout(() => {
+    btn.classList.remove('saved');
+    btn.textContent = 'Save';
+    textarea.classList.remove('saved');
+    textarea.value = '';
+
+    const card = document.getElementById('reframeCard');
+    card.classList.add('visible');
+
+    // Smooth scroll to reframe card
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 800);
+
+  // Hide toast
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2000);
+}
+
+function dismissReframe() {
+  const card = document.getElementById('reframeCard');
+  card.style.transition = 'opacity 0.25s, transform 0.25s';
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(-8px)';
+  setTimeout(() => {
+    card.classList.remove('visible');
+    card.style.transition = '';
+    card.style.opacity = '';
+    card.style.transform = '';
+  }, 250);
+}
+
+function toggleReframed(btn) {
+  const reframed = btn.nextElementSibling;
+  if (reframed.style.display === 'none') {
+    reframed.style.display = 'block';
+    btn.textContent = 'hide reframed';
+  } else {
+    reframed.style.display = 'none';
+    btn.textContent = 'show reframed';
+  }
+}
+
+function handleCopy(btn) {
+  btn.textContent = 'Copied';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.textContent = 'Copy to clipboard';
+    btn.classList.remove('copied');
+  }, 2000);
+}
+
+function showConfirm() {
+  document.getElementById('clearBtn').style.display = 'none';
+  document.getElementById('confirmCard').style.display = 'block';
+}
+
+function hideConfirm() {
+  document.getElementById('clearBtn').style.display = 'block';
+  document.getElementById('confirmCard').style.display = 'none';
+}
+</script>
+
+</body>
+</html>

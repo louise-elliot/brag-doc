@@ -1,12 +1,14 @@
-# Confidence Journal -- MVP Design Spec
+# Confidence Journal MVP Technical Design Spec
 
-## Overview
+## Tech Stack Summary
 
-A daily wins journal for women in tech that combats self-diminishment patterns identified in research. The app prompts users to log accomplishments, uses AI to reframe self-critical language, and generates a "brag doc" of impact-focused bullet points for performance reviews.
-
-## Target User
-
-Women in tech/corporate roles preparing for performance reviews. The tone, prompts, and AI reframing are tailored to patterns research identifies in this demographic: attributing success to luck or the team, hedging language, minimizing scope of contributions.
+- Next.js (App Router, client-rendered)
+- TypeScript
+- Tailwind CSS
+- Vitest + React Testing Library
+- Playwright
+- Anthropic SDK (@anthropic-ai/sdk)
+- localStorage for persistence
 
 ## Architecture
 
@@ -15,7 +17,7 @@ Women in tech/corporate roles preparing for performance reviews. The tone, promp
 - Data stored in browser localStorage
 - Two Next.js API routes for AI features (Claude API proxy)
 - Tailwind CSS for styling
-- Bold/empowering visual tone (dark palette, strong typography) -- to be refined with frontend-design skill
+
 
 ## Data Model
 
@@ -58,7 +60,7 @@ leadership, technical, collaboration, problem-solving, communication, mentoring
 2. User writes their entry and selects tags from the predefined set
 3. User clicks "Save" -- entry is stored to localStorage
 4. After saving, the app calls `/api/reframe` and displays the AI-reframed version side-by-side with the original
-5. User can dismiss the reframing or accept it (which updates the `original` field in localStorage to the reframed text)
+5. User can dismiss the reframing, edit it, or accept it (which updates the `original` field in localStorage to the reframed text)
 6. Below the entry form: scrollable list of past entries (newest first) showing date, original text, tags, and a toggle to reveal the reframed version
 
 ### Brag Doc Tab
@@ -102,27 +104,6 @@ Claude Haiku (claude-haiku-4-5-20251001) for both endpoints -- fast, low-cost, s
 
 If the API call fails, show an inline error message. The entry is still saved regardless -- reframing is a supplementary feature, not a blocker to journaling.
 
-## Testing Strategy
 
-### Unit Tests (Vitest + React Testing Library)
 
-- Data layer: CRUD operations on localStorage entries, date filtering, tag filtering
-- Components: entry form submission, tag selection, tab switching, brag doc display, copy to clipboard
-- API routes: reframe and brag-doc endpoints (mock the Claude API call)
 
-### Integration Tests (Playwright)
-
-- Full daily flow: open app, see prompt, write entry, save, see reframing appear side-by-side
-- Brag doc generation: create several entries, switch to Brag Doc tab, generate, verify output, copy to clipboard
-- Persistence: add entries, reload page, verify entries persist
-- Error state: API route returns error, verify entry still saves and error message displays
-
-## Tech Stack Summary
-
-- Next.js (App Router, client-rendered)
-- TypeScript
-- Tailwind CSS
-- Vitest + React Testing Library
-- Playwright
-- Anthropic SDK (@anthropic-ai/sdk)
-- localStorage for persistence
