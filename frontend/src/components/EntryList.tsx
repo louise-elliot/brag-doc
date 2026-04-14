@@ -3,6 +3,15 @@
 import { useState } from "react";
 import type { Entry } from "@/lib/types";
 
+const TAG_COLORS: Record<string, { color: string; bg: string; border: string }> = {
+  leadership: { color: "#D4863C", bg: "rgba(212,134,60,0.12)", border: "rgba(212,134,60,0.3)" },
+  technical: { color: "#6B8AE0", bg: "rgba(107,138,224,0.12)", border: "rgba(107,138,224,0.3)" },
+  collaboration: { color: "#4CAF82", bg: "rgba(76,175,130,0.12)", border: "rgba(76,175,130,0.3)" },
+  "problem-solving": { color: "#C978D6", bg: "rgba(201,120,214,0.12)", border: "rgba(201,120,214,0.3)" },
+  communication: { color: "#E0C46B", bg: "rgba(224,196,107,0.12)", border: "rgba(224,196,107,0.3)" },
+  mentoring: { color: "#E07272", bg: "rgba(224,114,114,0.12)", border: "rgba(224,114,114,0.3)" },
+};
+
 interface EntryListProps {
   entries: Entry[];
 }
@@ -11,7 +20,11 @@ export function EntryList({ entries }: EntryListProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   if (entries.length === 0) {
-    return <p className="text-gray-500">No entries yet</p>;
+    return (
+      <p style={{ color: "var(--color-text-tertiary)", fontSize: "14px" }}>
+        No entries yet
+      </p>
+    );
   }
 
   function toggleExpanded(id: string) {
@@ -24,43 +37,146 @@ export function EntryList({ entries }: EntryListProps) {
   }
 
   return (
-    <div className="space-y-3">
-      {entries.map((entry) => (
-        <div
-          key={entry.id}
-          className="border border-gray-800 rounded-lg p-4 space-y-2"
-        >
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">{entry.date}</span>
-            <div className="flex gap-2">
-              {entry.tags.map((tag) => (
+    <div style={{ position: "relative" }}>
+      {entries.map((entry, index) => {
+        const isFirst = index === 0;
+        const isLast = index === entries.length - 1;
+        const colors = entry.tags.length > 0 ? TAG_COLORS[entry.tags[0]] : null;
+
+        return (
+          <div
+            key={entry.id}
+            style={{
+              position: "relative",
+              paddingLeft: "28px",
+              paddingBottom: isLast ? "0" : "24px",
+            }}
+          >
+            {/* Timeline line */}
+            {!isLast && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: "3px",
+                  top: "10px",
+                  bottom: "0",
+                  width: "1px",
+                  background: "var(--color-border-subtle)",
+                }}
+              />
+            )}
+
+            {/* Timeline dot */}
+            <div
+              style={{
+                position: "absolute",
+                left: "0",
+                top: "6px",
+                width: "7px",
+                height: "7px",
+                borderRadius: "50%",
+                background: isFirst
+                  ? "var(--color-accent)"
+                  : "var(--color-text-tertiary)",
+              }}
+            />
+
+            {/* Entry content */}
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "8px",
+                }}
+              >
                 <span
-                  key={tag}
-                  className="text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "11px",
+                    color: "var(--color-text-tertiary)",
+                  }}
                 >
-                  {tag}
+                  {entry.date}
                 </span>
-              ))}
+                <div style={{ display: "flex", gap: "6px" }}>
+                  {entry.tags.map((tag) => {
+                    const tagColors = TAG_COLORS[tag];
+                    return (
+                      <span
+                        key={tag}
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "11px",
+                          fontWeight: 500,
+                          padding: "2px 8px",
+                          borderRadius: "var(--radius-sm)",
+                          background: tagColors
+                            ? tagColors.bg
+                            : "var(--color-surface)",
+                          color: tagColors
+                            ? tagColors.color
+                            : "var(--color-text-tertiary)",
+                          border: tagColors
+                            ? `1px solid ${tagColors.border}`
+                            : "1px solid var(--color-border)",
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+              <p
+                style={{
+                  fontSize: "14px",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: 1.6,
+                }}
+              >
+                {entry.original}
+              </p>
+              {entry.reframed && (
+                <>
+                  <button
+                    onClick={() => toggleExpanded(entry.id)}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "11px",
+                      color: "var(--color-accent)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "0",
+                      marginTop: "8px",
+                      letterSpacing: "0.03em",
+                    }}
+                  >
+                    {expanded.has(entry.id) ? "Hide reframed" : "Show reframed"}
+                  </button>
+                  {expanded.has(entry.id) && (
+                    <p
+                      style={{
+                        color: "var(--color-text-primary)",
+                        borderLeft: "2px solid var(--color-accent)",
+                        paddingLeft: "12px",
+                        marginTop: "8px",
+                        fontSize: "14px",
+                        lineHeight: 1.6,
+                        animation: "fadeIn 0.25s ease both",
+                      }}
+                    >
+                      {entry.reframed}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           </div>
-          <p className="text-gray-300">{entry.original}</p>
-          {entry.reframed && (
-            <>
-              <button
-                onClick={() => toggleExpanded(entry.id)}
-                className="text-sm text-purple-400 hover:text-purple-300"
-              >
-                {expanded.has(entry.id) ? "Hide reframed" : "Show reframed"}
-              </button>
-              {expanded.has(entry.id) && (
-                <p className="text-white border-l-2 border-purple-600 pl-3">
-                  {entry.reframed}
-                </p>
-              )}
-            </>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
