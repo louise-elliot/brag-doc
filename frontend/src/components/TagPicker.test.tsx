@@ -31,6 +31,6 @@ describe("TagPicker", () => {
   it("visually distinguishes selected tags", () => {
     render(<TagPicker selected={["technical"]} onChange={() => {}} />);
     const tag = screen.getByText("technical");
-    expect(tag.className).toMatch(/bg-purple/);
+    expect(tag.style.color).toBe("rgb(107, 138, 224)");
   });
 });
