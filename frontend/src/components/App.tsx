@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { EntryForm } from "./EntryForm";
 import { EntryList } from "./EntryList";
 import { ReframeView } from "./ReframeView";
@@ -20,10 +20,7 @@ const TABS: { key: Tab; label: string }[] = [
 
 export function App() {
   const [tab, setTab] = useState<Tab>("journal");
-  const [entries, setEntries] = useState<Entry[]>(() => {
-    if (typeof window === "undefined") return [];
-    return getEntries();
-  });
+  const [entries, setEntries] = useState<Entry[]>([]);
   const [reframing, setReframing] = useState<{
     entryId: string;
     original: string;
@@ -38,6 +35,10 @@ export function App() {
   const refreshEntries = useCallback(() => {
     setEntries(getEntries());
   }, []);
+
+  useEffect(() => {
+    refreshEntries();
+  }, [refreshEntries]);
 
   async function handleSave(data: { original: string; tags: string[] }) {
     const entry = addEntry({
