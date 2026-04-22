@@ -6,13 +6,20 @@ import { TagPicker } from "./TagPicker";
 interface EntryFormProps {
   prompt: string;
   onSave: (data: { original: string; tags: string[] }) => void;
+  onRefreshPrompt?: () => void;
   saving?: boolean;
 }
 
-export function EntryForm({ prompt, onSave, saving = false }: EntryFormProps) {
+export function EntryForm({
+  prompt,
+  onSave,
+  onRefreshPrompt,
+  saving = false,
+}: EntryFormProps) {
   const [text, setText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,7 +51,7 @@ export function EntryForm({ prompt, onSave, saving = false }: EntryFormProps) {
         >
           Today&apos;s prompt
         </div>
-        <div style={{ display: "flex", gap: "16px" }}>
+        <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
           <div
             style={{
               width: "3px",
@@ -52,6 +59,7 @@ export function EntryForm({ prompt, onSave, saving = false }: EntryFormProps) {
               borderRadius: "2px",
               background:
                 "linear-gradient(to bottom, var(--color-accent), transparent)",
+              alignSelf: "stretch",
             }}
           />
           <p
@@ -63,10 +71,90 @@ export function EntryForm({ prompt, onSave, saving = false }: EntryFormProps) {
               lineHeight: 1.2,
               color: "var(--color-text-primary)",
               maxWidth: "580px",
+              margin: 0,
             }}
           >
             {prompt}
           </p>
+          {onRefreshPrompt && (
+            <div
+              style={{
+                position: "relative",
+                flexShrink: 0,
+                marginTop: "14px",
+              }}
+              onMouseEnter={() => setTooltipVisible(true)}
+              onMouseLeave={() => setTooltipVisible(false)}
+            >
+              <button
+                type="button"
+                aria-label="Try another prompt"
+                onClick={onRefreshPrompt}
+                onFocus={() => setTooltipVisible(true)}
+                onBlur={() => setTooltipVisible(false)}
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-sm)",
+                  color: "var(--color-text-tertiary)",
+                  cursor: "pointer",
+                  padding: 0,
+                  transition: "color 0.2s, border-color 0.2s",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.color = "var(--color-accent)";
+                  e.currentTarget.style.borderColor = "var(--color-accent-border)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.color = "var(--color-text-tertiary)";
+                  e.currentTarget.style.borderColor = "var(--color-border)";
+                }}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M13.5 3.5v3h-3" />
+                  <path d="M13.5 6.5A5.5 5.5 0 1 0 14 10" />
+                </svg>
+              </button>
+              {tooltipVisible && (
+                <span
+                  role="tooltip"
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 8px)",
+                    right: 0,
+                    whiteSpace: "nowrap",
+                    background: "var(--color-surface-raised)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "var(--radius-sm)",
+                    padding: "6px 10px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "11px",
+                    letterSpacing: "0.03em",
+                    color: "var(--color-text-secondary)",
+                    pointerEvents: "none",
+                    zIndex: 2,
+                  }}
+                >
+                  Try another prompt
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

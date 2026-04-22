@@ -20,6 +20,7 @@ vi.mock("@/lib/entries", () => ({
 
 vi.mock("@/lib/prompts", () => ({
   getPromptForDate: vi.fn().mockReturnValue("What impact did you make today?"),
+  getRandomPromptExcluding: vi.fn().mockReturnValue("What challenge did you navigate?"),
 }));
 
 describe("App", () => {
@@ -71,6 +72,19 @@ describe("App", () => {
     expect(panel).not.toBeNull();
     expect(panel!.getAttribute("role")).toBe("tabpanel");
     expect(panel!.getAttribute("aria-labelledby")).toBe(journalTab.id);
+  });
+
+  it("refresh-prompt button swaps the prompt to a new one", async () => {
+    render(<App />);
+    expect(
+      screen.getByText("What impact did you make today?")
+    ).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Try another prompt" })
+    );
+    expect(
+      screen.getByText("What challenge did you navigate?")
+    ).toBeInTheDocument();
   });
 
   it("save → reframe → accept overwrites the stored entry's original text", async () => {

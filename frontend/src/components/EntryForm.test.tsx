@@ -82,4 +82,41 @@ describe("EntryForm", () => {
     );
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
+
+  it("renders a refresh-prompt button labeled 'Try another prompt' when onRefreshPrompt is provided", () => {
+    render(
+      <EntryForm
+        prompt="What impact did you make today?"
+        onSave={mockOnSave}
+        onRefreshPrompt={vi.fn()}
+      />
+    );
+    expect(
+      screen.getByRole("button", { name: "Try another prompt" })
+    ).toBeInTheDocument();
+  });
+
+  it("calls onRefreshPrompt when the refresh button is clicked", async () => {
+    const onRefresh = vi.fn();
+    render(
+      <EntryForm
+        prompt="What impact did you make today?"
+        onSave={mockOnSave}
+        onRefreshPrompt={onRefresh}
+      />
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Try another prompt" })
+    );
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not render a refresh button when onRefreshPrompt is not provided", () => {
+    render(
+      <EntryForm prompt="What impact did you make today?" onSave={mockOnSave} />
+    );
+    expect(
+      screen.queryByRole("button", { name: "Try another prompt" })
+    ).not.toBeInTheDocument();
+  });
 });

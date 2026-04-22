@@ -17,3 +17,8 @@ export function getPromptForDate(dateStr: string): string {
   }
   return PROMPTS[Math.abs(hash) % PROMPTS.length];
 }
+
+export function getRandomPromptExcluding(exclude: string): string {
+  const pool = PROMPTS.filter((p) => p !== exclude);
+  return pool[Math.floor(Math.random() * pool.length)];
+}

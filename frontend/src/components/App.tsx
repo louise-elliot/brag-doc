@@ -7,7 +7,7 @@ import { ReframeView } from "./ReframeView";
 import { BragDoc } from "./BragDoc";
 import { Settings } from "./Settings";
 import { getEntries, addEntry, updateEntry, deleteAllEntries } from "@/lib/entries";
-import { getPromptForDate } from "@/lib/prompts";
+import { getPromptForDate, getRandomPromptExcluding } from "@/lib/prompts";
 import { todayLocal } from "@/lib/dates";
 import type { Entry } from "@/lib/types";
 
@@ -31,7 +31,11 @@ export function App() {
   const [reframeError, setReframeError] = useState<string | null>(null);
 
   const today = todayLocal();
-  const prompt = getPromptForDate(today);
+  const [prompt, setPrompt] = useState<string>(() => getPromptForDate(today));
+
+  function handleRefreshPrompt() {
+    setPrompt((current) => getRandomPromptExcluding(current));
+  }
 
   const refreshEntries = useCallback(() => {
     setEntries(getEntries());
@@ -192,7 +196,12 @@ export function App() {
           {tab === "journal" && (
             <div role="tabpanel" id="tabpanel-journal" aria-labelledby="tab-journal">
               <div className="animate-in animate-delay-2">
-                <EntryForm prompt={prompt} onSave={handleSave} saving={reframeLoading} />
+                <EntryForm
+                  prompt={prompt}
+                  onSave={handleSave}
+                  onRefreshPrompt={handleRefreshPrompt}
+                  saving={reframeLoading}
+                />
               </div>
 
               {reframeLoading && (
