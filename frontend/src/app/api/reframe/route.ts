@@ -10,16 +10,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "text is required" }, { status: 400 });
   }
 
-  const client = new Anthropic();
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: body.text }],
-  });
+  try {
+    const client = new Anthropic();
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: body.text }],
+    });
 
-  const reframed =
-    message.content[0].type === "text" ? message.content[0].text : "";
+    const reframed =
+      message.content[0].type === "text" ? message.content[0].text : "";
 
-  return NextResponse.json({ reframed });
+    return NextResponse.json({ reframed });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
