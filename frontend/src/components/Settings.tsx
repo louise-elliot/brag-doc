@@ -40,8 +40,9 @@ export function Settings({ onClearData }: SettingsProps) {
             marginBottom: "24px",
           }}
         >
-          Your journal entries are stored locally in this browser. They never
-          leave your device.
+          Your journal entries are stored locally in this browser. Entry text
+          is sent to Anthropic only when you reframe an entry or generate a
+          brag doc, and is not stored on our servers.
         </p>
 
         {!confirming ? (

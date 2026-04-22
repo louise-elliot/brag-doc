@@ -101,7 +101,7 @@ Both effects are applied via `body::before` and `body::after` pseudo-elements wi
 
 ### Header
 
-Wordmark "Confidence" in Fraunces with a 3px amber vertical bar to the left. Date in mono on the right. Settings as a small pill-shaped button in the top-right corner, reducing the need for a separate Settings tab (though the tab is retained for discoverability).
+Wordmark "Confidence" in Fraunces with a 3px amber vertical bar to the left. Date in mono on the right. Settings is reached via the Settings tab in the nav.
 
 ### Prompt Section
 
@@ -128,9 +128,9 @@ The save moment has deliberate ceremony:
 - Top accent bar: gradient from amber to transparent
 - Top bar with "AI Reframe" label and "side-by-side" indicator
 - Two-column layout separated by a vertical gradient divider (amber to subtle)
-- Left column: "Your version" label (muted), original text in secondary color, self-diminishing words shown with strikethrough
-- Right column: "Reframed" label (amber), reframed text in primary color
-- Accept and Dismiss buttons at bottom
+- Left column: "Your version" label (muted), original text in secondary color
+- Right column: "Reframed" label (amber), reframed text in primary color, rendered in an editable textarea with a dashed amber border so the user can tweak the wording before accepting
+- Accept and Dismiss buttons at bottom; Accept persists the textarea's current value
 - Card enters with a slide-up animation (translateY 16px to 0, 0.5s cubic-bezier)
 - Card exits with a slide-up fade (translateY to -8px, opacity to 0)
 

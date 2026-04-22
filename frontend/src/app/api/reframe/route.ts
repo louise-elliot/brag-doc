@@ -3,20 +3,31 @@ import { NextResponse } from "next/server";
 
 const SYSTEM_PROMPT = `You are a confidence coach for women in tech. Reframe the following accomplishment to be more direct, impactful, and free of self-diminishing language. Preserve the facts but remove hedging, luck-attribution, and team-deflection. Keep approximately the same length. Return only the reframed text, no commentary.`;
 
-export async function POST(request: Request) {
-  const body = await request.json();
+const anthropic = new Anthropic();
 
-  if (!body.text || typeof body.text !== "string") {
+export async function POST(request: Request) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const text =
+    body && typeof body === "object" && "text" in body
+      ? (body as { text: unknown }).text
+      : undefined;
+
+  if (!text || typeof text !== "string") {
     return NextResponse.json({ error: "text is required" }, { status: 400 });
   }
 
   try {
-    const client = new Anthropic();
-    const message = await client.messages.create({
+    const message = await anthropic.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: body.text }],
+      messages: [{ role: "user", content: text }],
     });
 
     const reframed =
@@ -24,7 +35,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ reframed });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("reframe route failed", error);
+    return NextResponse.json({ error: "Reframe failed" }, { status: 500 });
   }
 }

@@ -8,6 +8,7 @@ import { BragDoc } from "./BragDoc";
 import { Settings } from "./Settings";
 import { getEntries, addEntry, updateEntry, deleteAllEntries } from "@/lib/entries";
 import { getPromptForDate } from "@/lib/prompts";
+import { todayLocal } from "@/lib/dates";
 import type { Entry } from "@/lib/types";
 
 type Tab = "journal" | "bragdoc" | "settings";
@@ -29,7 +30,7 @@ export function App() {
   const [reframeLoading, setReframeLoading] = useState(false);
   const [reframeError, setReframeError] = useState<string | null>(null);
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
   const prompt = getPromptForDate(today);
 
   const refreshEntries = useCallback(() => {
@@ -74,9 +75,9 @@ export function App() {
     }
   }
 
-  function handleAcceptReframe() {
+  function handleAcceptReframe(finalText: string) {
     if (!reframing) return;
-    updateEntry(reframing.entryId, { original: reframing.reframed });
+    updateEntry(reframing.entryId, { original: finalText, reframed: finalText });
     refreshEntries();
     setReframing(null);
   }
@@ -143,6 +144,7 @@ export function App() {
         </header>
 
         <nav
+          role="tablist"
           style={{
             display: "flex",
             padding: "28px 40px 0",
@@ -153,8 +155,10 @@ export function App() {
           {TABS.map(({ key, label }) => (
             <button
               key={key}
+              id={`tab-${key}`}
               role="tab"
               aria-selected={tab === key}
+              aria-controls={`tabpanel-${key}`}
               onClick={() => setTab(key)}
               style={{
                 fontFamily: "var(--font-mono)",
@@ -186,13 +190,15 @@ export function App() {
 
         <main style={{ padding: "0 40px 80px" }}>
           {tab === "journal" && (
-            <div>
+            <div role="tabpanel" id="tabpanel-journal" aria-labelledby="tab-journal">
               <div className="animate-in animate-delay-2">
-                <EntryForm prompt={prompt} onSave={handleSave} />
+                <EntryForm prompt={prompt} onSave={handleSave} saving={reframeLoading} />
               </div>
 
               {reframeLoading && (
                 <p
+                  role="status"
+                  aria-live="polite"
                   style={{
                     color: "var(--color-text-tertiary)",
                     fontFamily: "var(--font-mono)",
@@ -208,6 +214,8 @@ export function App() {
 
               {reframeError && (
                 <p
+                  role="alert"
+                  aria-live="assertive"
                   style={{
                     color: "var(--color-danger)",
                     fontSize: "14px",
@@ -274,13 +282,23 @@ export function App() {
           )}
 
           {tab === "bragdoc" && (
-            <div className="animate-in animate-delay-2">
+            <div
+              role="tabpanel"
+              id="tabpanel-bragdoc"
+              aria-labelledby="tab-bragdoc"
+              className="animate-in animate-delay-2"
+            >
               <BragDoc entries={entries} />
             </div>
           )}
 
           {tab === "settings" && (
-            <div className="animate-in animate-delay-2">
+            <div
+              role="tabpanel"
+              id="tabpanel-settings"
+              aria-labelledby="tab-settings"
+              className="animate-in animate-delay-2"
+            >
               <Settings onClearData={handleClearData} />
             </div>
           )}

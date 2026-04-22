@@ -6,9 +6,10 @@ import { TagPicker } from "./TagPicker";
 interface EntryFormProps {
   prompt: string;
   onSave: (data: { original: string; tags: string[] }) => void;
+  saving?: boolean;
 }
 
-export function EntryForm({ prompt, onSave }: EntryFormProps) {
+export function EntryForm({ prompt, onSave, saving = false }: EntryFormProps) {
   const [text, setText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
@@ -21,8 +22,10 @@ export function EntryForm({ prompt, onSave }: EntryFormProps) {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
 
-    setText("");
-    setTags([]);
+    setTimeout(() => {
+      setText("");
+      setTags([]);
+    }, 800);
   }
 
   return (
@@ -94,7 +97,7 @@ export function EntryForm({ prompt, onSave }: EntryFormProps) {
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <button
             type="submit"
-            disabled={!text.trim()}
+            disabled={!text.trim() || saving}
             style={{
               padding: "10px 28px",
               background: saved
@@ -106,8 +109,8 @@ export function EntryForm({ prompt, onSave }: EntryFormProps) {
               fontWeight: 600,
               borderRadius: "var(--radius-sm)",
               border: "none",
-              cursor: text.trim() ? "pointer" : "not-allowed",
-              opacity: text.trim() ? 1 : 0.4,
+              cursor: text.trim() && !saving ? "pointer" : "not-allowed",
+              opacity: text.trim() && !saving ? 1 : 0.4,
               transition: "all 0.2s",
               animation: saved ? "saveFlash 0.6s ease" : "none",
             }}

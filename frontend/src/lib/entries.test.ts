@@ -8,8 +8,6 @@ import {
 } from "./entries";
 import type { Entry } from "./types";
 
-const STORAGE_KEY = "confidence-journal-entries";
-
 function makeEntry(overrides: Partial<Entry> = {}): Omit<Entry, "id" | "createdAt"> {
   return {
     date: "2026-04-01",
@@ -68,5 +66,48 @@ describe("entries data layer", () => {
     addEntry(makeEntry({ date: "2026-04-01" }));
     const filtered = getEntriesByDateRange("2026-03-01", "2026-04-02");
     expect(filtered).toHaveLength(2);
+  });
+});
+
+describe("getEntries with corrupt storage", () => {
+  it("returns empty array when localStorage value is not valid JSON", () => {
+    localStorage.setItem("confidence-journal-entries", "{not json");
+    expect(getEntries()).toEqual([]);
+  });
+
+  it("returns empty array when localStorage value is JSON but not an array", () => {
+    localStorage.setItem("confidence-journal-entries", JSON.stringify({ foo: "bar" }));
+    expect(getEntries()).toEqual([]);
+  });
+});
+
+describe("getEntries same-day ordering", () => {
+  it("sorts same-day entries newest-first by createdAt", () => {
+    const earlier = {
+      id: "a",
+      date: "2026-04-22",
+      prompt: "",
+      original: "earlier",
+      reframed: null,
+      tags: [],
+      createdAt: "2026-04-22T09:00:00.000Z",
+    };
+    const later = {
+      id: "b",
+      date: "2026-04-22",
+      prompt: "",
+      original: "later",
+      reframed: null,
+      tags: [],
+      createdAt: "2026-04-22T17:00:00.000Z",
+    };
+    // Insert earlier first so default insertion order would yield [earlier, later]
+    localStorage.setItem(
+      "confidence-journal-entries",
+      JSON.stringify([earlier, later])
+    );
+    const result = getEntries();
+    expect(result[0].id).toBe("b");
+    expect(result[1].id).toBe("a");
   });
 });

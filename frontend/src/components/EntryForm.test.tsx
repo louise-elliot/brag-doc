@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EntryForm } from "./EntryForm";
 
@@ -36,20 +36,49 @@ describe("EntryForm", () => {
     });
   });
 
-  it("clears form after save", async () => {
+  it("clears the textarea after ~800ms (not immediately)", async () => {
+    // shouldAdvanceTime lets userEvent's internal setTimeout(0) callbacks
+    // resolve while fake timers are installed (vitest 4 + user-event 14)
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    // userEvent needs its own timer config when fake timers are on
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     render(
       <EntryForm prompt="What impact did you make today?" onSave={mockOnSave} />
     );
     const textarea = screen.getByPlaceholderText("Write about your win...");
-    await userEvent.type(textarea, "Something great");
-    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await user.type(textarea, "Something great");
+    await user.click(screen.getByRole("button", { name: "Save" }));
 
+    // Not cleared immediately
+    expect(textarea).toHaveValue("Something great");
+
+    // After 800 ms it clears
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(800);
+    });
     expect(textarea).toHaveValue("");
+
+    vi.useRealTimers();
   });
 
   it("disables save when text is empty", () => {
     render(
       <EntryForm prompt="What impact did you make today?" onSave={mockOnSave} />
+    );
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  it("disables the Save button when saving is true", async () => {
+    render(
+      <EntryForm
+        prompt="What impact did you make today?"
+        onSave={mockOnSave}
+        saving={true}
+      />
+    );
+    await userEvent.type(
+      screen.getByPlaceholderText("Write about your win..."),
+      "anything"
     );
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });

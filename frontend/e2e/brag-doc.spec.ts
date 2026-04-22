@@ -1,6 +1,22 @@
 import { test, expect } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
+  await page.route("**/api/reframe", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ reframed: "A confident version of your win." }),
+    })
+  );
+  await page.route("**/api/generate-brag-doc", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        bullets: [{ tag: "technical", points: ["Shipped the API"] }],
+      }),
+    })
+  );
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
   await page.reload();

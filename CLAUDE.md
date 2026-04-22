@@ -4,7 +4,7 @@
 A daily wins journal for women in tech that combats self-diminishment patterns identified in research. The app prompts users to log accomplishments, uses AI to reframe self-critical language, and generates a "brag doc" of impact-focused bullet points for performance reviews.
 
 ## Target User
-Women in tech/corporate roles preparing for performance reviews. The tone, prompts, and AI reframing are tailored to patterns research identifies in this demographic: attributing success to luck or the team, hedging language, minimizing scope of contributions.v
+Women in tech/corporate roles preparing for performance reviews. The tone, prompts, and AI reframing are tailored to patterns research identifies in this demographic: attributing success to luck or the team, hedging language, minimizing scope of contributions.
 
 ## Business Requirements
 - Free-text entry box for daily entries

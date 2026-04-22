@@ -1,25 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const mocks = vi.hoisted(() => ({
+  messagesCreate: vi.fn(),
+}));
+
 vi.mock("@anthropic-ai/sdk", () => {
   return {
     default: class MockAnthropic {
-      messages = {
-        create: vi.fn().mockResolvedValue({
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                bullets: [
-                  {
-                    tag: "leadership",
-                    points: ["Drove architectural decisions across the team"],
-                  },
-                ],
-              }),
-            },
-          ],
-        }),
-      };
+      messages = { create: mocks.messagesCreate };
     },
   };
 });
@@ -29,6 +17,22 @@ import { POST } from "./route";
 describe("POST /api/generate-brag-doc", () => {
   beforeEach(() => {
     vi.stubEnv("ANTHROPIC_API_KEY", "test-key");
+    mocks.messagesCreate.mockReset();
+    mocks.messagesCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            bullets: [
+              {
+                tag: "leadership",
+                points: ["Drove architectural decisions across the team"],
+              },
+            ],
+          }),
+        },
+      ],
+    });
   });
 
   it("returns grouped bullet points", async () => {
@@ -70,5 +74,35 @@ describe("POST /api/generate-brag-doc", () => {
 
     const response = await POST(request);
     expect(response.status).toBe(400);
+  });
+
+  it("returns 400 on invalid JSON body", async () => {
+    const request = new Request("http://localhost/api/generate-brag-doc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "not json",
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+    expect(response.status).toBe(400);
+    expect(data.error).toBe("Invalid request");
+  });
+
+  it("returns generic 500 message when the Anthropic SDK throws", async () => {
+    mocks.messagesCreate.mockRejectedValueOnce(
+      new Error("INTERNAL_KEY_ABC leaked")
+    );
+    const request = new Request("http://localhost/api/generate-brag-doc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entries: [] }),
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+    expect(response.status).toBe(500);
+    expect(data.error).toBe("Brag doc generation failed");
+    expect(JSON.stringify(data)).not.toContain("INTERNAL_KEY_ABC");
   });
 });
