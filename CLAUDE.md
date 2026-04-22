@@ -14,7 +14,7 @@ Women in tech/corporate roles preparing for performance reviews. The tone, promp
 - Ability to export summary for performance review 
 
 ## Key Documentation References
-- Implementation plan: @docs/superpowers/plans/implementation-plan.md
+- Implementation plan: @docs/superpowers/plans/implementation-plan-summary.md
 - Frontend design guidelines: @docs/superpowers/specs/ui-design.md
 - Architecture and technical spec: @docs/superpowers/specs/tech-spec.md
 - Coding standards: @docs/superpowers/specs/coding-standards.md
