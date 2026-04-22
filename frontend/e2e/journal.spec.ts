@@ -36,3 +36,17 @@ test("clears textarea after save", async ({ page }) => {
   await page.click('button:has-text("Save")');
   await expect(textarea).toHaveValue("", { timeout: 2000 });
 });
+
+test("refresh-prompt button swaps the daily prompt and shows a tooltip on hover", async ({
+  page,
+}) => {
+  const promptLocator = page.locator("main p").first();
+  const initialPrompt = await promptLocator.textContent();
+
+  const refreshButton = page.getByRole("button", { name: "Try another prompt" });
+  await refreshButton.hover();
+  await expect(page.getByRole("tooltip")).toHaveText("Try another prompt");
+
+  await refreshButton.click();
+  await expect(promptLocator).not.toHaveText(initialPrompt ?? "");
+});

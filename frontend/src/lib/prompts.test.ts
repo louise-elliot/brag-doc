@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getPromptForDate, PROMPTS } from "./prompts";
+import { getPromptForDate, getRandomPromptExcluding, PROMPTS } from "./prompts";
 
 describe("prompts", () => {
   it("returns a prompt string", () => {
@@ -25,5 +25,19 @@ describe("prompts", () => {
 
   it("has 9 prompts in the pool", () => {
     expect(PROMPTS).toHaveLength(9);
+  });
+
+  describe("getRandomPromptExcluding", () => {
+    it("returns a prompt from the pool", () => {
+      const prompt = getRandomPromptExcluding(PROMPTS[0]);
+      expect(PROMPTS).toContain(prompt);
+    });
+
+    it("never returns the excluded prompt when others are available", () => {
+      const excluded = PROMPTS[0];
+      for (let i = 0; i < 50; i++) {
+        expect(getRandomPromptExcluding(excluded)).not.toBe(excluded);
+      }
+    });
   });
 });
