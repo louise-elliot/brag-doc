@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ReframeView } from "./ReframeView";
@@ -11,13 +11,19 @@ describe("ReframeView", () => {
     onDismiss: vi.fn(),
   };
 
-  it("shows original and reframed side by side", () => {
+  beforeEach(() => {
+    props.onAccept.mockClear();
+    props.onDismiss.mockClear();
+  });
+
+  it("shows the original as text and the reframed text as an editable field", () => {
     render(<ReframeView {...props} />);
     expect(
       screen.getByText("I just helped a bit with the project")
     ).toBeInTheDocument();
+    // Reframed text is now in a textarea (findable by display value OR label)
     expect(
-      screen.getByText("I contributed key technical work to the project")
+      screen.getByDisplayValue("I contributed key technical work to the project")
     ).toBeInTheDocument();
   });
 
@@ -27,13 +33,24 @@ describe("ReframeView", () => {
     expect(screen.getByText("Reframed")).toBeInTheDocument();
   });
 
-  it("calls onAccept when accept is clicked", async () => {
+  it("calls onAccept with the seeded reframed text when Accept is clicked without edits", async () => {
     render(<ReframeView {...props} />);
     await userEvent.click(screen.getByRole("button", { name: "Accept" }));
-    expect(props.onAccept).toHaveBeenCalled();
+    expect(props.onAccept).toHaveBeenCalledWith(
+      "I contributed key technical work to the project"
+    );
   });
 
-  it("calls onDismiss when dismiss is clicked", async () => {
+  it("calls onAccept with the user's edited text when Accept is clicked after editing", async () => {
+    render(<ReframeView {...props} />);
+    const field = screen.getByLabelText(/reframed/i);
+    await userEvent.clear(field);
+    await userEvent.type(field, "Led the project end-to-end");
+    await userEvent.click(screen.getByRole("button", { name: "Accept" }));
+    expect(props.onAccept).toHaveBeenCalledWith("Led the project end-to-end");
+  });
+
+  it("calls onDismiss when Dismiss is clicked", async () => {
     render(<ReframeView {...props} />);
     await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));
     expect(props.onDismiss).toHaveBeenCalled();

@@ -9,24 +9,35 @@ Return JSON in this exact format:
 
 Return only the JSON, no other text.`;
 
-export async function POST(request: Request) {
-  const body = await request.json();
+const anthropic = new Anthropic();
 
-  if (!body.entries || !Array.isArray(body.entries)) {
+export async function POST(request: Request) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const rawEntries =
+    body && typeof body === "object" && "entries" in body
+      ? (body as { entries: unknown }).entries
+      : undefined;
+
+  if (!Array.isArray(rawEntries)) {
     return NextResponse.json(
       { error: "entries array is required" },
       { status: 400 }
     );
   }
 
-  const entries: Entry[] = body.entries;
+  const entries: Entry[] = rawEntries as Entry[];
   const summary = entries
     .map((e) => `[${e.tags.join(", ")}] ${e.original}`)
     .join("\n");
 
   try {
-    const client = new Anthropic();
-    const message = await client.messages.create({
+    const message = await anthropic.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 2048,
       system: SYSTEM_PROMPT,
@@ -40,7 +51,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json(parsed);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("generate-brag-doc route failed", error);
+    return NextResponse.json(
+      { error: "Brag doc generation failed" },
+      { status: 500 }
+    );
   }
 }

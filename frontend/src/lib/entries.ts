@@ -4,7 +4,13 @@ const STORAGE_KEY = "confidence-journal-entries";
 
 function readEntries(): Entry[] {
   const raw = localStorage.getItem(STORAGE_KEY);
-  return raw ? JSON.parse(raw) : [];
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 function writeEntries(entries: Entry[]): void {
@@ -12,9 +18,14 @@ function writeEntries(entries: Entry[]): void {
 }
 
 export function getEntries(): Entry[] {
-  return readEntries().sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  return readEntries().sort((a, b) => {
+    const byDate =
+      new Date(b.date).getTime() - new Date(a.date).getTime();
+    if (byDate !== 0) return byDate;
+    return (
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  });
 }
 
 export function addEntry(

@@ -1,5 +1,15 @@
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/reframe", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ reframed: "A confident version of your win." }),
+    })
+  );
+});
+
 test("entries persist across page reloads", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
@@ -7,10 +17,10 @@ test("entries persist across page reloads", async ({ page }) => {
 
   await page.fill('textarea[placeholder="Write about your win..."]', "Persisted entry");
   await page.click('button:has-text("Save")');
-  await expect(page.locator("text=Persisted entry")).toBeVisible();
+  await expect(page.locator("p:has-text('Persisted entry')")).toBeVisible();
 
   await page.reload();
-  await expect(page.locator("text=Persisted entry")).toBeVisible();
+  await expect(page.locator("p:has-text('Persisted entry')")).toBeVisible();
 });
 
 test("clear all data removes entries", async ({ page }) => {

@@ -100,10 +100,60 @@ describe("BragDoc", () => {
     });
   });
 
+  it("clears loading and shows an error when fetch rejects", async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error("network down"));
+
+    render(<BragDoc entries={entries} />);
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Failed to generate brag doc. Please try again.")
+      ).toBeInTheDocument();
+    });
+
+    // Button should be clickable again (not stuck on "Generating...")
+    expect(screen.getByRole("button", { name: "Generate" })).toBeEnabled();
+  });
+
   it("shows empty state when no entries", () => {
     render(<BragDoc entries={[]} />);
     expect(
       screen.getByText("Add some journal entries first")
     ).toBeInTheDocument();
+  });
+
+  it("shows an error and does NOT mark as copied if clipboard write rejects", async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error("blocked"));
+    Object.assign(navigator, { clipboard: { writeText } });
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          bullets: [{ tag: "leadership", points: ["Drove decisions"] }],
+        }),
+    });
+
+    render(<BragDoc entries={entries} />);
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+    await waitFor(() => {
+      expect(screen.getByText("Drove decisions")).toBeInTheDocument();
+    });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Copy to clipboard" })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Could not copy to clipboard.")
+      ).toBeInTheDocument();
+    });
+
+    // Button should NOT switch to "Copied"
+    expect(
+      screen.queryByRole("button", { name: "Copied" })
+    ).not.toBeInTheDocument();
   });
 });

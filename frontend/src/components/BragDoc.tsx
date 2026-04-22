@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Entry } from "@/lib/types";
+import { localDateFromOffset } from "@/lib/dates";
 
 interface BragDocProps {
   entries: Entry[];
@@ -17,9 +18,7 @@ interface BulletGroup {
 function filterByRange(entries: Entry[], range: DateRange): Entry[] {
   if (range === "all") return entries;
   const days = parseInt(range);
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
-  const cutoffStr = cutoff.toISOString().split("T")[0];
+  const cutoffStr = localDateFromOffset(days);
   return entries.filter((e) => e.date >= cutoffStr);
 }
 
@@ -50,22 +49,26 @@ export function BragDoc({ entries }: BragDocProps) {
     setError(null);
     setBullets(null);
 
-    const filtered = filterByRange(entries, range);
-    const response = await fetch("/api/generate-brag-doc", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entries: filtered }),
-    });
+    try {
+      const filtered = filterByRange(entries, range);
+      const response = await fetch("/api/generate-brag-doc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entries: filtered }),
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        setError("Failed to generate brag doc. Please try again.");
+        return;
+      }
+
+      const data = await response.json();
+      setBullets(data.bullets);
+    } catch {
       setError("Failed to generate brag doc. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const data = await response.json();
-    setBullets(data.bullets);
-    setLoading(false);
   }
 
   function copyToClipboard() {
@@ -76,9 +79,15 @@ export function BragDoc({ entries }: BragDocProps) {
           `${group.tag.toUpperCase()}\n${group.points.map((p) => `- ${p}`).join("\n")}`
       )
       .join("\n\n");
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      },
+      () => {
+        setError("Could not copy to clipboard.");
+      }
+    );
   }
 
   return (
@@ -86,6 +95,7 @@ export function BragDoc({ entries }: BragDocProps) {
       {/* Controls */}
       <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "32px" }}>
         <select
+          aria-label="Date range"
           value={range}
           onChange={(e) => setRange(e.target.value as DateRange)}
           style={{

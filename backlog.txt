@@ -2,7 +2,7 @@ Ability to refresh daily prompt
 Ability to add / remove categories
 AI to give feedback and suggestions - doesn't need to reframe everything
 Storing common patterns for self-awareness
-Ability to edit past entries 
+Ability to edit and delete past entries 
 Multi-turn coaching conversation with AI
 Brag doc settings - allow free text prompt / more settings (e.g. organise by month, theme etc)
 Refactor AI code into Python

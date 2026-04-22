@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
+
 interface ReframeViewProps {
   original: string;
   reframed: string;
-  onAccept: () => void;
+  onAccept: (finalText: string) => void;
   onDismiss: () => void;
 }
 
@@ -13,6 +15,8 @@ export function ReframeView({
   onAccept,
   onDismiss,
 }: ReframeViewProps) {
+  const [edited, setEdited] = useState(reframed);
+
   return (
     <div
       style={{
@@ -24,7 +28,6 @@ export function ReframeView({
         animation: "reframeReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both",
       }}
     >
-      {/* Top accent bar */}
       <div
         style={{
           height: "2px",
@@ -33,7 +36,6 @@ export function ReframeView({
         }}
       />
 
-      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -66,7 +68,6 @@ export function ReframeView({
         </span>
       </div>
 
-      {/* Content grid */}
       <div
         style={{
           display: "grid",
@@ -75,7 +76,6 @@ export function ReframeView({
           padding: "20px 24px",
         }}
       >
-        {/* Original */}
         <div style={{ paddingRight: "20px" }}>
           <p
             style={{
@@ -101,7 +101,6 @@ export function ReframeView({
           </p>
         </div>
 
-        {/* Divider */}
         <div
           style={{
             width: "1px",
@@ -110,9 +109,9 @@ export function ReframeView({
           }}
         />
 
-        {/* Reframed */}
         <div style={{ paddingLeft: "20px" }}>
-          <p
+          <label
+            htmlFor="reframe-edit"
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "10px",
@@ -121,23 +120,33 @@ export function ReframeView({
               textTransform: "uppercase",
               color: "var(--color-accent)",
               marginBottom: "10px",
+              display: "block",
             }}
           >
             Reframed
-          </p>
-          <p
+          </label>
+          <textarea
+            id="reframe-edit"
+            value={edited}
+            onChange={(e) => setEdited(e.target.value)}
+            rows={4}
             style={{
+              width: "100%",
+              background: "transparent",
+              border: "1px dashed var(--color-accent-border)",
+              borderRadius: "var(--radius-sm)",
+              padding: "8px 10px",
+              fontFamily: "var(--font-body)",
               fontSize: "14px",
               color: "var(--color-text-primary)",
               lineHeight: 1.6,
+              resize: "vertical",
+              outline: "none",
             }}
-          >
-            {reframed}
-          </p>
+          />
         </div>
       </div>
 
-      {/* Actions */}
       <div
         style={{
           display: "flex",
@@ -146,7 +155,7 @@ export function ReframeView({
         }}
       >
         <button
-          onClick={onAccept}
+          onClick={() => onAccept(edited)}
           style={{
             padding: "8px 20px",
             background: "var(--color-accent)",
