@@ -7,14 +7,3 @@ export interface Entry {
   tags: string[];
   createdAt: string;
 }
-
-export const TAGS = [
-  "leadership",
-  "technical",
-  "collaboration",
-  "problem-solving",
-  "communication",
-  "mentoring",
-] as const;
-
-export type Tag = (typeof TAGS)[number];

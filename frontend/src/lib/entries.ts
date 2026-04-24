@@ -58,6 +58,17 @@ export function deleteAllEntries(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+export function renameTagOnEntries(oldName: string, newName: string): void {
+  const entries = readEntries();
+  let changed = false;
+  const updated = entries.map((e) => {
+    if (!e.tags.includes(oldName)) return e;
+    changed = true;
+    return { ...e, tags: e.tags.map((t) => (t === oldName ? newName : t)) };
+  });
+  if (changed) writeEntries(updated);
+}
+
 export function getEntriesByDateRange(
   start: string,
   end: string

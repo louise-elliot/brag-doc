@@ -16,12 +16,25 @@ vi.mock("@/lib/entries", () => ({
   }),
   updateEntry: vi.fn(),
   deleteAllEntries: vi.fn(),
+  renameTagOnEntries: vi.fn(),
 }));
 
 vi.mock("@/lib/prompts", () => ({
   getPromptForDate: vi.fn().mockReturnValue("What impact did you make today?"),
   getRandomPromptExcluding: vi.fn().mockReturnValue("What challenge did you navigate?"),
 }));
+
+vi.mock("@/lib/tags", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/tags")>("@/lib/tags");
+  return {
+    ...actual,
+    getTags: vi.fn().mockReturnValue([
+      { name: "leadership", color: "#D4863C" },
+      { name: "technical", color: "#6B8AE0" },
+    ]),
+    saveTags: vi.fn(),
+  };
+});
 
 describe("App", () => {
   beforeEach(() => {

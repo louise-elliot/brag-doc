@@ -1,32 +1,32 @@
 "use client";
 
-import { TAGS } from "@/lib/types";
-import { TAG_COLORS } from "@/lib/tags";
+import { tagColorFromHex, type TagDef } from "@/lib/tags";
 
 interface TagPickerProps {
+  tags: TagDef[];
   selected: string[];
   onChange: (tags: string[]) => void;
 }
 
-export function TagPicker({ selected, onChange }: TagPickerProps) {
-  function toggle(tag: string) {
-    if (selected.includes(tag)) {
-      onChange(selected.filter((t) => t !== tag));
+export function TagPicker({ tags, selected, onChange }: TagPickerProps) {
+  function toggle(name: string) {
+    if (selected.includes(name)) {
+      onChange(selected.filter((t) => t !== name));
     } else {
-      onChange([...selected, tag]);
+      onChange([...selected, name]);
     }
   }
 
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-      {TAGS.map((tag) => {
-        const isSelected = selected.includes(tag);
-        const colors = TAG_COLORS[tag];
+      {tags.map((tag) => {
+        const isSelected = selected.includes(tag.name);
+        const colors = tagColorFromHex(tag.color);
         return (
           <button
-            key={tag}
+            key={tag.name}
             type="button"
-            onClick={() => toggle(tag)}
+            onClick={() => toggle(tag.name)}
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "11px",
@@ -42,7 +42,7 @@ export function TagPicker({ selected, onChange }: TagPickerProps) {
               color: isSelected ? colors.color : "var(--color-text-tertiary)",
             }}
           >
-            {tag}
+            {tag.name}
           </button>
         );
       })}

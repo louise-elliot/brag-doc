@@ -5,6 +5,7 @@ import {
   updateEntry,
   deleteAllEntries,
   getEntriesByDateRange,
+  renameTagOnEntries,
 } from "./entries";
 import type { Entry } from "./types";
 
@@ -109,5 +110,29 @@ describe("getEntries same-day ordering", () => {
     const result = getEntries();
     expect(result[0].id).toBe("b");
     expect(result[1].id).toBe("a");
+  });
+});
+
+describe("renameTagOnEntries", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("rewrites the old tag name to the new one on every matching entry", () => {
+    addEntry(makeEntry({ tags: ["leadership", "technical"] }));
+    addEntry(makeEntry({ tags: ["leadership"] }));
+    addEntry(makeEntry({ tags: ["mentoring"] }));
+
+    renameTagOnEntries("leadership", "leading");
+
+    const all = getEntries();
+    expect(all.filter((e) => e.tags.includes("leading"))).toHaveLength(2);
+    expect(all.filter((e) => e.tags.includes("leadership"))).toHaveLength(0);
+  });
+
+  it("is a no-op when no entries have the tag", () => {
+    addEntry(makeEntry({ tags: ["technical"] }));
+    renameTagOnEntries("leadership", "leading");
+    expect(getEntries()[0].tags).toEqual(["technical"]);
   });
 });

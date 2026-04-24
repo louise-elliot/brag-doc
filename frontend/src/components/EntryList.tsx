@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import type { Entry } from "@/lib/types";
-import { TAG_COLORS } from "@/lib/tags";
+import { tagColorFor, type TagDef } from "@/lib/tags";
 
 interface EntryListProps {
   entries: Entry[];
+  tags: TagDef[];
 }
 
-export function EntryList({ entries }: EntryListProps) {
+export function EntryList({ entries, tags }: EntryListProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   if (entries.length === 0) {
@@ -93,7 +94,7 @@ export function EntryList({ entries }: EntryListProps) {
                 </span>
                 <div style={{ display: "flex", gap: "6px" }}>
                   {entry.tags.map((tag) => {
-                    const tagColors = TAG_COLORS[tag];
+                    const tagColors = tagColorFor(tags, tag);
                     return (
                       <span
                         key={tag}

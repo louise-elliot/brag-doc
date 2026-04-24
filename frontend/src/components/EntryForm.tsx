@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { TagPicker } from "./TagPicker";
+import type { TagDef } from "@/lib/tags";
 
 interface EntryFormProps {
   prompt: string;
+  availableTags: TagDef[];
   onSave: (data: { original: string; tags: string[] }) => void;
   onRefreshPrompt?: () => void;
   saving?: boolean;
@@ -12,6 +14,7 @@ interface EntryFormProps {
 
 export function EntryForm({
   prompt,
+  availableTags,
   onSave,
   onRefreshPrompt,
   saving = false,
@@ -181,7 +184,7 @@ export function EntryForm({
             transition: "border-color 0.2s",
           }}
         />
-        <TagPicker selected={tags} onChange={setTags} />
+        <TagPicker tags={availableTags} selected={tags} onChange={setTags} />
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <button
             type="submit"
