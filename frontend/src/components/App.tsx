@@ -11,6 +11,8 @@ import {
   addEntry,
   updateEntry,
   deleteAllEntries,
+  deleteEntry,
+  editEntry,
   renameTagOnEntries,
 } from "@/lib/entries";
 import { getPromptForDate, getRandomPromptExcluding } from "@/lib/prompts";
@@ -124,6 +126,33 @@ export function App() {
 
   function handleDismissReframe() {
     setReframing(null);
+  }
+
+  function handleEditEntry(
+    id: string,
+    updates: { original?: string; tags?: string[] }
+  ) {
+    editEntry(id, updates);
+    refreshEntries();
+  }
+
+  function handleDeleteEntry(id: string) {
+    deleteEntry(id);
+    refreshEntries();
+  }
+
+  async function handleReframeAgain(id: string) {
+    const current = getEntries().find((e) => e.id === id);
+    if (!current) return;
+    const response = await fetch("/api/reframe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: current.original }),
+    });
+    if (!response.ok) throw new Error("Reframe failed");
+    const result = await response.json();
+    updateEntry(id, { reframed: result.reframed });
+    refreshEntries();
   }
 
   function handleClearData() {
@@ -322,7 +351,13 @@ export function App() {
                     </span>
                   )}
                 </div>
-                <EntryList entries={entries} tags={tags} />
+                <EntryList
+                  entries={entries}
+                  tags={tags}
+                  onEditEntry={handleEditEntry}
+                  onDeleteEntry={handleDeleteEntry}
+                  onReframeAgain={handleReframeAgain}
+                />
               </div>
             </div>
           )}

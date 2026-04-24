@@ -16,6 +16,8 @@ vi.mock("@/lib/entries", () => ({
   }),
   updateEntry: vi.fn(),
   deleteAllEntries: vi.fn(),
+  deleteEntry: vi.fn(),
+  editEntry: vi.fn(),
   renameTagOnEntries: vi.fn(),
 }));
 

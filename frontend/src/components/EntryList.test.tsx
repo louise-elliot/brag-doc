@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EntryList } from "./EntryList";
@@ -8,6 +8,7 @@ import type { TagDef } from "@/lib/tags";
 const TAGS: TagDef[] = [
   { name: "leadership", color: "#D4863C" },
   { name: "technical", color: "#6B8AE0" },
+  { name: "mentoring", color: "#E07272" },
 ];
 
 const entries: Entry[] = [
@@ -31,21 +32,34 @@ const entries: Entry[] = [
   },
 ];
 
+function renderList(overrides: Partial<Parameters<typeof EntryList>[0]> = {}) {
+  const props = {
+    entries,
+    tags: TAGS,
+    onEditEntry: vi.fn(),
+    onDeleteEntry: vi.fn(),
+    onReframeAgain: vi.fn(),
+    ...overrides,
+  };
+  render(<EntryList {...props} />);
+  return props;
+}
+
 describe("EntryList", () => {
   it("renders all entries", () => {
-    render(<EntryList entries={entries} tags={TAGS} />);
+    renderList();
     expect(screen.getByText("Led the architecture review")).toBeInTheDocument();
     expect(screen.getByText("Shipped the new dashboard")).toBeInTheDocument();
   });
 
   it("shows tags for each entry", () => {
-    render(<EntryList entries={entries} tags={TAGS} />);
+    renderList();
     expect(screen.getByText("leadership")).toBeInTheDocument();
     expect(screen.getByText("technical")).toBeInTheDocument();
   });
 
   it("toggles reframed version visibility", async () => {
-    render(<EntryList entries={entries} tags={TAGS} />);
+    renderList();
     const toggle = screen.getByText("Show reframed");
     await userEvent.click(toggle);
     expect(
@@ -53,25 +67,139 @@ describe("EntryList", () => {
     ).toBeInTheDocument();
   });
 
-  it("does not show toggle when no reframed version exists", () => {
-    render(<EntryList entries={[entries[1]]} tags={TAGS} />);
-    expect(screen.queryByText("Show reframed")).not.toBeInTheDocument();
+  it("shows 'Reframe again' when an entry has no reframed version", () => {
+    renderList();
+    expect(screen.getByText("Reframe again")).toBeInTheDocument();
   });
 
   it("shows empty state when no entries", () => {
-    render(<EntryList entries={[]} tags={TAGS} />);
+    renderList({ entries: [] });
     expect(screen.getByText("No entries yet")).toBeInTheDocument();
   });
 
-  it("falls back to neutral styling when a tag on an entry is no longer in the tags list", () => {
-    const entry: Entry = {
-      ...entries[0],
-      tags: ["deleted-tag"],
-    };
-    render(<EntryList entries={[entry]} tags={TAGS} />);
+  it("falls back to neutral styling for tags no longer in the tags list", () => {
+    const entry: Entry = { ...entries[0], tags: ["deleted-tag"] };
+    renderList({ entries: [entry] });
     const chip = screen.getByText("deleted-tag");
-    expect(chip).toBeInTheDocument();
-    // Neutral border/background path: inline style uses --color-border / --color-surface
     expect(chip.style.border).toContain("var(--color-border)");
+  });
+
+  it("renders Edit and Delete affordances on every row", () => {
+    renderList();
+    expect(screen.getAllByRole("button", { name: "Edit entry" })).toHaveLength(
+      2
+    );
+    expect(
+      screen.getAllByRole("button", { name: "Delete entry" })
+    ).toHaveLength(2);
+  });
+});
+
+describe("EntryList — edit flow", () => {
+  it("enters edit mode when Edit is clicked and shows the textarea pre-filled", async () => {
+    renderList();
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Edit entry" })[0]
+    );
+    const textarea = screen.getByRole("textbox", { name: "Edit entry text" });
+    expect(textarea).toHaveValue("Led the architecture review");
+  });
+
+  it("calls onEditEntry with trimmed text and current tags when Save is clicked", async () => {
+    const { onEditEntry } = renderList();
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Edit entry" })[0]
+    );
+    const textarea = screen.getByRole("textbox", { name: "Edit entry text" });
+    await userEvent.clear(textarea);
+    await userEvent.type(textarea, "  Led the architecture review (revised)  ");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onEditEntry).toHaveBeenCalledWith("1", {
+      original: "Led the architecture review (revised)",
+      tags: ["leadership"],
+    });
+  });
+
+  it("disables Save when the textarea is empty", async () => {
+    renderList();
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Edit entry" })[0]
+    );
+    const textarea = screen.getByRole("textbox", { name: "Edit entry text" });
+    await userEvent.clear(textarea);
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  it("Cancel discards changes and exits edit mode", async () => {
+    const { onEditEntry } = renderList();
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Edit entry" })[0]
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(onEditEntry).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("textbox", { name: "Edit entry text" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("opening a second row in edit mode cancels the first", async () => {
+    renderList();
+    const editButtons = screen.getAllByRole("button", { name: "Edit entry" });
+    await userEvent.click(editButtons[0]);
+    await userEvent.click(editButtons[1]);
+    const textareas = screen.getAllByRole("textbox", {
+      name: "Edit entry text",
+    });
+    expect(textareas).toHaveLength(1);
+    expect(textareas[0]).toHaveValue("Shipped the new dashboard");
+  });
+});
+
+describe("EntryList — delete flow", () => {
+  it("shows inline confirm when Delete is clicked", async () => {
+    renderList();
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Delete entry" })[0]
+    );
+    expect(
+      screen.getByText("Delete this entry? It can't be undone.")
+    ).toBeInTheDocument();
+  });
+
+  it("calls onDeleteEntry when 'Yes, delete' is clicked", async () => {
+    const { onDeleteEntry } = renderList();
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Delete entry" })[0]
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Yes, delete" }));
+    expect(onDeleteEntry).toHaveBeenCalledWith("1");
+  });
+
+  it("Cancel closes the confirm strip without deleting", async () => {
+    const { onDeleteEntry } = renderList();
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Delete entry" })[0]
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(onDeleteEntry).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText("Delete this entry? It can't be undone.")
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("EntryList — Reframe again", () => {
+  it("calls onReframeAgain when the link is clicked", async () => {
+    const onReframeAgain = vi.fn().mockResolvedValue(undefined);
+    renderList({ onReframeAgain });
+    await userEvent.click(screen.getByText("Reframe again"));
+    expect(onReframeAgain).toHaveBeenCalledWith("2");
+  });
+
+  it("shows an inline error if onReframeAgain rejects", async () => {
+    const onReframeAgain = vi.fn().mockRejectedValue(new Error("nope"));
+    renderList({ onReframeAgain });
+    await userEvent.click(screen.getByText("Reframe again"));
+    expect(await screen.findByText("Could not reframe")).toBeInTheDocument();
   });
 });

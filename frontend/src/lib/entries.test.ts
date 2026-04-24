@@ -4,6 +4,8 @@ import {
   addEntry,
   updateEntry,
   deleteAllEntries,
+  deleteEntry,
+  editEntry,
   getEntriesByDateRange,
   renameTagOnEntries,
 } from "./entries";
@@ -134,5 +136,68 @@ describe("renameTagOnEntries", () => {
     addEntry(makeEntry({ tags: ["technical"] }));
     renameTagOnEntries("leadership", "leading");
     expect(getEntries()[0].tags).toEqual(["technical"]);
+  });
+});
+
+describe("deleteEntry", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("removes the matching entry", () => {
+    const a = addEntry(makeEntry({ original: "a" }));
+    addEntry(makeEntry({ original: "b" }));
+    deleteEntry(a.id);
+    const all = getEntries();
+    expect(all).toHaveLength(1);
+    expect(all[0].original).toBe("b");
+  });
+
+  it("is a no-op when the id is not found", () => {
+    addEntry(makeEntry({ original: "a" }));
+    deleteEntry("not-a-real-id");
+    expect(getEntries()).toHaveLength(1);
+  });
+});
+
+describe("editEntry", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("nullifies reframed when the original text changes", () => {
+    const entry = addEntry(
+      makeEntry({ original: "first pass", reframed: "reframed version" })
+    );
+    editEntry(entry.id, { original: "second pass" });
+    const updated = getEntries().find((e) => e.id === entry.id)!;
+    expect(updated.original).toBe("second pass");
+    expect(updated.reframed).toBeNull();
+  });
+
+  it("preserves reframed when only tags change", () => {
+    const entry = addEntry(
+      makeEntry({ tags: ["technical"], reframed: "reframed version" })
+    );
+    editEntry(entry.id, { tags: ["leadership"] });
+    const updated = getEntries().find((e) => e.id === entry.id)!;
+    expect(updated.tags).toEqual(["leadership"]);
+    expect(updated.reframed).toBe("reframed version");
+  });
+
+  it("does not nullify reframed when original is unchanged", () => {
+    const entry = addEntry(
+      makeEntry({ original: "same text", reframed: "reframed version" })
+    );
+    editEntry(entry.id, { original: "same text", tags: ["leadership"] });
+    const updated = getEntries().find((e) => e.id === entry.id)!;
+    expect(updated.reframed).toBe("reframed version");
+    expect(updated.tags).toEqual(["leadership"]);
+  });
+
+  it("is a no-op when the id is not found", () => {
+    addEntry(makeEntry({ original: "original text" }));
+    editEntry("not-a-real-id", { original: "new text" });
+    expect(getEntries()[0].original).toBe("original text");
   });
 });
