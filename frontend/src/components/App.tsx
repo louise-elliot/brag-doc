@@ -6,8 +6,15 @@ import { EntryList } from "./EntryList";
 import { ReframeView } from "./ReframeView";
 import { BragDoc } from "./BragDoc";
 import { Settings } from "./Settings";
-import { getEntries, addEntry, updateEntry, deleteAllEntries } from "@/lib/entries";
+import {
+  getEntries,
+  addEntry,
+  updateEntry,
+  deleteAllEntries,
+  renameTagOnEntries,
+} from "@/lib/entries";
 import { getPromptForDate, getRandomPromptExcluding } from "@/lib/prompts";
+import { getTags, saveTags, type TagDef } from "@/lib/tags";
 import { todayLocal } from "@/lib/dates";
 import type { Entry } from "@/lib/types";
 
@@ -37,13 +44,42 @@ export function App() {
     setPrompt((current) => getRandomPromptExcluding(current));
   }
 
+  const [tags, setTags] = useState<TagDef[]>([]);
+
   const refreshEntries = useCallback(() => {
     setEntries(getEntries());
   }, []);
 
+  const refreshTags = useCallback(() => {
+    setTags(getTags());
+  }, []);
+
   useEffect(() => {
     refreshEntries();
-  }, [refreshEntries]);
+    refreshTags();
+  }, [refreshEntries, refreshTags]);
+
+  function handleAddTag(name: string, color: string) {
+    const next = [...tags, { name, color }];
+    saveTags(next);
+    setTags(next);
+  }
+
+  function handleDeleteTag(name: string) {
+    const next = tags.filter((t) => t.name !== name);
+    saveTags(next);
+    setTags(next);
+  }
+
+  function handleRenameTag(oldName: string, newName: string) {
+    const next = tags.map((t) =>
+      t.name === oldName ? { ...t, name: newName } : t
+    );
+    saveTags(next);
+    renameTagOnEntries(oldName, newName);
+    setTags(next);
+    refreshEntries();
+  }
 
   async function handleSave(data: { original: string; tags: string[] }) {
     const entry = addEntry({
@@ -198,6 +234,7 @@ export function App() {
               <div className="animate-in animate-delay-2">
                 <EntryForm
                   prompt={prompt}
+                  availableTags={tags}
                   onSave={handleSave}
                   onRefreshPrompt={handleRefreshPrompt}
                   saving={reframeLoading}
@@ -285,7 +322,7 @@ export function App() {
                     </span>
                   )}
                 </div>
-                <EntryList entries={entries} />
+                <EntryList entries={entries} tags={tags} />
               </div>
             </div>
           )}
@@ -308,7 +345,13 @@ export function App() {
               aria-labelledby="tab-settings"
               className="animate-in animate-delay-2"
             >
-              <Settings onClearData={handleClearData} />
+              <Settings
+                tags={tags}
+                onAddTag={handleAddTag}
+                onDeleteTag={handleDeleteTag}
+                onRenameTag={handleRenameTag}
+                onClearData={handleClearData}
+              />
             </div>
           )}
         </main>
