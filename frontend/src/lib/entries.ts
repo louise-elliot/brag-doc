@@ -58,6 +58,31 @@ export function deleteAllEntries(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+export function deleteEntry(id: string): void {
+  const entries = readEntries();
+  const next = entries.filter((e) => e.id !== id);
+  if (next.length !== entries.length) writeEntries(next);
+}
+
+export function editEntry(
+  id: string,
+  updates: { original?: string; tags?: string[] }
+): void {
+  const entries = readEntries();
+  const index = entries.findIndex((e) => e.id === id);
+  if (index === -1) return;
+  const current = entries[index];
+  const textChanged =
+    updates.original !== undefined && updates.original !== current.original;
+  entries[index] = {
+    ...current,
+    ...(updates.original !== undefined && { original: updates.original }),
+    ...(updates.tags !== undefined && { tags: updates.tags }),
+    ...(textChanged && { reframed: null }),
+  };
+  writeEntries(entries);
+}
+
 export function renameTagOnEntries(oldName: string, newName: string): void {
   const entries = readEntries();
   let changed = false;

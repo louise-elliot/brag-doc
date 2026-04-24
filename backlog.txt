@@ -1,8 +1,6 @@
-Ability to add / remove categories
 AI to give feedback and suggestions - doesn't need to reframe everything
 Add Impact consideration - user can enter organisational goals/priorities, and AI coaches user to link daily entries to outcomes/impact 
-Storing common patterns for self-awareness
-Ability to edit and delete past entries 
+Storing common patterns for self-awareness 
 Multi-turn coaching conversation with AI
 Linked to AI coaching - can the AI learn from common patterns? 
 Brag doc settings - allow free text prompt / more settings (e.g. organise by month, theme etc)
