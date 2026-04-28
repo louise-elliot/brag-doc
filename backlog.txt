@@ -3,5 +3,7 @@ Add Impact consideration - user can enter organisational goals/priorities, and A
 Storing common patterns for self-awareness 
 Multi-turn coaching conversation with AI
 Linked to AI coaching - can the AI learn from common patterns? 
-Brag doc settings - allow free text prompt / more settings (e.g. organise by month, theme etc)
 Refactor AI code into Python
+Guardrails 
+About page
+Improve daily prompts 

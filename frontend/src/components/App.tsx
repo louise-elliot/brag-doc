@@ -369,7 +369,7 @@ export function App() {
               aria-labelledby="tab-bragdoc"
               className="animate-in animate-delay-2"
             >
-              <BragDoc entries={entries} />
+              <BragDoc entries={entries} tags={tags} />
             </div>
           )}
 
