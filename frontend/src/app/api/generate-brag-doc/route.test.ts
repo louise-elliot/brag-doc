@@ -89,6 +89,67 @@ describe("POST /api/generate-brag-doc", () => {
     expect(data.error).toBe("Invalid request");
   });
 
+  it("defaults to 'tag' grouping when groupBy is absent and includes tag guidance in the system prompt", async () => {
+    const request = new Request("http://localhost/api/generate-brag-doc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entries: [] }),
+    });
+    await POST(request);
+    const call = mocks.messagesCreate.mock.calls[0][0];
+    expect(call.system).toContain("Group bullets by tag category");
+  });
+
+  it("uses month grouping instructions when groupBy is 'month'", async () => {
+    const request = new Request("http://localhost/api/generate-brag-doc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entries: [], groupBy: "month" }),
+    });
+    await POST(request);
+    const call = mocks.messagesCreate.mock.calls[0][0];
+    expect(call.system).toContain("Group bullets by calendar month");
+    expect(call.system).toContain("Month YYYY");
+  });
+
+  it("uses chronological instructions when groupBy is 'chronological'", async () => {
+    const request = new Request("http://localhost/api/generate-brag-doc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entries: [], groupBy: "chronological" }),
+    });
+    await POST(request);
+    const call = mocks.messagesCreate.mock.calls[0][0];
+    expect(call.system).toContain("single group");
+    expect(call.system).toContain("empty string");
+  });
+
+  it("appends userPrompt guidance to the system prompt when provided", async () => {
+    const request = new Request("http://localhost/api/generate-brag-doc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        entries: [],
+        userPrompt: "emphasize cross-functional collaboration",
+      }),
+    });
+    await POST(request);
+    const call = mocks.messagesCreate.mock.calls[0][0];
+    expect(call.system).toContain("emphasize cross-functional collaboration");
+    expect(call.system).toContain("additional guidance");
+  });
+
+  it("does not append guidance when userPrompt is empty or whitespace-only", async () => {
+    const request = new Request("http://localhost/api/generate-brag-doc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entries: [], userPrompt: "   " }),
+    });
+    await POST(request);
+    const call = mocks.messagesCreate.mock.calls[0][0];
+    expect(call.system).not.toContain("additional guidance");
+  });
+
   it("returns generic 500 message when the Anthropic SDK throws", async () => {
     mocks.messagesCreate.mockRejectedValueOnce(
       new Error("INTERNAL_KEY_ABC leaked")
