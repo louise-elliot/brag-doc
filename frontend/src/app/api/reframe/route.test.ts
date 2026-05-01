@@ -1,82 +1,95 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-const mocks = vi.hoisted(() => ({
-  messagesCreate: vi.fn(),
-}));
-
-vi.mock("@anthropic-ai/sdk", () => {
-  return {
-    default: class MockAnthropic {
-      messages = { create: mocks.messagesCreate };
-    },
-  };
-});
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { POST } from "./route";
 
-describe("POST /api/reframe", () => {
-  beforeEach(() => {
-    vi.stubEnv("ANTHROPIC_API_KEY", "test-key");
-    mocks.messagesCreate.mockReset();
-    mocks.messagesCreate.mockResolvedValue({
-      content: [
-        { type: "text", text: "I resolved a critical production issue" },
-      ],
-    });
-  });
+const ORIGINAL_FETCH = global.fetch;
 
-  it("returns reframed text", async () => {
-    const request = new Request("http://localhost/api/reframe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: "I just helped fix a bug" }),
-    });
+beforeEach(() => {
+  vi.stubEnv("PYTHON_SERVICE_URL", "http://test-python:8000");
+});
 
-    const response = await POST(request);
-    const data = await response.json();
+afterEach(() => {
+  global.fetch = ORIGINAL_FETCH;
+  vi.unstubAllEnvs();
+});
 
-    expect(response.status).toBe(200);
-    expect(data.reframed).toBe("I resolved a critical production issue");
-  });
-
-  it("returns 400 when text is missing", async () => {
-    const request = new Request("http://localhost/api/reframe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
-
-    const response = await POST(request);
-    expect(response.status).toBe(400);
-  });
-
-  it("returns 400 on invalid JSON body", async () => {
-    const request = new Request("http://localhost/api/reframe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: "not json",
-    });
-
-    const response = await POST(request);
-    const data = await response.json();
-    expect(response.status).toBe(400);
-    expect(data.error).toBe("Invalid request");
-  });
-
-  it("returns generic 500 message when the Anthropic SDK throws", async () => {
-    mocks.messagesCreate.mockRejectedValueOnce(
-      new Error("UPSTREAM_SECRET_KEY_XYZ leaked")
+describe("POST /api/reframe (proxy)", () => {
+  it("forwards the request body to the Python /reframe endpoint", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ reframed: "polished" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
     );
+    global.fetch = fetchMock;
+
     const request = new Request("http://localhost/api/reframe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: "hello" }),
+      body: JSON.stringify({ text: "raw" }),
     });
 
     const response = await POST(request);
-    const data = await response.json();
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("http://test-python:8000/reframe");
+    expect(init.method).toBe("POST");
+    expect(init.body).toBe(JSON.stringify({ text: "raw" }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ reframed: "polished" });
+  });
+
+  it("passes through non-2xx status codes from Python", async () => {
+    global.fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: "Reframe failed" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+
+    const request = new Request("http://localhost/api/reframe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: "raw" }),
+    });
+
+    const response = await POST(request);
     expect(response.status).toBe(500);
-    expect(data.error).toBe("Reframe failed");
-    expect(JSON.stringify(data)).not.toContain("UPSTREAM_SECRET_KEY_XYZ");
+    expect(await response.json()).toEqual({ error: "Reframe failed" });
+  });
+
+  it("returns 502 with generic error body when the Python service is unreachable", async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error("ECONNREFUSED"));
+
+    const request = new Request("http://localhost/api/reframe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: "raw" }),
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+    expect(response.status).toBe(502);
+    expect(body).toEqual({ error: "Reframe failed" });
+    expect(JSON.stringify(body)).not.toContain("ECONNREFUSED");
+  });
+
+  it("falls back to localhost:8000 when PYTHON_SERVICE_URL is unset", async () => {
+    vi.unstubAllEnvs();
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response("{}", { status: 200, headers: { "Content-Type": "application/json" } })
+    );
+    global.fetch = fetchMock;
+
+    await POST(
+      new Request("http://localhost/api/reframe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: "raw" }),
+      })
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toBe("http://localhost:8000/reframe");
   });
 });
