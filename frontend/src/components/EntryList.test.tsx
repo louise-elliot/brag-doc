@@ -5,6 +5,10 @@ import { EntryList } from "./EntryList";
 import type { Entry } from "@/lib/types";
 import type { TagDef } from "@/lib/tags";
 
+vi.mock("./CoachPanel", () => ({
+  CoachPanel: vi.fn(() => <div data-testid="mock-coach-panel">coach panel</div>),
+}));
+
 const TAGS: TagDef[] = [
   { name: "leadership", color: "#D4863C" },
   { name: "technical", color: "#6B8AE0" },
@@ -20,6 +24,7 @@ const entries: Entry[] = [
     reframed: "Drove architectural decisions for the team",
     tags: ["leadership"],
     createdAt: "2026-04-01T18:00:00Z",
+    coachNotes: ["hedging"],
   },
   {
     id: "2",
@@ -29,6 +34,7 @@ const entries: Entry[] = [
     reframed: null,
     tags: ["technical"],
     createdAt: "2026-03-31T18:00:00Z",
+    coachNotes: null,
   },
 ];
 
@@ -38,7 +44,8 @@ function renderList(overrides: Partial<Parameters<typeof EntryList>[0]> = {}) {
     tags: TAGS,
     onEditEntry: vi.fn(),
     onDeleteEntry: vi.fn(),
-    onReframeAgain: vi.fn(),
+    onCoachAccept: vi.fn(),
+    onCoachDismiss: vi.fn(),
     ...overrides,
   };
   render(<EntryList {...props} />);
@@ -65,11 +72,6 @@ describe("EntryList", () => {
     expect(
       screen.getByText("Drove architectural decisions for the team")
     ).toBeInTheDocument();
-  });
-
-  it("shows 'Reframe again' when an entry has no reframed version", () => {
-    renderList();
-    expect(screen.getByText("Reframe again")).toBeInTheDocument();
   });
 
   it("shows empty state when no entries", () => {
@@ -188,18 +190,81 @@ describe("EntryList — delete flow", () => {
   });
 });
 
-describe("EntryList — Reframe again", () => {
-  it("calls onReframeAgain when the link is clicked", async () => {
-    const onReframeAgain = vi.fn().mockResolvedValue(undefined);
-    renderList({ onReframeAgain });
-    await userEvent.click(screen.getByText("Reframe again"));
-    expect(onReframeAgain).toHaveBeenCalledWith("2");
+const baseCoachEntry: Entry = {
+  id: "e1",
+  date: "2026-04-01",
+  prompt: "What did you ship?",
+  original: "Led the migration",
+  reframed: null,
+  tags: ["technical"],
+  createdAt: "2026-04-01T18:00:00Z",
+  coachNotes: null,
+};
+
+const renderCoachList = (items: Entry[]) =>
+  render(
+    <EntryList
+      entries={items}
+      tags={[{ name: "technical", color: "#6B8AE0" }]}
+      onEditEntry={vi.fn()}
+      onDeleteEntry={vi.fn()}
+      onCoachAccept={vi.fn()}
+      onCoachDismiss={vi.fn()}
+    />
+  );
+
+describe("EntryList — coach affordance", () => {
+  it("shows the Talk-it-through button when coachNotes is null", () => {
+    renderCoachList([baseCoachEntry]);
+    expect(
+      screen.getByRole("button", { name: /talk it through/i })
+    ).toBeInTheDocument();
   });
 
-  it("shows an inline error if onReframeAgain rejects", async () => {
-    const onReframeAgain = vi.fn().mockRejectedValue(new Error("nope"));
-    renderList({ onReframeAgain });
-    await userEvent.click(screen.getByText("Reframe again"));
-    expect(await screen.findByText("Could not reframe")).toBeInTheDocument();
+  it("hides the Talk-it-through button when coachNotes is an empty array", () => {
+    renderCoachList([{ ...baseCoachEntry, coachNotes: [] }]);
+    expect(
+      screen.queryByRole("button", { name: /talk it through/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the Talk-it-through button when coachNotes is populated", () => {
+    renderCoachList([{ ...baseCoachEntry, coachNotes: ["hedging"] }]);
+    expect(
+      screen.queryByRole("button", { name: /talk it through/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders coach-note pills when coachNotes has entries", () => {
+    renderCoachList([
+      { ...baseCoachEntry, coachNotes: ["hedging", "missing-scope"] },
+    ]);
+    expect(screen.getByText("hedging")).toBeInTheDocument();
+    expect(screen.getByText("missing-scope")).toBeInTheDocument();
+  });
+
+  it("does not render the pill row when coachNotes is empty array", () => {
+    renderCoachList([{ ...baseCoachEntry, coachNotes: [] }]);
+    expect(screen.queryByText("hedging")).not.toBeInTheDocument();
+  });
+
+  it("mounts CoachPanel when Talk-it-through is clicked", async () => {
+    renderCoachList([baseCoachEntry]);
+    expect(screen.queryByTestId("mock-coach-panel")).not.toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: /talk it through/i })
+    );
+    expect(screen.getByTestId("mock-coach-panel")).toBeInTheDocument();
+  });
+
+  it("only one CoachPanel is open across multiple entries", async () => {
+    const second: Entry = { ...baseCoachEntry, id: "e2", date: "2026-04-02" };
+    renderCoachList([baseCoachEntry, second]);
+
+    const buttons = screen.getAllByRole("button", { name: /talk it through/i });
+    await userEvent.click(buttons[0]);
+    await userEvent.click(buttons[1]);
+
+    expect(screen.getAllByTestId("mock-coach-panel")).toHaveLength(1);
   });
 });

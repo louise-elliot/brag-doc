@@ -55,4 +55,20 @@ describe("ReframeView", () => {
     await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));
     expect(props.onDismiss).toHaveBeenCalled();
   });
+
+  it("renders coach notes as pills in a footer when provided", () => {
+    render(
+      <ReframeView
+        {...props}
+        coachNotes={["hedging", "missing-audience"]}
+      />
+    );
+    expect(screen.getByText("hedging")).toBeInTheDocument();
+    expect(screen.getByText("missing-audience")).toBeInTheDocument();
+  });
+
+  it("does not render the coach-notes footer when coachNotes is omitted", () => {
+    render(<ReframeView {...props} />);
+    expect(screen.queryByText("hedging")).not.toBeInTheDocument();
+  });
 });

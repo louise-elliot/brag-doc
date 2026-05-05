@@ -19,6 +19,7 @@ const entries: Entry[] = [
     reframed: null,
     tags: ["leadership"],
     createdAt: "2026-04-01T18:00:00Z",
+    coachNotes: null,
   },
 ];
 

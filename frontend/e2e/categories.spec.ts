@@ -1,13 +1,6 @@
 import { test, expect } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
-  await page.route("**/api/reframe", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ reframed: "Reframed." }),
-    })
-  );
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
   await page.reload();

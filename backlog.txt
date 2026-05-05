@@ -1,9 +1,6 @@
 AI to give feedback and suggestions - doesn't need to reframe everything
 Add Impact consideration - user can enter organisational goals/priorities, and AI coaches user to link daily entries to outcomes/impact 
 Storing common patterns for self-awareness 
-Multi-turn coaching conversation with AI
-Linked to AI coaching - can the AI learn from common patterns? 
-Refactor AI code into Python
 Guardrails 
 About page
 Improve daily prompts

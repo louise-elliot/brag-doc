@@ -9,7 +9,6 @@ interface EntryFormProps {
   availableTags: TagDef[];
   onSave: (data: { original: string; tags: string[] }) => void;
   onRefreshPrompt?: () => void;
-  saving?: boolean;
 }
 
 export function EntryForm({
@@ -17,7 +16,6 @@ export function EntryForm({
   availableTags,
   onSave,
   onRefreshPrompt,
-  saving = false,
 }: EntryFormProps) {
   const [text, setText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -188,7 +186,7 @@ export function EntryForm({
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <button
             type="submit"
-            disabled={!text.trim() || saving}
+            disabled={!text.trim()}
             style={{
               padding: "10px 28px",
               background: saved
@@ -200,8 +198,8 @@ export function EntryForm({
               fontWeight: 600,
               borderRadius: "var(--radius-sm)",
               border: "none",
-              cursor: text.trim() && !saving ? "pointer" : "not-allowed",
-              opacity: text.trim() && !saving ? 1 : 0.4,
+              cursor: text.trim() ? "pointer" : "not-allowed",
+              opacity: text.trim() ? 1 : 0.4,
               transition: "all 0.2s",
               animation: saved ? "saveFlash 0.6s ease" : "none",
             }}

@@ -6,4 +6,5 @@ export interface Entry {
   reframed: string | null;
   tags: string[];
   createdAt: string;
+  coachNotes: string[] | null;
 }
