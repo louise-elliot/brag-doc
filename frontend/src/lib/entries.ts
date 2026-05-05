@@ -7,7 +7,11 @@ function readEntries(): Entry[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((e) => ({
+      ...e,
+      coachNotes: e.coachNotes ?? null,
+    }));
   } catch {
     return [];
   }
@@ -44,7 +48,7 @@ export function addEntry(
 
 export function updateEntry(
   id: string,
-  updates: Partial<Pick<Entry, "original" | "reframed" | "tags">>
+  updates: Partial<Pick<Entry, "original" | "reframed" | "tags" | "coachNotes">>
 ): void {
   const entries = readEntries();
   const index = entries.findIndex((e) => e.id === id);

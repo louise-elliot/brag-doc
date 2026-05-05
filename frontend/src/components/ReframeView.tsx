@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { CoachNotePills } from "./CoachNotePills";
 
 interface ReframeViewProps {
   original: string;
   reframed: string;
   onAccept: (finalText: string) => void;
   onDismiss: () => void;
+  coachNotes?: string[] | null;
 }
 
 export function ReframeView({
@@ -14,6 +16,7 @@ export function ReframeView({
   reframed,
   onAccept,
   onDismiss,
+  coachNotes,
 }: ReframeViewProps) {
   const [edited, setEdited] = useState(reframed);
 
@@ -189,6 +192,32 @@ export function ReframeView({
           Dismiss
         </button>
       </div>
+
+      {coachNotes && coachNotes.length > 0 && (
+        <div
+          style={{
+            padding: "16px 24px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            borderTop: "1px solid var(--color-border-subtle)",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--color-text-tertiary)",
+            }}
+          >
+            What the coach noticed
+          </span>
+          <CoachNotePills notes={coachNotes} />
+        </div>
+      )}
     </div>
   );
 }

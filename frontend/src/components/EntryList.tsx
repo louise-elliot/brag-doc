@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { Entry } from "@/lib/types";
 import { tagColorFor, type TagDef } from "@/lib/tags";
 import { TagPicker } from "./TagPicker";
+import { CoachPanel } from "./CoachPanel";
+import { CoachNotePills } from "./CoachNotePills";
 
 interface EntryListProps {
   entries: Entry[];
@@ -13,7 +15,8 @@ interface EntryListProps {
     updates: { original?: string; tags?: string[] }
   ) => void;
   onDeleteEntry: (id: string) => void;
-  onReframeAgain: (id: string) => Promise<void> | void;
+  onCoachAccept: (entryId: string, reframed: string, notes: string[]) => void;
+  onCoachDismiss: (entryId: string) => void;
 }
 
 type ActiveRow = { id: string; mode: "edit" | "delete" } | null;
@@ -23,12 +26,12 @@ export function EntryList({
   tags,
   onEditEntry,
   onDeleteEntry,
-  onReframeAgain,
+  onCoachAccept,
+  onCoachDismiss,
 }: EntryListProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeRow, setActiveRow] = useState<ActiveRow>(null);
-  const [reframingId, setReframingId] = useState<string | null>(null);
-  const [reframeErrorId, setReframeErrorId] = useState<string | null>(null);
+  const [coachOpenId, setCoachOpenId] = useState<string | null>(null);
 
   if (entries.length === 0) {
     return (
@@ -45,18 +48,6 @@ export function EntryList({
       else next.add(id);
       return next;
     });
-  }
-
-  async function handleReframeAgain(id: string) {
-    setReframingId(id);
-    setReframeErrorId(null);
-    try {
-      await onReframeAgain(id);
-    } catch {
-      setReframeErrorId(id);
-    } finally {
-      setReframingId(null);
-    }
   }
 
   return (
@@ -132,14 +123,57 @@ export function EntryList({
                 onCancel={() => setActiveRow(null)}
               />
             ) : (
-              <EntryRowBody
-                entry={entry}
-                expanded={expanded.has(entry.id)}
-                onToggleReframed={() => toggleExpanded(entry.id)}
-                onReframeAgain={() => handleReframeAgain(entry.id)}
-                reframing={reframingId === entry.id}
-                reframeError={reframeErrorId === entry.id}
-              />
+              <>
+                <EntryRowBody
+                  entry={entry}
+                  expanded={expanded.has(entry.id)}
+                  onToggleReframed={() => toggleExpanded(entry.id)}
+                />
+                {entry.coachNotes && entry.coachNotes.length > 0 && (
+                  <div style={{ marginTop: "8px" }}>
+                    <CoachNotePills notes={entry.coachNotes} />
+                  </div>
+                )}
+                {entry.coachNotes === null && coachOpenId !== entry.id && (
+                  <button
+                    type="button"
+                    onClick={() => setCoachOpenId(entry.id)}
+                    style={{
+                      marginTop: "10px",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "11px",
+                      color: "var(--color-accent)",
+                      background: "none",
+                      border: "1px solid var(--color-accent-border)",
+                      borderRadius: "var(--radius-sm)",
+                      padding: "6px 12px",
+                      cursor: "pointer",
+                      letterSpacing: "0.03em",
+                    }}
+                  >
+                    Talk it through with the coach
+                  </button>
+                )}
+                {coachOpenId === entry.id && (
+                  <CoachPanel
+                    entry={{
+                      id: entry.id,
+                      original: entry.original,
+                      prompt: entry.prompt,
+                      tags: entry.tags,
+                    }}
+                    onAccept={(reframed, notes) => {
+                      onCoachAccept(entry.id, reframed, notes);
+                      setCoachOpenId(null);
+                    }}
+                    onDismiss={() => {
+                      onCoachDismiss(entry.id);
+                      setCoachOpenId(null);
+                    }}
+                    onClose={() => setCoachOpenId(null)}
+                  />
+                )}
+              </>
             )}
           </div>
         );
@@ -314,18 +348,12 @@ interface EntryRowBodyProps {
   entry: Entry;
   expanded: boolean;
   onToggleReframed: () => void;
-  onReframeAgain: () => void;
-  reframing: boolean;
-  reframeError: boolean;
 }
 
 function EntryRowBody({
   entry,
   expanded,
   onToggleReframed,
-  onReframeAgain,
-  reframing,
-  reframeError,
 }: EntryRowBodyProps) {
   return (
     <div>
@@ -338,7 +366,7 @@ function EntryRowBody({
       >
         {entry.original}
       </p>
-      {entry.reframed ? (
+      {entry.reframed && (
         <>
           <button
             onClick={onToggleReframed}
@@ -372,46 +400,6 @@ function EntryRowBody({
             </p>
           )}
         </>
-      ) : (
-        <div
-          style={{
-            marginTop: "8px",
-            display: "flex",
-            gap: "10px",
-            alignItems: "center",
-          }}
-        >
-          <button
-            type="button"
-            onClick={onReframeAgain}
-            disabled={reframing}
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-              color: "var(--color-accent)",
-              background: "none",
-              border: "none",
-              cursor: reframing ? "default" : "pointer",
-              padding: "0",
-              letterSpacing: "0.03em",
-              opacity: reframing ? 0.6 : 1,
-            }}
-          >
-            {reframing ? "Reframing..." : "Reframe again"}
-          </button>
-          {reframeError && (
-            <span
-              role="alert"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                color: "var(--color-danger)",
-              }}
-            >
-              Could not reframe
-            </span>
-          )}
-        </div>
       )}
     </div>
   );

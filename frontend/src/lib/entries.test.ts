@@ -18,6 +18,7 @@ function makeEntry(overrides: Partial<Entry> = {}): Omit<Entry, "id" | "createdA
     original: "I helped the team fix a bug",
     reframed: null,
     tags: ["technical"],
+    coachNotes: null,
     ...overrides,
   };
 }
@@ -199,5 +200,81 @@ describe("editEntry", () => {
     addEntry(makeEntry({ original: "original text" }));
     editEntry("not-a-real-id", { original: "new text" });
     expect(getEntries()[0].original).toBe("original text");
+  });
+});
+
+describe("coachNotes handling", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("normalises a missing coachNotes field to null when reading", () => {
+    const legacy = [
+      {
+        id: "1",
+        date: "2026-04-01",
+        prompt: "What impact?",
+        original: "Did a thing",
+        reframed: null,
+        tags: [],
+        createdAt: "2026-04-01T18:00:00Z",
+      },
+    ];
+    localStorage.setItem(
+      "confidence-journal-entries",
+      JSON.stringify(legacy)
+    );
+
+    const entries = getEntries();
+
+    expect(entries[0].coachNotes).toBeNull();
+  });
+
+  it("addEntry persists coachNotes when provided", () => {
+    addEntry({
+      date: "2026-05-01",
+      prompt: "What impact?",
+      original: "Led the rollout",
+      reframed: null,
+      tags: ["leadership"],
+      coachNotes: ["minimising-language"],
+    });
+
+    expect(getEntries()[0].coachNotes).toEqual(["minimising-language"]);
+  });
+
+  it("updateEntry can set coachNotes to an empty array", () => {
+    const entry = addEntry({
+      date: "2026-05-01",
+      prompt: "What?",
+      original: "x",
+      reframed: null,
+      tags: [],
+      coachNotes: null,
+    });
+
+    updateEntry(entry.id, { coachNotes: [] });
+
+    expect(getEntries()[0].coachNotes).toEqual([]);
+  });
+
+  it("updateEntry can set both reframed and coachNotes atomically", () => {
+    const entry = addEntry({
+      date: "2026-05-01",
+      prompt: "What?",
+      original: "x",
+      reframed: null,
+      tags: [],
+      coachNotes: null,
+    });
+
+    updateEntry(entry.id, {
+      reframed: "X (reframed)",
+      coachNotes: ["minimising-language", "missing-metrics"],
+    });
+
+    const result = getEntries()[0];
+    expect(result.reframed).toBe("X (reframed)");
+    expect(result.coachNotes).toEqual(["minimising-language", "missing-metrics"]);
   });
 });

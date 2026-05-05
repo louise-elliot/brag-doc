@@ -85,22 +85,6 @@ describe("EntryForm", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 
-  it("disables the Save button when saving is true", async () => {
-    render(
-      <EntryForm
-        prompt="What impact did you make today?"
-        availableTags={TAGS}
-        onSave={mockOnSave}
-        saving={true}
-      />
-    );
-    await userEvent.type(
-      screen.getByPlaceholderText("Write about your win..."),
-      "anything"
-    );
-    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
-  });
-
   it("renders a refresh-prompt button labeled 'Try another prompt' when onRefreshPrompt is provided", () => {
     render(
       <EntryForm

@@ -1,13 +1,13 @@
-AI to give feedback and suggestions - doesn't need to reframe everything
+Add 'My role' in settings
 Add Impact consideration - user can enter organisational goals/priorities, and AI coaches user to link daily entries to outcomes/impact 
 Storing common patterns for self-awareness 
-Multi-turn coaching conversation with AI
-Linked to AI coaching - can the AI learn from common patterns? 
-Refactor AI code into Python
 Guardrails 
 About page
-Improve daily prompts
 Auth and rate limiting for the Python LLM service
 Request logging, observability, and cost tracking for the LLM service
 Hosting and deployment configuration for the Python LLM service
 Streaming LLM responses
+Confirm if brag doc generator considers reframed entries or just original? 
+
+
+

@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const pythonUrl =
-    process.env.PYTHON_SERVICE_URL ?? "http://localhost:8000";
+  const pythonUrl = process.env.PYTHON_SERVICE_URL ?? "http://localhost:8000";
   const body = await request.text();
   try {
-    const upstream = await fetch(`${pythonUrl}/reframe`, {
+    const upstream = await fetch(`${pythonUrl}/coach/turn`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body,
@@ -16,9 +15,9 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("reframe proxy failed to reach Python service", error);
+    console.error("coach turn proxy failed to reach Python service", error);
     return NextResponse.json(
-      { error: "Reframe failed" },
+      { error: "Coach turn failed" },
       { status: 502 }
     );
   }

@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { EntryForm } from "./EntryForm";
 import { EntryList } from "./EntryList";
-import { ReframeView } from "./ReframeView";
 import { BragDoc } from "./BragDoc";
 import { Settings } from "./Settings";
 import {
@@ -31,13 +30,6 @@ const TABS: { key: Tab; label: string }[] = [
 export function App() {
   const [tab, setTab] = useState<Tab>("journal");
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [reframing, setReframing] = useState<{
-    entryId: string;
-    original: string;
-    reframed: string;
-  } | null>(null);
-  const [reframeLoading, setReframeLoading] = useState(false);
-  const [reframeError, setReframeError] = useState<string | null>(null);
 
   const today = todayLocal();
   const [prompt, setPrompt] = useState<string>(() => getPromptForDate(today));
@@ -57,6 +49,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe load from localStorage
     refreshEntries();
     refreshTags();
   }, [refreshEntries, refreshTags]);
@@ -83,49 +76,26 @@ export function App() {
     refreshEntries();
   }
 
-  async function handleSave(data: { original: string; tags: string[] }) {
-    const entry = addEntry({
+  function handleSave(data: { original: string; tags: string[] }) {
+    addEntry({
       date: today,
       prompt,
       original: data.original,
       reframed: null,
       tags: data.tags,
+      coachNotes: null,
     });
     refreshEntries();
-
-    setReframeLoading(true);
-    setReframeError(null);
-    try {
-      const response = await fetch("/api/reframe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: data.original }),
-      });
-      if (!response.ok) throw new Error("Reframe failed");
-      const result = await response.json();
-      updateEntry(entry.id, { reframed: result.reframed });
-      refreshEntries();
-      setReframing({
-        entryId: entry.id,
-        original: data.original,
-        reframed: result.reframed,
-      });
-    } catch {
-      setReframeError("Could not reframe your entry. It has been saved as-is.");
-    } finally {
-      setReframeLoading(false);
-    }
   }
 
-  function handleAcceptReframe(finalText: string) {
-    if (!reframing) return;
-    updateEntry(reframing.entryId, { original: finalText, reframed: finalText });
+  function handleCoachAccept(id: string, reframed: string, notes: string[]) {
+    updateEntry(id, { reframed, coachNotes: notes });
     refreshEntries();
-    setReframing(null);
   }
 
-  function handleDismissReframe() {
-    setReframing(null);
+  function handleCoachDismiss(id: string) {
+    updateEntry(id, { coachNotes: [] });
+    refreshEntries();
   }
 
   function handleEditEntry(
@@ -138,20 +108,6 @@ export function App() {
 
   function handleDeleteEntry(id: string) {
     deleteEntry(id);
-    refreshEntries();
-  }
-
-  async function handleReframeAgain(id: string) {
-    const current = getEntries().find((e) => e.id === id);
-    if (!current) return;
-    const response = await fetch("/api/reframe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: current.original }),
-    });
-    if (!response.ok) throw new Error("Reframe failed");
-    const result = await response.json();
-    updateEntry(id, { reframed: result.reframed });
     refreshEntries();
   }
 
@@ -266,51 +222,8 @@ export function App() {
                   availableTags={tags}
                   onSave={handleSave}
                   onRefreshPrompt={handleRefreshPrompt}
-                  saving={reframeLoading}
                 />
               </div>
-
-              {reframeLoading && (
-                <p
-                  role="status"
-                  aria-live="polite"
-                  style={{
-                    color: "var(--color-text-tertiary)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "11px",
-                    letterSpacing: "0.05em",
-                    marginTop: "24px",
-                    animation: "shimmer 1.5s ease-in-out infinite",
-                  }}
-                >
-                  Reframing your entry...
-                </p>
-              )}
-
-              {reframeError && (
-                <p
-                  role="alert"
-                  aria-live="assertive"
-                  style={{
-                    color: "var(--color-danger)",
-                    fontSize: "14px",
-                    marginTop: "24px",
-                  }}
-                >
-                  {reframeError}
-                </p>
-              )}
-
-              {reframing && (
-                <div style={{ marginTop: "24px" }}>
-                  <ReframeView
-                    original={reframing.original}
-                    reframed={reframing.reframed}
-                    onAccept={handleAcceptReframe}
-                    onDismiss={handleDismissReframe}
-                  />
-                </div>
-              )}
 
               <div
                 style={{ marginTop: "48px" }}
@@ -356,7 +269,8 @@ export function App() {
                   tags={tags}
                   onEditEntry={handleEditEntry}
                   onDeleteEntry={handleDeleteEntry}
-                  onReframeAgain={handleReframeAgain}
+                  onCoachAccept={handleCoachAccept}
+                  onCoachDismiss={handleCoachDismiss}
                 />
               </div>
             </div>

@@ -102,28 +102,24 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
-  it("save → reframe → accept overwrites the stored entry's original text", async () => {
-    // Bring the mocked updateEntry into scope so we can assert on it.
-    const { updateEntry } = await import("@/lib/entries");
+  it("save persists the entry without triggering any AI call", async () => {
+    const { addEntry } = await import("@/lib/entries");
 
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ reframed: "Led the release" }),
-    });
+    const fetchSpy = vi.fn();
+    global.fetch = fetchSpy;
 
     render(<App />);
     const textarea = screen.getByPlaceholderText("Write about your win...");
     await userEvent.type(textarea, "I helped with the release");
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
-    // Wait for ReframeView to appear (identified by its Accept button)
-    await screen.findByRole("button", { name: "Accept" });
-    await userEvent.click(screen.getByRole("button", { name: "Accept" }));
-
-    // Accept seeded from the reframed text, no edits made
-    expect(updateEntry).toHaveBeenLastCalledWith("1", {
-      original: "Led the release",
-      reframed: "Led the release",
-    });
+    expect(addEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        original: "I helped with the release",
+        coachNotes: null,
+        reframed: null,
+      })
+    );
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
