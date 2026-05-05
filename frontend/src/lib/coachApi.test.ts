@@ -20,7 +20,7 @@ describe("coachApi", () => {
   it("coachTurn POSTs to /api/coach/turn and returns parsed JSON", async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       new Response(
-        JSON.stringify({ text: "Who benefited?", notes: ["missing-audience"] }),
+        JSON.stringify({ text: "Who benefited?", notes: ["vague-language"] }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       )
     );
@@ -35,7 +35,7 @@ describe("coachApi", () => {
         body: JSON.stringify(sampleArgs),
       })
     );
-    expect(result).toEqual({ text: "Who benefited?", notes: ["missing-audience"] });
+    expect(result).toEqual({ text: "Who benefited?", notes: ["vague-language"] });
   });
 
   it("coachTurn throws when the response is not ok", async () => {
@@ -49,7 +49,7 @@ describe("coachApi", () => {
   it("coachReframe POSTs to /api/coach/reframe and returns parsed JSON", async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       new Response(
-        JSON.stringify({ reframed: "Led the rollout for 40 engineers", notes: ["hedging"] }),
+        JSON.stringify({ reframed: "Led the rollout for 40 engineers", notes: ["minimising-language"] }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       )
     );
@@ -66,7 +66,7 @@ describe("coachApi", () => {
     );
     expect(result).toEqual({
       reframed: "Led the rollout for 40 engineers",
-      notes: ["hedging"],
+      notes: ["minimising-language"],
     });
   });
 

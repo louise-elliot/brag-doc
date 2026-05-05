@@ -24,7 +24,7 @@ const entries: Entry[] = [
     reframed: "Drove architectural decisions for the team",
     tags: ["leadership"],
     createdAt: "2026-04-01T18:00:00Z",
-    coachNotes: ["hedging"],
+    coachNotes: ["minimising-language"],
   },
   {
     id: "2",
@@ -229,7 +229,7 @@ describe("EntryList — coach affordance", () => {
   });
 
   it("hides the Talk-it-through button when coachNotes is populated", () => {
-    renderCoachList([{ ...baseCoachEntry, coachNotes: ["hedging"] }]);
+    renderCoachList([{ ...baseCoachEntry, coachNotes: ["minimising-language"] }]);
     expect(
       screen.queryByRole("button", { name: /talk it through/i })
     ).not.toBeInTheDocument();
@@ -237,15 +237,15 @@ describe("EntryList — coach affordance", () => {
 
   it("renders coach-note pills when coachNotes has entries", () => {
     renderCoachList([
-      { ...baseCoachEntry, coachNotes: ["hedging", "missing-scope"] },
+      { ...baseCoachEntry, coachNotes: ["minimising-language", "missing-metrics"] },
     ]);
-    expect(screen.getByText("hedging")).toBeInTheDocument();
-    expect(screen.getByText("missing-scope")).toBeInTheDocument();
+    expect(screen.getByText("minimising-language")).toBeInTheDocument();
+    expect(screen.getByText("missing-metrics")).toBeInTheDocument();
   });
 
   it("does not render the pill row when coachNotes is empty array", () => {
     renderCoachList([{ ...baseCoachEntry, coachNotes: [] }]);
-    expect(screen.queryByText("hedging")).not.toBeInTheDocument();
+    expect(screen.queryByText("minimising-language")).not.toBeInTheDocument();
   });
 
   it("mounts CoachPanel when Talk-it-through is clicked", async () => {

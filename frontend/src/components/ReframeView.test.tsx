@@ -60,15 +60,15 @@ describe("ReframeView", () => {
     render(
       <ReframeView
         {...props}
-        coachNotes={["hedging", "missing-audience"]}
+        coachNotes={["minimising-language", "vague-language"]}
       />
     );
-    expect(screen.getByText("hedging")).toBeInTheDocument();
-    expect(screen.getByText("missing-audience")).toBeInTheDocument();
+    expect(screen.getByText("minimising-language")).toBeInTheDocument();
+    expect(screen.getByText("vague-language")).toBeInTheDocument();
   });
 
   it("does not render the coach-notes footer when coachNotes is omitted", () => {
     render(<ReframeView {...props} />);
-    expect(screen.queryByText("hedging")).not.toBeInTheDocument();
+    expect(screen.queryByText("minimising-language")).not.toBeInTheDocument();
   });
 });

@@ -237,10 +237,10 @@ describe("coachNotes handling", () => {
       original: "Led the rollout",
       reframed: null,
       tags: ["leadership"],
-      coachNotes: ["hedging"],
+      coachNotes: ["minimising-language"],
     });
 
-    expect(getEntries()[0].coachNotes).toEqual(["hedging"]);
+    expect(getEntries()[0].coachNotes).toEqual(["minimising-language"]);
   });
 
   it("updateEntry can set coachNotes to an empty array", () => {
@@ -270,11 +270,11 @@ describe("coachNotes handling", () => {
 
     updateEntry(entry.id, {
       reframed: "X (reframed)",
-      coachNotes: ["hedging", "missing-scope"],
+      coachNotes: ["minimising-language", "missing-metrics"],
     });
 
     const result = getEntries()[0];
     expect(result.reframed).toBe("X (reframed)");
-    expect(result.coachNotes).toEqual(["hedging", "missing-scope"]);
+    expect(result.coachNotes).toEqual(["minimising-language", "missing-metrics"]);
   });
 });

@@ -4,9 +4,9 @@ import { CoachNotePills } from "./CoachNotePills";
 
 describe("CoachNotePills", () => {
   it("renders a pill for each note", () => {
-    render(<CoachNotePills notes={["hedging", "missing-scope"]} />);
-    expect(screen.getByText("hedging")).toBeInTheDocument();
-    expect(screen.getByText("missing-scope")).toBeInTheDocument();
+    render(<CoachNotePills notes={["minimising-language", "missing-metrics"]} />);
+    expect(screen.getByText("minimising-language")).toBeInTheDocument();
+    expect(screen.getByText("missing-metrics")).toBeInTheDocument();
   });
 
   it("renders nothing when notes is null", () => {

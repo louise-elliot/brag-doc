@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
       turnCalls === 1
         ? {
             text: "Who specifically benefited from the migration?",
-            notes: ["missing-audience"],
+            notes: ["vague-language"],
           }
         : { text: "How big was the impact?", notes: [] };
     await route.fulfill({
@@ -23,7 +23,7 @@ test.beforeEach(async ({ page }) => {
       contentType: "application/json",
       body: JSON.stringify({
         reframed: "Led the migration that unblocked 40 platform engineers",
-        notes: ["hedging", "missing-audience"],
+        notes: ["minimising-language", "vague-language"],
       }),
     })
   );
@@ -50,7 +50,7 @@ test("user can talk through an entry with the coach and accept the reframe", asy
   await expect(
     page.locator("text=Who specifically benefited from the migration?")
   ).toBeVisible();
-  await expect(page.locator("text=missing-audience").first()).toBeVisible();
+  await expect(page.locator("text=vague-language").first()).toBeVisible();
 
   await page.fill(
     'textarea[id^="coach-reply-"]',
@@ -70,7 +70,7 @@ test("user can talk through an entry with the coach and accept the reframe", asy
 
   await page.click('button:has-text("Accept")');
 
-  await expect(page.locator("text=hedging").first()).toBeVisible();
+  await expect(page.locator("text=minimising-language").first()).toBeVisible();
   await expect(
     page.locator('button:has-text("Talk it through with the coach")')
   ).toHaveCount(0);

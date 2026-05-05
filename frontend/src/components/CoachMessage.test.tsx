@@ -14,16 +14,16 @@ describe("CoachMessage", () => {
       <CoachMessage
         role="coach"
         text="Who benefited?"
-        notes={["hedging", "missing-audience"]}
+        notes={["minimising-language", "vague-language"]}
       />
     );
-    expect(screen.getByText("hedging")).toBeInTheDocument();
-    expect(screen.getByText("missing-audience")).toBeInTheDocument();
+    expect(screen.getByText("minimising-language")).toBeInTheDocument();
+    expect(screen.getByText("vague-language")).toBeInTheDocument();
   });
 
   it("does not render notes for user messages", () => {
-    render(<CoachMessage role="user" text="The platform team" notes={["hedging"]} />);
-    expect(screen.queryByText("hedging")).not.toBeInTheDocument();
+    render(<CoachMessage role="user" text="The platform team" notes={["minimising-language"]} />);
+    expect(screen.queryByText("minimising-language")).not.toBeInTheDocument();
   });
 
   it("renders user text in a user bubble with role label", () => {

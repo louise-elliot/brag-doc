@@ -21,7 +21,7 @@ describe("CoachPanel — chatting phase", () => {
       .spyOn(coachApi, "coachTurn")
       .mockResolvedValueOnce({
         text: "Who benefited from the migration?",
-        notes: ["missing-audience"],
+        notes: ["vague-language"],
       });
 
     render(
@@ -38,7 +38,7 @@ describe("CoachPanel — chatting phase", () => {
         screen.getByText("Who benefited from the migration?")
       ).toBeInTheDocument()
     );
-    expect(screen.getByText("missing-audience")).toBeInTheDocument();
+    expect(screen.getByText("vague-language")).toBeInTheDocument();
     expect(turn).toHaveBeenCalledWith({
       entry_text: baseEntry.original,
       prompt: baseEntry.prompt,
@@ -49,7 +49,7 @@ describe("CoachPanel — chatting phase", () => {
 
   it("sends the user's reply and renders the next coach turn", async () => {
     vi.spyOn(coachApi, "coachTurn")
-      .mockResolvedValueOnce({ text: "Who benefited?", notes: ["missing-audience"] })
+      .mockResolvedValueOnce({ text: "Who benefited?", notes: ["vague-language"] })
       .mockResolvedValueOnce({ text: "What did it unblock for them?", notes: [] });
 
     render(
@@ -123,11 +123,11 @@ describe("CoachPanel — reframing phase", () => {
   it("calls coachReframe with the full conversation when Reframe it now is clicked", async () => {
     vi.spyOn(coachApi, "coachTurn").mockResolvedValueOnce({
       text: "Who benefited?",
-      notes: ["missing-audience"],
+      notes: ["vague-language"],
     });
     const reframeSpy = vi
       .spyOn(coachApi, "coachReframe")
-      .mockResolvedValueOnce({ reframed: "Polished version", notes: ["hedging"] });
+      .mockResolvedValueOnce({ reframed: "Polished version", notes: ["minimising-language"] });
 
     render(
       <CoachPanel
@@ -157,7 +157,7 @@ describe("CoachPanel — reframing phase", () => {
     });
     vi.spyOn(coachApi, "coachReframe").mockResolvedValueOnce({
       reframed: "Led the migration that unblocked 40 engineers",
-      notes: ["hedging", "missing-audience"],
+      notes: ["minimising-language", "vague-language"],
     });
 
     render(
@@ -177,7 +177,7 @@ describe("CoachPanel — reframing phase", () => {
         "Led the migration that unblocked 40 engineers"
       )
     ).toBeInTheDocument();
-    expect(screen.getByText("hedging")).toBeInTheDocument();
+    expect(screen.getByText("minimising-language")).toBeInTheDocument();
   });
 
   it("calls onAccept with the (possibly edited) reframed text and notes when Accept is clicked", async () => {
@@ -187,7 +187,7 @@ describe("CoachPanel — reframing phase", () => {
     });
     vi.spyOn(coachApi, "coachReframe").mockResolvedValueOnce({
       reframed: "Polished",
-      notes: ["hedging"],
+      notes: ["minimising-language"],
     });
     const onAccept = vi.fn();
 
@@ -205,7 +205,7 @@ describe("CoachPanel — reframing phase", () => {
     await screen.findByDisplayValue("Polished");
     await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
 
-    expect(onAccept).toHaveBeenCalledWith("Polished", ["hedging"]);
+    expect(onAccept).toHaveBeenCalledWith("Polished", ["minimising-language"]);
   });
 
   it("calls onDismiss when Dismiss is clicked on the reframe view", async () => {
