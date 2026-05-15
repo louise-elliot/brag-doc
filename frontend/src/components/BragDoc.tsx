@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Entry } from "@/lib/types";
 import { computeDateRange, type Timeframe } from "@/lib/dates";
 import { tagColorFromHex, type TagDef } from "@/lib/tags";
+import { readSettings, serializeContext } from "@/lib/settings";
 
 interface BragDocProps {
   entries: Entry[];
@@ -101,6 +102,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
           entries: filtered,
           groupBy,
           ...(trimmedPrompt && { userPrompt: trimmedPrompt }),
+          user_context: serializeContext(readSettings()),
         }),
       });
 

@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CoachPanel } from "./CoachPanel";
 import * as coachApi from "@/lib/coachApi";
+import { writeSettings } from "@/lib/settings";
 
 const baseEntry = {
   id: "e1",
@@ -14,6 +15,7 @@ const baseEntry = {
 describe("CoachPanel — chatting phase", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    localStorage.clear();
   });
 
   it("fetches the first coach turn on mount and renders it", async () => {
@@ -39,12 +41,14 @@ describe("CoachPanel — chatting phase", () => {
       ).toBeInTheDocument()
     );
     expect(screen.getByText("vague-language")).toBeInTheDocument();
-    expect(turn).toHaveBeenCalledWith({
-      entry_text: baseEntry.original,
-      prompt: baseEntry.prompt,
-      tags: baseEntry.tags,
-      conversation: [],
-    });
+    expect(turn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entry_text: baseEntry.original,
+        prompt: baseEntry.prompt,
+        tags: baseEntry.tags,
+        conversation: [],
+      })
+    );
   });
 
   it("sends the user's reply and renders the next coach turn", async () => {
@@ -118,6 +122,7 @@ describe("CoachPanel — chatting phase", () => {
 describe("CoachPanel — reframing phase", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    localStorage.clear();
   });
 
   it("calls coachReframe with the full conversation when Reframe it now is clicked", async () => {
@@ -259,5 +264,105 @@ describe("CoachPanel — reframing phase", () => {
       await screen.findByText(/coach didn['']t respond/i)
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+  });
+});
+
+describe("CoachPanel — settings forwarding", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    localStorage.clear();
+  });
+
+  it("sends the user's coaching_style and serialized user_context on the first turn", async () => {
+    writeSettings({
+      coachingStyle: "hype-woman",
+      contextHeadline: "Senior PM",
+      contextNotes: "Pre-promo to director",
+    });
+    const turn = vi.spyOn(coachApi, "coachTurn").mockResolvedValueOnce({
+      text: "Hi",
+      notes: [],
+    });
+
+    render(
+      <CoachPanel
+        entry={baseEntry}
+        onAccept={vi.fn()}
+        onDismiss={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    await waitFor(() => expect(turn).toHaveBeenCalled());
+    expect(turn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        coaching_style: "hype-woman",
+        user_context: { headline: "Senior PM", notes: "Pre-promo to director" },
+      })
+    );
+  });
+
+  it("sends user_context: null when both context fields are blank", async () => {
+    writeSettings({
+      coachingStyle: "trusted-mentor",
+      contextHeadline: "",
+      contextNotes: "",
+    });
+    const turn = vi.spyOn(coachApi, "coachTurn").mockResolvedValueOnce({
+      text: "Hi",
+      notes: [],
+    });
+
+    render(
+      <CoachPanel
+        entry={baseEntry}
+        onAccept={vi.fn()}
+        onDismiss={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    await waitFor(() => expect(turn).toHaveBeenCalled());
+    expect(turn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        coaching_style: "trusted-mentor",
+        user_context: null,
+      })
+    );
+  });
+
+  it("forwards coaching_style and user_context on the reframe call", async () => {
+    writeSettings({
+      coachingStyle: "bold-coach",
+      contextHeadline: "Staff IC",
+      contextNotes: "",
+    });
+    vi.spyOn(coachApi, "coachTurn").mockResolvedValueOnce({
+      text: "Hi",
+      notes: [],
+    });
+    const reframeSpy = vi
+      .spyOn(coachApi, "coachReframe")
+      .mockResolvedValueOnce({ reframed: "Polished", notes: [] });
+
+    render(
+      <CoachPanel
+        entry={baseEntry}
+        onAccept={vi.fn()}
+        onDismiss={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    await screen.findByText("Hi");
+    await userEvent.click(screen.getByRole("button", { name: /reframe it now/i }));
+
+    await waitFor(() => expect(reframeSpy).toHaveBeenCalled());
+    expect(reframeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        coaching_style: "bold-coach",
+        user_context: { headline: "Staff IC", notes: "" },
+      })
+    );
   });
 });

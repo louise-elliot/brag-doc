@@ -8,6 +8,6 @@ Request logging, observability, and cost tracking for the LLM service
 Hosting and deployment configuration for the Python LLM service
 Streaming LLM responses
 Confirm if brag doc generator considers reframed entries or just original? 
-
+Different AI personalities / coaching styles 
 
 

@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   PALETTE,
   isDuplicateName,
   nextUnusedColor,
   type TagDef,
 } from "@/lib/tags";
+import {
+  COACHING_STYLE_OPTIONS,
+  DEFAULT_USER_SETTINGS,
+  type CoachingStyle,
+} from "@/lib/types";
+import { readSettings, writeSettings } from "@/lib/settings";
 
 interface SettingsProps {
   tags: TagDef[];
@@ -27,6 +33,8 @@ export function Settings({
 
   return (
     <div style={{ paddingTop: "48px", display: "flex", flexDirection: "column", gap: "24px" }}>
+      <CoachingStyleCard />
+      <ContextCard />
       <CategoriesCard
         tags={tags}
         onAddTag={onAddTag}
@@ -469,6 +477,232 @@ function DataCard({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ContextCard() {
+  const [headline, setHeadline] = useState(
+    DEFAULT_USER_SETTINGS.contextHeadline
+  );
+  const [notes, setNotes] = useState(DEFAULT_USER_SETTINGS.contextNotes);
+
+  useEffect(() => {
+    const stored = readSettings();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe load from localStorage
+    setHeadline(stored.contextHeadline);
+    setNotes(stored.contextNotes);
+  }, []);
+
+  return (
+    <div
+      style={{
+        background: "var(--color-surface)",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--color-border)",
+        padding: "28px",
+      }}
+    >
+      <h3
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "10px",
+          fontWeight: 600,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "var(--color-text-tertiary)",
+          marginBottom: "16px",
+        }}
+      >
+        Your Context
+      </h3>
+      <p
+        style={{
+          fontSize: "14px",
+          color: "var(--color-text-secondary)",
+          lineHeight: 1.6,
+          marginBottom: "20px",
+        }}
+      >
+        Helps the coach speak to where you are. None of this leaves your
+        browser unless an entry is being reframed or a brag doc is being
+        generated.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <label
+          style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--color-text-tertiary)",
+            }}
+          >
+            Headline
+          </span>
+          <input
+            aria-label="Headline"
+            value={headline}
+            placeholder="e.g. Senior backend engineer at a fintech series-B"
+            onChange={(e) => setHeadline(e.target.value)}
+            onBlur={(e) => writeSettings({ contextHeadline: e.currentTarget.value })}
+            style={{
+              background: "var(--color-surface-raised)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-sm)",
+              padding: "10px 12px",
+              fontFamily: "var(--font-body)",
+              fontSize: "14px",
+              color: "var(--color-text-primary)",
+              outline: "none",
+            }}
+          />
+        </label>
+        <label
+          style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--color-text-tertiary)",
+            }}
+          >
+            What else should the coach know?
+          </span>
+          <textarea
+            aria-label="What else should the coach know?"
+            value={notes}
+            placeholder="What are you working towards? What's invisible in your org? What does your manager value?"
+            rows={5}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={(e) => writeSettings({ contextNotes: e.currentTarget.value })}
+            style={{
+              background: "var(--color-surface-raised)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-sm)",
+              padding: "10px 12px",
+              fontFamily: "var(--font-body)",
+              fontSize: "14px",
+              color: "var(--color-text-primary)",
+              outline: "none",
+              resize: "vertical",
+              minHeight: "100px",
+            }}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+function CoachingStyleCard() {
+  const [style, setStyle] = useState<CoachingStyle>(
+    DEFAULT_USER_SETTINGS.coachingStyle
+  );
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe load from localStorage
+    setStyle(readSettings().coachingStyle);
+  }, []);
+
+  function pick(next: CoachingStyle) {
+    setStyle(next);
+    writeSettings({ coachingStyle: next });
+  }
+
+  return (
+    <div
+      style={{
+        background: "var(--color-surface)",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--color-border)",
+        padding: "28px",
+      }}
+    >
+      <h3
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "10px",
+          fontWeight: 600,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "var(--color-text-tertiary)",
+          marginBottom: "16px",
+        }}
+      >
+        Coaching Style
+      </h3>
+      <p
+        style={{
+          fontSize: "14px",
+          color: "var(--color-text-secondary)",
+          lineHeight: 1.6,
+          marginBottom: "20px",
+        }}
+      >
+        Pick the voice that works best for you. You can change this any time.
+      </p>
+      <div
+        role="radiogroup"
+        aria-label="Coaching style"
+        style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+      >
+        {COACHING_STYLE_OPTIONS.map((option) => {
+          const selected = style === option.key;
+          return (
+            <button
+              key={option.key}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-label={option.label}
+              onClick={() => pick(option.key)}
+              style={{
+                textAlign: "left",
+                padding: "16px 18px",
+                background: selected
+                  ? "var(--color-accent-muted)"
+                  : "transparent",
+                border: selected
+                  ? "1px solid var(--color-accent-border)"
+                  : "1px solid var(--color-border)",
+                borderRadius: "var(--radius-md)",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "var(--color-text-primary)",
+                  marginBottom: "4px",
+                }}
+              >
+                {option.label}
+              </div>
+              <div
+                style={{
+                  fontSize: "13px",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: 1.5,
+                }}
+              >
+                {option.descriptor}
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

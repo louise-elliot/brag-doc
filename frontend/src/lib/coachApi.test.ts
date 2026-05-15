@@ -6,6 +6,8 @@ const sampleArgs = {
   prompt: "What did you ship?",
   tags: ["leadership"],
   conversation: [] as CoachMessage[],
+  coaching_style: "hype-woman" as const,
+  user_context: { headline: "Senior PM", notes: "Pre-promo to director" },
 };
 
 describe("coachApi", () => {
@@ -36,6 +38,28 @@ describe("coachApi", () => {
       })
     );
     expect(result).toEqual({ text: "Who benefited?", notes: ["vague-language"] });
+  });
+
+  it("coachTurn defaults are caller's responsibility — null user_context is sent verbatim", async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ text: "ok", notes: [] }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+    await coachTurn({
+      entry_text: "x",
+      prompt: "y",
+      tags: [],
+      conversation: [],
+      coaching_style: "trusted-mentor",
+      user_context: null,
+    });
+    const body = JSON.parse(
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body
+    );
+    expect(body.coaching_style).toBe("trusted-mentor");
+    expect(body.user_context).toBeNull();
   });
 
   it("coachTurn throws when the response is not ok", async () => {
