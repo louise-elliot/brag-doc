@@ -144,3 +144,31 @@ class TestBragDocEndpoint:
             "[2026-04-15] [technical, mentoring] Paired with junior on tricky migration"
             in user_content
         )
+
+
+class TestBragDocUserContext:
+    def test_includes_user_context_in_system_prompt_when_provided(
+        self, mock_client, http_client
+    ):
+        _mock_text_response(mock_client, '{"bullets": []}')
+        body = {
+            "entries": [],
+            "user_context": {"headline": "Staff IC", "notes": "year of impact"},
+        }
+
+        _post(http_client, body)
+
+        system = mock_client.messages.create.call_args.kwargs["system"]
+        assert "Staff IC" in system
+        assert "year of impact" in system
+
+    def test_omits_user_context_block_when_null(
+        self, mock_client, http_client
+    ):
+        _mock_text_response(mock_client, '{"bullets": []}')
+        body = {"entries": [], "user_context": None}
+
+        _post(http_client, body)
+
+        system = mock_client.messages.create.call_args.kwargs["system"]
+        assert "## About the user:" not in system

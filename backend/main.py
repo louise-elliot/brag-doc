@@ -5,9 +5,10 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import Literal
 
 from brag_doc import GroupBy, generate_brag_doc
-from coach import Message, coach_reframe, coach_turn
+from coach import Message, UserContext, coach_reframe, coach_turn
 
 load_dotenv()
 
@@ -18,6 +19,10 @@ app = FastAPI(title="Confidence Journal Backend")
 
 def get_anthropic_client() -> Anthropic:
     return Anthropic()
+
+CoachingStyle = Literal[
+    "trusted-mentor", "hype-woman", "direct-challenger", "bold-coach"
+]
 
 
 class Entry(BaseModel):
@@ -35,6 +40,7 @@ class BragDocRequest(BaseModel):
     entries: list[Entry]
     groupBy: GroupBy = "tag"
     userPrompt: str | None = None
+    user_context: UserContext | None = None
 
 
 class CoachTurnRequest(BaseModel):
@@ -42,6 +48,8 @@ class CoachTurnRequest(BaseModel):
     prompt: str
     tags: list[str]
     conversation: list[Message]
+    user_context: UserContext | None = None
+    coaching_style: CoachingStyle = "trusted-mentor"
 
 
 class CoachTurnResponse(BaseModel):
@@ -54,6 +62,8 @@ class CoachReframeRequest(BaseModel):
     prompt: str
     tags: list[str]
     conversation: list[Message]
+    user_context: UserContext | None = None
+    coaching_style: CoachingStyle = "trusted-mentor"
 
 
 class CoachReframeResponse(BaseModel):
@@ -76,6 +86,7 @@ def brag_doc_route(
             entries=[e.model_dump() for e in body.entries],
             group_by=body.groupBy,
             user_prompt=body.userPrompt,
+            user_context=body.user_context,
             client=client,
         )
     except Exception:
@@ -97,6 +108,8 @@ def coach_turn_route(
             prompt=body.prompt,
             tags=body.tags,
             conversation=body.conversation,
+            coaching_style=body.coaching_style,
+            user_context=body.user_context,
             client=client,
         )
     except Exception:
@@ -118,6 +131,8 @@ def coach_reframe_route(
             prompt=body.prompt,
             tags=body.tags,
             conversation=body.conversation,
+            coaching_style=body.coaching_style,
+            user_context=body.user_context,
             client=client,
         )
     except Exception:

@@ -4,6 +4,7 @@ from typing import Literal
 
 from anthropic import Anthropic
 
+from coach import UserContext
 from prompts import BRAG_DOC_BASE_PROMPT, GROUP_BY_CLAUSES
 
 MODEL = "claude-haiku-4-5-20251001"
@@ -11,7 +12,11 @@ MODEL = "claude-haiku-4-5-20251001"
 GroupBy = Literal["tag", "month", "chronological"]
 
 
-def build_system_prompt(group_by: GroupBy, user_prompt: str | None) -> str:
+def build_system_prompt(
+    group_by: GroupBy,
+    user_prompt: str | None,
+    user_context: UserContext | None,
+) -> str:
     trimmed = (user_prompt or "").strip()
     guidance = (
         f"\n\nThe user has added this additional guidance: {trimmed}\n\n"
@@ -19,7 +24,16 @@ def build_system_prompt(group_by: GroupBy, user_prompt: str | None) -> str:
         if trimmed
         else ""
     )
-    return f"{BRAG_DOC_BASE_PROMPT}\n\n{GROUP_BY_CLAUSES[group_by]}{guidance}"
+    context_block = ""
+    if user_context and (
+        user_context.headline.strip() or user_context.notes.strip()
+    ):
+        context_block = (
+            "\n\n## About the user:\n"
+            f"Headline: {user_context.headline.strip()}\n"
+            f"Context: {user_context.notes.strip()}"
+        )
+    return f"{BRAG_DOC_BASE_PROMPT}\n\n{GROUP_BY_CLAUSES[group_by]}{guidance}{context_block}"
 
 
 def _format_entries(entries: list[dict]) -> str:
@@ -38,12 +52,13 @@ def generate_brag_doc(
     entries: list[dict],
     group_by: GroupBy,
     user_prompt: str | None,
+    user_context: UserContext | None,
     client: Anthropic,
 ) -> dict:
     message = client.messages.create(
         model=MODEL,
         max_tokens=2048,
-        system=build_system_prompt(group_by, user_prompt),
+        system=build_system_prompt(group_by, user_prompt, user_context),
         messages=[{"role": "user", "content": _format_entries(entries)}],
     )
     block = message.content[0]

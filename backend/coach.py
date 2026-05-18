@@ -5,7 +5,7 @@ from typing import Literal
 from anthropic import Anthropic
 from pydantic import BaseModel
 
-from prompts import COACH_REFRAME_SYSTEM_PROMPT, COACH_TURN_SYSTEM_PROMPT
+from prompts import COACH_REFRAME_SYSTEM_PROMPT, COACH_TURN_SYSTEM_PROMPT, COACH_STYLE_FRAGMENTS
 
 MODEL = "claude-haiku-4-5-20251001"
 
@@ -14,6 +14,10 @@ class Message(BaseModel):
     role: Literal["coach", "user"]
     text: str
     notes: list[str] = []
+
+class UserContext(BaseModel):
+    headline: str
+    notes: str
 
 
 def _strip_code_fences(text: str) -> str:
@@ -41,18 +45,38 @@ def _format_user_content(
         lines.append(f"{speaker}: {msg.text}")
     return "\n".join(lines)
 
+def _format_user_context_block(context: UserContext) -> str:
+    return (
+        "## About the user:\n"
+        f"Headline: {context.headline.strip()}\n"
+        f"Context: {context.notes.strip()}"
+    )
+
+def build_coach_system_prompt(
+    base: str,
+    style: str,
+    context: UserContext | None,
+) -> str:
+    parts = [base, COACH_STYLE_FRAGMENTS[style]]
+    if context and (context.headline.strip() or context.notes.strip()):
+        parts.append(_format_user_context_block(context))
+    return "\n\n".join(parts)
 
 def coach_turn(
     entry_text: str,
     prompt: str,
     tags: list[str],
     conversation: list[Message],
+    coaching_style: str,
+    user_context: UserContext | None,
     client: Anthropic,
 ) -> dict:
     message = client.messages.create(
         model=MODEL,
         max_tokens=1024,
-        system=COACH_TURN_SYSTEM_PROMPT,
+        system=build_coach_system_prompt(
+            COACH_TURN_SYSTEM_PROMPT, coaching_style, user_context
+        ),
         messages=[
             {
                 "role": "user",
@@ -70,12 +94,16 @@ def coach_reframe(
     prompt: str,
     tags: list[str],
     conversation: list[Message],
+    coaching_style: str,
+    user_context: UserContext | None,
     client: Anthropic,
 ) -> dict:
     message = client.messages.create(
         model=MODEL,
         max_tokens=1024,
-        system=COACH_REFRAME_SYSTEM_PROMPT,
+        system=build_coach_system_prompt(
+            COACH_REFRAME_SYSTEM_PROMPT, coaching_style, user_context
+        ),
         messages=[
             {
                 "role": "user",

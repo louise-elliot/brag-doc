@@ -1,6 +1,9 @@
 import json
 from unittest.mock import MagicMock
 
+from coach import UserContext, build_coach_system_prompt
+from prompts import COACH_STYLE_FRAGMENTS, COACH_TURN_SYSTEM_PROMPT
+
 
 def _mock_text_response(client: MagicMock, text: str) -> None:
     client.messages.create.return_value = MagicMock(
@@ -168,3 +171,82 @@ class TestCoachReframeEndpoint:
 
         system = mock_client.messages.create.call_args.kwargs["system"]
         assert "produce a reframed version" in system
+
+
+class TestBuildCoachSystemPrompt:
+    def test_appends_the_fragment_for_the_requested_style(self):
+        result = build_coach_system_prompt(
+            COACH_TURN_SYSTEM_PROMPT, "hype-woman", None
+        )
+        assert COACH_STYLE_FRAGMENTS["hype-woman"] in result
+
+    def test_keeps_the_underlying_coaching_rules(self):
+        result = build_coach_system_prompt(
+            COACH_TURN_SYSTEM_PROMPT, "trusted-mentor", None
+        )
+        assert "career coach for women in tech" in result
+
+    def test_includes_the_about_the_user_block_when_context_provided(self):
+        ctx = UserContext(
+            headline="Senior backend engineer",
+            notes="Working towards staff promotion",
+        )
+        result = build_coach_system_prompt(
+            COACH_TURN_SYSTEM_PROMPT, "trusted-mentor", ctx
+        )
+        assert "## About the user:" in result
+        assert "Senior backend engineer" in result
+        assert "Working towards staff promotion" in result
+
+    def test_omits_the_block_when_context_is_none(self):
+        result = build_coach_system_prompt(
+            COACH_TURN_SYSTEM_PROMPT, "trusted-mentor", None
+        )
+        assert "## About the user:" not in result
+
+    def test_omits_the_block_when_both_fields_are_whitespace(self):
+        ctx = UserContext(headline="   ", notes="\n\n")
+        result = build_coach_system_prompt(
+            COACH_TURN_SYSTEM_PROMPT, "trusted-mentor", ctx
+        )
+        assert "## About the user:" not in result
+
+
+class TestCoachTurnEndpointPersonalisation:
+    def test_uses_the_requested_style_fragment_in_the_system_prompt(
+        self, mock_client, http_client
+    ):
+        _mock_text_response(
+            mock_client, json.dumps({"text": "ok", "notes": []})
+        )
+        body = {**SAMPLE_TURN_BODY, "coaching_style": "direct-challenger"}
+
+        http_client.post("/coach/turn", json=body)
+
+        system = mock_client.messages.create.call_args.kwargs["system"]
+        assert COACH_STYLE_FRAGMENTS["direct-challenger"] in system
+
+    def test_includes_user_context_block_when_provided(
+        self, mock_client, http_client
+    ):
+        _mock_text_response(
+            mock_client, json.dumps({"text": "ok", "notes": []})
+        )
+        body = {
+            **SAMPLE_TURN_BODY,
+            "user_context": {
+                "headline": "Staff PM",
+                "notes": "promo case to director",
+            },
+        }
+
+        http_client.post("/coach/turn", json=body)
+
+        system = mock_client.messages.create.call_args.kwargs["system"]
+        assert "Staff PM" in system
+        assert "promo case to director" in system
+
+    def test_rejects_unknown_coaching_style(self, mock_client, http_client):
+        body = {**SAMPLE_TURN_BODY, "coaching_style": "drill-sergeant"}
+        response = http_client.post("/coach/turn", json=body)
+        assert response.status_code == 422
