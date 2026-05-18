@@ -8,6 +8,7 @@ import {
   coachTurn,
   type CoachMessage as ApiMessage,
 } from "@/lib/coachApi";
+import { readSettings, serializeContext } from "@/lib/settings";
 
 export interface CoachPanelEntry {
   id: string;
@@ -42,6 +43,14 @@ export function CoachPanel({
   const [reply, setReply] = useState("");
   const fetchedFirstRef = useRef(false);
 
+  function settingsFields() {
+    const settings = readSettings();
+    return {
+      coaching_style: settings.coachingStyle,
+      user_context: serializeContext(settings),
+    };
+  }
+
   async function fetchTurn(history: ApiMessage[]) {
     setPhase({ kind: "loading-turn" });
     try {
@@ -50,6 +59,7 @@ export function CoachPanel({
         prompt: entry.prompt,
         tags: entry.tags,
         conversation: history,
+        ...settingsFields(),
       });
       setMessages([
         ...history,
@@ -69,6 +79,7 @@ export function CoachPanel({
         prompt: entry.prompt,
         tags: entry.tags,
         conversation: messages,
+        ...settingsFields(),
       });
       setPhase({
         kind: "reframing",

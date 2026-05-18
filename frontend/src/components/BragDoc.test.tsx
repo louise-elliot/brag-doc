@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { BragDoc } from "./BragDoc";
 import type { Entry } from "@/lib/types";
 import type { TagDef } from "@/lib/tags";
+import { writeSettings } from "@/lib/settings";
 
 const TAGS: TagDef[] = [
   { name: "leadership", color: "#D4863C" },
@@ -85,6 +86,7 @@ describe("BragDoc — generate payload", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    localStorage.clear();
     vi.restoreAllMocks();
     fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -307,5 +309,41 @@ describe("BragDoc — output rendering", () => {
     expect(
       screen.queryByRole("button", { name: "Copied" })
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("BragDoc — user_context forwarding", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    localStorage.clear();
+    fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ bullets: [] }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+  });
+
+  it("sends serialized user_context with the generate request", async () => {
+    writeSettings({
+      contextHeadline: "Staff engineer",
+      contextNotes: "Promo case to principal",
+    });
+    renderBragDoc();
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.user_context).toEqual({
+      headline: "Staff engineer",
+      notes: "Promo case to principal",
+    });
+  });
+
+  it("sends user_context: null when no context is set", async () => {
+    renderBragDoc();
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.user_context).toBeNull();
   });
 });

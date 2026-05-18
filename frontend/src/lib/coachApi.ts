@@ -1,3 +1,7 @@
+import type { CoachingStyle, UserContext } from "./types";
+
+export type { CoachingStyle, UserContext };
+
 export interface CoachMessage {
   role: "coach" | "user";
   text: string;
@@ -9,6 +13,8 @@ export interface CoachTurnRequest {
   prompt: string;
   tags: string[];
   conversation: CoachMessage[];
+  coaching_style: CoachingStyle;
+  user_context: UserContext | null;
 }
 
 export interface CoachTurnResponse {
@@ -21,6 +27,8 @@ export interface CoachReframeRequest {
   prompt: string;
   tags: string[];
   conversation: CoachMessage[];
+  coaching_style: CoachingStyle;
+  user_context: UserContext | null;
 }
 
 export interface CoachReframeResponse {
