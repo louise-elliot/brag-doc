@@ -100,13 +100,8 @@ export function EntryList({
                 <EntryRowBody
                   entry={entry}
                   expanded={expanded.has(entry.id)}
-                  onToggleReframed={() => toggleExpanded(entry.id)}
+                  onToggleOriginal={() => toggleExpanded(entry.id)}
                 />
-                {entry.coachNotes && entry.coachNotes.length > 0 && (
-                  <div className="mt-2">
-                    <CoachNotePills notes={entry.coachNotes} />
-                  </div>
-                )}
                 {entry.coachNotes === null && coachOpenId !== entry.id && (
                   <button
                     type="button"
@@ -245,40 +240,57 @@ function IconButton({ ariaLabel, onClick, danger, children }: IconButtonProps) {
 interface EntryRowBodyProps {
   entry: Entry;
   expanded: boolean;
-  onToggleReframed: () => void;
+  onToggleOriginal: () => void;
 }
 
 function EntryRowBody({
   entry,
   expanded,
-  onToggleReframed,
+  onToggleOriginal,
 }: EntryRowBodyProps) {
-  return (
-    <div>
+  if (!entry.reframed) {
+    return (
       <p
         className="font-body text-base text-[var(--color-neutral-700)]"
         style={{ lineHeight: 1.75 }}
       >
         {entry.original}
       </p>
-      {entry.reframed && (
-        <>
-          <button
-            type="button"
-            onClick={onToggleReframed}
-            className="font-body text-sm font-medium text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-100)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
+    );
+  }
+
+  return (
+    <div>
+      <p
+        className="font-body text-base text-[var(--color-neutral-700)]"
+        style={{ lineHeight: 1.75 }}
+      >
+        {entry.reframed}
+      </p>
+      <button
+        type="button"
+        onClick={onToggleOriginal}
+        className="font-body text-sm font-medium text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-100)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
+      >
+        {expanded ? "Hide original" : "Show original"}
+      </button>
+      {expanded && (
+        <div
+          className="border-l-2 border-[var(--color-neutral-300)] pl-3 mt-2"
+          style={{ animation: "fadeIn 0.25s ease both" }}
+        >
+          <p
+            className="font-body text-base text-[var(--color-neutral-600)]"
+            style={{ lineHeight: 1.75 }}
           >
-            {expanded ? "Hide reframed" : "Show reframed"}
-          </button>
-          {expanded && (
-            <p
-              className="font-body text-base text-[var(--color-neutral-700)] border-l-2 border-[var(--color-primary-500)] pl-3 mt-2"
-              style={{ lineHeight: 1.75, animation: "fadeIn 0.25s ease both" }}
-            >
-              {entry.reframed}
-            </p>
+            {entry.original}
+          </p>
+          {entry.coachNotes && entry.coachNotes.length > 0 && (
+            <div className="mt-3">
+              <CoachNotePills notes={entry.coachNotes} />
+            </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

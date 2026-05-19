@@ -53,9 +53,14 @@ function renderList(overrides: Partial<Parameters<typeof EntryList>[0]> = {}) {
 }
 
 describe("EntryList", () => {
-  it("renders all entries", () => {
+  it("renders the reframed version by default when present, and the original when not", () => {
     renderList();
-    expect(screen.getByText("Led the architecture review")).toBeInTheDocument();
+    expect(
+      screen.getByText("Drove architectural decisions for the team")
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Led the architecture review")
+    ).not.toBeInTheDocument();
     expect(screen.getByText("Shipped the new dashboard")).toBeInTheDocument();
   });
 
@@ -65,12 +70,14 @@ describe("EntryList", () => {
     expect(screen.getByText("technical")).toBeInTheDocument();
   });
 
-  it("toggles reframed version visibility", async () => {
+  it("toggles original visibility for a reframed entry", async () => {
     renderList();
-    const toggle = screen.getByText("Show reframed");
-    await userEvent.click(toggle);
     expect(
-      screen.getByText("Drove architectural decisions for the team")
+      screen.queryByText("Led the architecture review")
+    ).not.toBeInTheDocument();
+    await userEvent.click(screen.getByText("Show original"));
+    expect(
+      screen.getByText("Led the architecture review")
     ).toBeInTheDocument();
   });
 
@@ -238,10 +245,16 @@ describe("EntryList — coach affordance", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("renders coach-note pills when coachNotes has entries", () => {
+  it("renders coach-note pills inside the expanded original view", async () => {
     renderCoachList([
-      { ...baseCoachEntry, coachNotes: ["minimising-language", "missing-metrics"] },
+      {
+        ...baseCoachEntry,
+        reframed: "Drove the migration end to end",
+        coachNotes: ["minimising-language", "missing-metrics"],
+      },
     ]);
+    expect(screen.queryByText("minimising-language")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByText("Show original"));
     expect(screen.getByText("minimising-language")).toBeInTheDocument();
     expect(screen.getByText("missing-metrics")).toBeInTheDocument();
   });
