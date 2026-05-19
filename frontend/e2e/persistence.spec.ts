@@ -21,7 +21,8 @@ test("clear all data removes entries", async ({ page }) => {
   await page.fill('textarea[placeholder="Write about your win..."]', "To be deleted");
   await page.click('button:has-text("Save")');
 
-  await page.click('button[role="tab"]:has-text("Settings")');
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("tab", { name: "Data" }).click();
   await page.click('button:has-text("Clear all data")');
   await page.click('button:has-text("Yes, delete everything")');
 

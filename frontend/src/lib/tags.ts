@@ -11,10 +11,19 @@ const DEFAULT_TAGS: TagDef[] = [
   { name: "mentoring" },
 ];
 
-const STORAGE_KEY = "confidence-journal:tags";
+const STORAGE_KEY = "byline:tags";
+const LEGACY_STORAGE_KEY = "confidence-journal:tags";
 
 function read(): TagDef[] | null {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  let raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) {
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy) {
+      localStorage.setItem(STORAGE_KEY, legacy);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      raw = legacy;
+    }
+  }
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);

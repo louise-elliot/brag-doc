@@ -9,54 +9,14 @@ import {
 } from "@/lib/types";
 import { readSettings, writeSettings } from "@/lib/settings";
 
-interface SettingsProps {
-  tags: TagDef[];
-  onAddTag: (name: string) => void;
-  onDeleteTag: (name: string) => void;
-  onRenameTag: (oldName: string, newName: string) => void;
-  onClearData: () => void;
-}
-
-export function Settings({
-  tags,
-  onAddTag,
-  onDeleteTag,
-  onRenameTag,
-  onClearData,
-}: SettingsProps) {
-  const [confirming, setConfirming] = useState(false);
-
-  return (
-    <div className="pt-12 flex flex-col gap-12">
-      <CoachingStyleCard />
-      <ContextCard />
-      <CategoriesCard
-        tags={tags}
-        onAddTag={onAddTag}
-        onDeleteTag={onDeleteTag}
-        onRenameTag={onRenameTag}
-      />
-      <DataCard
-        confirming={confirming}
-        onConfirm={() => setConfirming(true)}
-        onCancel={() => setConfirming(false)}
-        onClearData={() => {
-          onClearData();
-          setConfirming(false);
-        }}
-      />
-    </div>
-  );
-}
-
-interface CategoriesCardProps {
+export interface CategoriesCardProps {
   tags: TagDef[];
   onAddTag: (name: string) => void;
   onDeleteTag: (name: string) => void;
   onRenameTag: (oldName: string, newName: string) => void;
 }
 
-function CategoriesCard({
+export function CategoriesCard({
   tags,
   onAddTag,
   onDeleteTag,
@@ -101,9 +61,7 @@ function CategoriesCard({
         className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
-        These are the tags you can apply to entries. Deleting a category removes
-        it from the picker — past entries keep their tag. Renaming updates the
-        tag on every entry that had it.
+        Add, rename or delete the tags that can be applied to journal entries.
       </p>
 
       {tags.length === 0 ? (
@@ -199,14 +157,14 @@ function CategoriesCard({
   );
 }
 
-interface DataCardProps {
+export interface DataCardProps {
   confirming: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   onClearData: () => void;
 }
 
-function DataCard({
+export function DataCard({
   confirming,
   onConfirm,
   onCancel,
@@ -215,15 +173,15 @@ function DataCard({
   return (
     <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
       <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
-        Data
+        Journal Entries
       </h3>
       <p
         className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
-        Your journal entries are stored locally in this browser. Entry text is
-        sent to Anthropic only when you reframe an entry or generate a brag doc,
-        and is not stored on our servers.
+        Your journal entries are stored locally in this browser. Text is only
+        sent to Anthropic if you discuss an entry with the coach or generate a
+        summary document.
       </p>
 
       {!confirming ? (
@@ -264,7 +222,7 @@ function DataCard({
   );
 }
 
-function ContextCard() {
+export function ContextCard() {
   const [headline, setHeadline] = useState(DEFAULT_USER_SETTINGS.contextHeadline);
   const [notes, setNotes] = useState(DEFAULT_USER_SETTINGS.contextNotes);
 
@@ -278,37 +236,61 @@ function ContextCard() {
   return (
     <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
       <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
-        Your context
+        About You
       </h3>
       <p
-        className="font-body text-base text-[var(--color-neutral-600)] mb-6"
+        className="font-body text-base text-[var(--color-neutral-600)] mb-4"
         style={{ lineHeight: 1.6 }}
       >
-        Helps the coach speak to where you are. None of this leaves your browser
-        unless an entry is being reframed or a brag doc is being generated.
+        Help your coach understand a bit more about where you are, and where you
+        want to be.
       </p>
+      <div
+        role="note"
+        className="flex items-start gap-2 bg-[var(--color-warning-50)] border border-[var(--color-warning-500)]/30 rounded-md px-3 py-2 mb-6"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className="text-[var(--color-warning-500)] flex-shrink-0 mt-0.5"
+        >
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+        </svg>
+        <p className="font-body text-sm text-[var(--color-neutral-700)]">
+          Please don&apos;t include any personal or sensitive information.
+        </p>
+      </div>
       <div className="flex flex-col gap-5">
         <label className="flex flex-col gap-2">
-          <span className="font-body text-sm font-medium text-[var(--color-neutral-700)]">
-            Headline
+          <span className="font-display text-lg font-medium text-[var(--color-neutral-800)]">
+            Job Title
           </span>
           <input
-            aria-label="Headline"
+            aria-label="Job Title"
             value={headline}
-            placeholder="e.g. Senior backend engineer at a fintech series-B"
+            placeholder="Senior Software Engineer in financial services"
             onChange={(e) => setHeadline(e.target.value)}
             onBlur={(e) => writeSettings({ contextHeadline: e.currentTarget.value })}
             className="font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
           />
         </label>
         <label className="flex flex-col gap-2">
-          <span className="font-body text-sm font-medium text-[var(--color-neutral-700)]">
-            What else should the coach know?
+          <span className="font-display text-lg font-medium text-[var(--color-neutral-800)]">
+            What else do you want your coach to know?
           </span>
           <textarea
-            aria-label="What else should the coach know?"
+            aria-label="What else do you want your coach to know?"
             value={notes}
-            placeholder="What are you working towards? What's invisible in your org? What does your manager value?"
+            placeholder="e.g. what are your career aspirations?"
             rows={5}
             onChange={(e) => setNotes(e.target.value)}
             onBlur={(e) => writeSettings({ contextNotes: e.currentTarget.value })}
@@ -321,7 +303,7 @@ function ContextCard() {
   );
 }
 
-function CoachingStyleCard() {
+export function CoachingStyleCard() {
   const [style, setStyle] = useState<CoachingStyle>(
     DEFAULT_USER_SETTINGS.coachingStyle
   );
@@ -339,17 +321,17 @@ function CoachingStyleCard() {
   return (
     <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
       <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
-        Coaching style
+        Coach Persona
       </h3>
       <p
         className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
-        Pick the voice that works best for you. You can change this any time.
+        Choose the coaching style that works best for you.
       </p>
       <div
         role="radiogroup"
-        aria-label="Coaching style"
+        aria-label="Coach Persona"
         className="flex flex-col gap-3"
       >
         {COACHING_STYLE_OPTIONS.map((option) => {
@@ -377,6 +359,12 @@ function CoachingStyleCard() {
                 style={{ lineHeight: 1.5 }}
               >
                 {option.descriptor}
+              </div>
+              <div
+                className="font-body text-sm italic text-[var(--color-neutral-500)] mt-1"
+                style={{ lineHeight: 1.5 }}
+              >
+                {option.tagline}
               </div>
             </button>
           );

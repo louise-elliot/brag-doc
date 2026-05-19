@@ -1,9 +1,18 @@
 import type { Entry } from "./types";
 
-const STORAGE_KEY = "confidence-journal-entries";
+const STORAGE_KEY = "byline-entries";
+const LEGACY_STORAGE_KEY = "confidence-journal-entries";
 
 function readEntries(): Entry[] {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  let raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) {
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy) {
+      localStorage.setItem(STORAGE_KEY, legacy);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      raw = legacy;
+    }
+  }
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -60,6 +69,7 @@ export function updateEntry(
 
 export function deleteAllEntries(): void {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(LEGACY_STORAGE_KEY);
 }
 
 export function deleteEntry(id: string): void {

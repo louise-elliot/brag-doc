@@ -1,4 +1,4 @@
-# Confidence Journal Project
+# Byline Project
 
 ## Overview
 A daily wins journal for women in tech that combats self-diminishment patterns identified in research. The app prompts users to log accomplishments, uses AI to reframe self-critical language, and generates a "brag doc" of impact-focused bullet points for performance reviews.

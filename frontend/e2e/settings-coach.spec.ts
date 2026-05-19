@@ -28,9 +28,11 @@ test("changing coaching style is sent on the next coach turn", async ({
     });
   });
 
-  // Go to Settings and pick "The Hype Woman"
-  await page.getByRole("tab", { name: "Settings" }).click();
+  // Open Settings drawer and pick "The Hype Woman"
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("tab", { name: "Coach" }).click();
   await page.getByRole("radio", { name: "The Hype Woman" }).click();
+  await page.getByRole("button", { name: "Close settings" }).first().click();
 
   // Go to Journal, save an entry, then open the coach
   await page.getByRole("tab", { name: "Journal" }).click();
@@ -73,14 +75,15 @@ test("user_context is sent to the coach when set in Settings", async ({
     });
   });
 
-  // Go to Settings and fill in context
-  await page.getByRole("tab", { name: "Settings" }).click();
-  await page.getByLabel("Headline").fill("Senior backend engineer at a fintech");
+  // Open Settings drawer and fill in context
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByLabel("Job Title").fill("Senior backend engineer at a fintech");
   await page
-    .getByLabel("What else should the coach know?")
+    .getByLabel("What else do you want your coach to know?")
     .fill("Working towards staff promotion");
-  // Trigger blur to persist the values
-  await page.click("body");
+  // Trigger blur to persist the values, then close drawer
+  await page.keyboard.press("Tab");
+  await page.getByRole("button", { name: "Close settings" }).first().click();
 
   // Go to Journal, save an entry, then open the coach
   await page.getByRole("tab", { name: "Journal" }).click();
@@ -102,13 +105,15 @@ test("user_context is sent to the coach when set in Settings", async ({
 });
 
 test("coaching style choice persists across reloads", async ({ page }) => {
-  // Pick "The Bold Coach" in Settings
-  await page.getByRole("tab", { name: "Settings" }).click();
+  // Open Settings drawer and pick "The Bold Coach"
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("tab", { name: "Coach" }).click();
   await page.getByRole("radio", { name: "The Bold Coach" }).click();
 
-  // Reload and navigate back to Settings
+  // Reload and navigate back to Settings drawer
   await page.reload();
-  await page.getByRole("tab", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("tab", { name: "Coach" }).click();
 
   // The Bold Coach radio should still be selected
   await expect(

@@ -30,32 +30,33 @@ export interface CoachingStyleOption {
   key: CoachingStyle;
   label: string;
   descriptor: string;
+  tagline: string;
 }
 
 export const COACHING_STYLE_OPTIONS: CoachingStyleOption[] = [
   {
     key: "trusted-mentor",
     label: "The Trusted Mentor",
-    descriptor:
-      "Warm, wise, unhurried. Gentle nudges. Best for women who find direct feedback triggering.",
+    descriptor: "I'm warm, empathetic and patient.",
+    tagline: "Pick me if you prefer gentle nudges over blunt feedback.",
   },
   {
     key: "hype-woman",
     label: "The Hype Woman",
-    descriptor:
-      "High energy, celebratory, zero tolerance for shrinking. Best for women who need an energy boost and respond well to enthusiasm.",
+    descriptor: "I'm high energy, celebratory and unapologetic.",
+    tagline: "Pick me if you prefer energy and enthusiasm.",
   },
   {
     key: "direct-challenger",
     label: "The Direct Challenger",
-    descriptor:
-      "High challenge, low ceremony. Cuts to the chase. Best for women who don't like the 'fluff'.",
+    descriptor: "I'm incisive, sharp, and no-nonsense.",
+    tagline: "Pick me if you don't want any of the 'fluff'.",
   },
   {
     key: "bold-coach",
     label: "The Bold Coach",
-    descriptor:
-      "Playful, punchy, modern. Best for younger users or anyone who wants coaching to feel less like work.",
+    descriptor: "I'm playful, irreverent and witty.",
+    tagline: "Pick me if you prefer a more informal conversation.",
   },
 ];
 

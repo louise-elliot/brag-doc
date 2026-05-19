@@ -75,12 +75,12 @@ describe("entries data layer", () => {
 
 describe("getEntries with corrupt storage", () => {
   it("returns empty array when localStorage value is not valid JSON", () => {
-    localStorage.setItem("confidence-journal-entries", "{not json");
+    localStorage.setItem("byline-entries", "{not json");
     expect(getEntries()).toEqual([]);
   });
 
   it("returns empty array when localStorage value is JSON but not an array", () => {
-    localStorage.setItem("confidence-journal-entries", JSON.stringify({ foo: "bar" }));
+    localStorage.setItem("byline-entries", JSON.stringify({ foo: "bar" }));
     expect(getEntries()).toEqual([]);
   });
 });
@@ -107,7 +107,7 @@ describe("getEntries same-day ordering", () => {
     };
     // Insert earlier first so default insertion order would yield [earlier, later]
     localStorage.setItem(
-      "confidence-journal-entries",
+      "byline-entries",
       JSON.stringify([earlier, later])
     );
     const result = getEntries();
@@ -221,7 +221,7 @@ describe("coachNotes handling", () => {
       },
     ];
     localStorage.setItem(
-      "confidence-journal-entries",
+      "byline-entries",
       JSON.stringify(legacy)
     );
 

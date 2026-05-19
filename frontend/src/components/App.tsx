@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { EntryForm } from "./EntryForm";
 import { EntryList } from "./EntryList";
 import { BragDoc } from "./BragDoc";
-import { Settings } from "./Settings";
+import { SettingsDrawer } from "./SettingsDrawer";
 import {
   getEntries,
   addEntry,
@@ -19,16 +19,16 @@ import { getTags, saveTags, type TagDef } from "@/lib/tags";
 import { todayLocal } from "@/lib/dates";
 import type { Entry } from "@/lib/types";
 
-type Tab = "journal" | "bragdoc" | "settings";
+type Tab = "journal" | "bragdoc";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "journal", label: "Journal" },
   { key: "bragdoc", label: "Brag Doc" },
-  { key: "settings", label: "Settings" },
 ];
 
 export function App() {
   const [tab, setTab] = useState<Tab>("journal");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [entries, setEntries] = useState<Entry[]>([]);
 
   const today = todayLocal();
@@ -119,19 +119,40 @@ export function App() {
   return (
     <div className="min-h-screen relative" style={{ zIndex: 1 }}>
       <div className="max-w-[1200px] mx-auto">
-        <header
-          className="animate-in flex justify-between items-center px-12 pt-12 pb-6 border-b border-[var(--color-neutral-200)]"
-        >
+        <header className="animate-in flex justify-between items-center px-12 pt-12 pb-6 border-b border-[var(--color-neutral-200)]">
           <div className="font-display text-xl font-bold tracking-tight text-[var(--color-neutral-800)]">
-            Confidence
+            Byline
           </div>
-          <span className="font-body text-xs text-[var(--color-neutral-500)]">
-            {new Date().toLocaleDateString("en-US", {
-              month: "short",
-              day: "2-digit",
-              year: "numeric",
-            })}
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="font-body text-xs text-[var(--color-neutral-500)]">
+              {new Date().toLocaleDateString("en-US", {
+                month: "short",
+                day: "2-digit",
+                year: "numeric",
+              })}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Open settings"
+              className="text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-800)] hover:bg-[var(--color-neutral-100)] rounded-md w-9 h-9 flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
+          </div>
         </header>
 
         <nav
@@ -212,24 +233,17 @@ export function App() {
             </div>
           )}
 
-          {tab === "settings" && (
-            <div
-              role="tabpanel"
-              id="tabpanel-settings"
-              aria-labelledby="tab-settings"
-              className="max-w-[800px] mx-auto animate-in animate-delay-2"
-            >
-              <Settings
-                tags={tags}
-                onAddTag={handleAddTag}
-                onDeleteTag={handleDeleteTag}
-                onRenameTag={handleRenameTag}
-                onClearData={handleClearData}
-              />
-            </div>
-          )}
         </main>
       </div>
+      <SettingsDrawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        tags={tags}
+        onAddTag={handleAddTag}
+        onDeleteTag={handleDeleteTag}
+        onRenameTag={handleRenameTag}
+        onClearData={handleClearData}
+      />
     </div>
   );
 }

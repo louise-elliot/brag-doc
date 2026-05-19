@@ -1,4 +1,4 @@
-# Confidence Journal
+# Byline
 
 A daily wins journal for women in tech. Next.js frontend, Python FastAPI service for LLM calls.
 

@@ -58,12 +58,10 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
-  it("switches to Settings tab", async () => {
+  it("opens settings drawer when cog button is clicked", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("tab", { name: "Settings" }));
-    expect(
-      screen.getByRole("button", { name: "Clear all data" })
-    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /open settings/i }));
+    expect(screen.getByRole("dialog", { name: /settings/i })).toBeInTheDocument();
   });
 
   it("highlights active tab", async () => {
