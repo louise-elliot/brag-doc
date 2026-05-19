@@ -63,10 +63,10 @@ export function BragDoc({ entries, tags }: BragDocProps) {
   if (entries.length === 0) {
     return (
       <div className="pt-12 text-center py-16">
-        <p className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-2">
+        <p className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-2">
           Nothing to summarize yet
         </p>
-        <p className="font-[var(--font-body)] text-base text-[var(--color-neutral-500)]">
+        <p className="font-body text-base text-[var(--color-neutral-500)]">
           Add some journal entries first
         </p>
       </div>
@@ -187,7 +187,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
             onChange={(e) => setUserPrompt(e.target.value)}
             placeholder="Anything you want to emphasize? e.g. 'focus on cross-functional impact', 'this is for a promo case to director level'..."
             rows={2}
-            className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-300)] rounded-md px-4 py-3 font-[var(--font-body)] text-base text-[var(--color-neutral-700)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)] resize-y min-h-[52px] transition-colors"
+            className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-300)] rounded-md px-4 py-3 font-body text-base text-[var(--color-neutral-700)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)] resize-y min-h-[52px] transition-colors"
           />
         </SettingRow>
       </div>
@@ -197,12 +197,12 @@ export function BragDoc({ entries, tags }: BragDocProps) {
           type="button"
           onClick={generate}
           disabled={generateDisabled}
-          className="font-[var(--font-body)] text-sm font-semibold bg-[var(--color-primary-500)] text-white rounded-md px-6 py-3 hover:bg-[var(--color-primary-600)] disabled:bg-[var(--color-neutral-200)] disabled:text-[var(--color-neutral-400)] disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="font-body text-sm font-semibold bg-[var(--color-primary-500)] text-white rounded-md px-6 py-3 hover:bg-[var(--color-primary-600)] disabled:bg-[var(--color-neutral-200)] disabled:text-[var(--color-neutral-400)] disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {loading ? "Generating..." : "Generate"}
         </button>
         {noTagsSelected && (
-          <span className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]">
+          <span className="font-body text-sm text-[var(--color-neutral-500)]">
             Select at least one tag
           </span>
         )}
@@ -210,7 +210,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
 
       {error && (
         <div className="mt-5 bg-[var(--color-error-50)] rounded-md px-4 py-3">
-          <p className="font-[var(--font-body)] text-sm text-[var(--color-error-500)]">
+          <p className="font-body text-sm text-[var(--color-error-500)]">
             {error}
           </p>
         </div>
@@ -219,7 +219,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
       {loading && (
         <div className="text-center pt-10">
           <p
-            className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]"
+            className="font-body text-sm text-[var(--color-neutral-500)]"
             style={{ animation: "shimmer 1.5s ease-in-out infinite" }}
           >
             Synthesizing your accomplishments...
@@ -233,7 +233,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
             {bullets.map((group, groupIndex) => (
               <section key={`${group.tag}-${groupIndex}`} className="mt-10">
                 {group.tag && (
-                  <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-4 capitalize">
+                  <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-4 capitalize">
                     {group.tag}
                   </h3>
                 )}
@@ -241,7 +241,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
                   {group.points.map((point, i) => (
                     <li
                       key={i}
-                      className="font-[var(--font-body)] text-base text-[var(--color-neutral-700)] pl-6 relative before:absolute before:left-0 before:top-3 before:w-1 before:h-1 before:rounded-full before:bg-[var(--color-primary-500)]"
+                      className="font-body text-base text-[var(--color-neutral-700)] pl-6 relative before:absolute before:left-0 before:top-3 before:w-1 before:h-1 before:rounded-full before:bg-[var(--color-primary-500)]"
                       style={{ lineHeight: 1.75 }}
                     >
                       {point}
@@ -256,14 +256,14 @@ export function BragDoc({ entries, tags }: BragDocProps) {
             <button
               type="button"
               onClick={copyToClipboard}
-              className="font-[var(--font-body)] text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
+              className="font-body text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
             >
               Copy to clipboard
             </button>
             {copied && (
               <span
                 role="status"
-                className="font-[var(--font-body)] text-sm font-medium bg-[var(--color-success-50)] text-[var(--color-success-500)] rounded-full px-3 py-1 ml-3"
+                className="font-body text-sm font-medium bg-[var(--color-success-50)] text-[var(--color-success-500)] rounded-full px-3 py-1 ml-3"
                 style={{ animation: "fadeIn 0.2s ease" }}
               >
                 Copied
@@ -305,7 +305,7 @@ function SegmentedControl<T extends string>({
             aria-checked={active}
             onClick={() => onChange(opt.value)}
             className={[
-              "font-[var(--font-body)] text-sm font-medium rounded-full px-4 py-2 transition-colors cursor-pointer",
+              "font-body text-sm font-medium rounded-full px-4 py-2 transition-colors cursor-pointer",
               active
                 ? "bg-[var(--color-neutral-100)] text-[var(--color-neutral-800)]"
                 : "text-[var(--color-neutral-500)] hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-700)]",
@@ -327,7 +327,7 @@ interface SettingRowProps {
 function SettingRow({ label, children }: SettingRowProps) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="font-[var(--font-body)] text-xs font-semibold tracking-widest uppercase text-[var(--color-neutral-500)]">
+      <span className="font-body text-xs font-semibold tracking-widest uppercase text-[var(--color-neutral-500)]">
         {label}
       </span>
       {children}
@@ -348,7 +348,7 @@ function TagChip({ name, selected, onClick }: TagChipProps) {
       onClick={onClick}
       aria-pressed={selected}
       className={[
-        "font-[var(--font-body)] text-sm font-medium px-3 py-1 rounded-full cursor-pointer transition-colors",
+        "font-body text-sm font-medium px-3 py-1 rounded-full cursor-pointer transition-colors",
         selected
           ? "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] border border-[var(--color-neutral-400)] opacity-100"
           : "bg-transparent text-[var(--color-neutral-500)] border border-[var(--color-neutral-300)] opacity-60",

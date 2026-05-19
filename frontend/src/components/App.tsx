@@ -122,10 +122,10 @@ export function App() {
         <header
           className="animate-in flex justify-between items-center px-12 pt-12 pb-6 border-b border-[var(--color-neutral-200)]"
         >
-          <div className="font-[var(--font-display)] text-xl font-bold tracking-tight text-[var(--color-neutral-800)]">
+          <div className="font-display text-xl font-bold tracking-tight text-[var(--color-neutral-800)]">
             Confidence
           </div>
-          <span className="font-[var(--font-body)] text-xs text-[var(--color-neutral-500)]">
+          <span className="font-body text-xs text-[var(--color-neutral-500)]">
             {new Date().toLocaleDateString("en-US", {
               month: "short",
               day: "2-digit",
@@ -149,7 +149,7 @@ export function App() {
                 aria-controls={`tabpanel-${key}`}
                 onClick={() => setTab(key)}
                 className={[
-                  "font-[var(--font-body)] text-sm font-medium pb-3 -mb-px border-b-2 transition-colors cursor-pointer",
+                  "font-body text-sm font-medium pb-3 -mb-px border-b-2 transition-colors cursor-pointer",
                   active
                     ? "text-[var(--color-neutral-800)] border-[var(--color-primary-500)]"
                     : "text-[var(--color-neutral-500)] border-transparent hover:text-[var(--color-neutral-700)]",
@@ -180,11 +180,11 @@ export function App() {
 
               <div className="mt-16 animate-in animate-delay-4">
                 <div className="flex items-baseline gap-3 mb-6">
-                  <h2 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)]">
+                  <h2 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)]">
                     Past entries
                   </h2>
                   {entries.length > 0 && (
-                    <span className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]">
+                    <span className="font-body text-sm text-[var(--color-neutral-500)]">
                       · {entries.length}
                     </span>
                   )}

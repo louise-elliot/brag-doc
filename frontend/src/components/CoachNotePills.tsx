@@ -9,7 +9,7 @@ export function CoachNotePills({ notes }: CoachNotePillsProps) {
       {notes.map((note, idx) => (
         <span
           key={idx}
-          className="font-[var(--font-body)] text-xs font-medium px-3 py-1 rounded-full bg-[var(--color-primary-100)] text-[var(--color-primary-700)]"
+          className="font-body text-xs font-medium px-3 py-1 rounded-full bg-[var(--color-primary-100)] text-[var(--color-primary-700)]"
         >
           {note}
         </span>

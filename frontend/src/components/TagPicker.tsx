@@ -28,7 +28,7 @@ export function TagPicker({ tags, selected, onChange }: TagPickerProps) {
             onClick={() => toggle(tag.name)}
             aria-pressed={isSelected}
             className={[
-              "font-[var(--font-body)] text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors",
+              "font-body text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors",
               isSelected
                 ? "bg-[var(--color-primary-100)] text-[var(--color-primary-700)]"
                 : "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-200)]",

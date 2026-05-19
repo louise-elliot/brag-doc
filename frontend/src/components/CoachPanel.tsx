@@ -126,7 +126,7 @@ export function CoachPanel({
       style={{ animation: "reframeReveal var(--transition-slow) both" }}
     >
       <div className="flex justify-between items-center">
-        <span className="font-[var(--font-body)] text-sm font-semibold text-[var(--color-primary-700)]">
+        <span className="font-body text-sm font-semibold text-[var(--color-primary-700)]">
           AI Coach
         </span>
         {phase.kind !== "reframing" && (
@@ -134,7 +134,7 @@ export function CoachPanel({
             type="button"
             aria-label="Close coach"
             onClick={onClose}
-            className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)] bg-transparent border-none cursor-pointer hover:bg-[var(--color-neutral-100)] px-3 py-1 rounded-md"
+            className="font-body text-sm text-[var(--color-neutral-500)] bg-transparent border-none cursor-pointer hover:bg-[var(--color-neutral-100)] px-3 py-1 rounded-md"
           >
             Close
           </button>
@@ -150,7 +150,7 @@ export function CoachPanel({
           <p
             role="status"
             aria-live="polite"
-            className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]"
+            className="font-body text-sm text-[var(--color-neutral-500)]"
           >
             Coach is reading...
           </p>
@@ -160,7 +160,7 @@ export function CoachPanel({
           <p
             role="status"
             aria-live="polite"
-            className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]"
+            className="font-body text-sm text-[var(--color-neutral-500)]"
           >
             Coach is rewriting...
           </p>
@@ -177,7 +177,7 @@ export function CoachPanel({
         <div className="mt-4">
           <label
             htmlFor={`coach-reply-${entry.id}`}
-            className="font-[var(--font-body)] text-xs font-semibold uppercase tracking-wider text-[var(--color-neutral-500)] block mb-2"
+            className="font-body text-xs font-semibold uppercase tracking-wider text-[var(--color-neutral-500)] block mb-2"
           >
             Your reply
           </label>
@@ -186,21 +186,21 @@ export function CoachPanel({
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             rows={3}
-            className="w-full font-[var(--font-body)] text-base text-[var(--color-neutral-700)] bg-[var(--color-neutral-0)] border border-[var(--color-neutral-300)] rounded-md px-4 py-3 resize-y outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+            className="w-full font-body text-base text-[var(--color-neutral-700)] bg-[var(--color-neutral-0)] border border-[var(--color-neutral-300)] rounded-md px-4 py-3 resize-y outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
           />
           <div className="flex gap-2 mt-2">
             <button
               type="button"
               onClick={handleSendReply}
               disabled={!reply.trim()}
-              className="font-[var(--font-body)] text-sm font-medium px-5 py-2 rounded-md border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] bg-transparent cursor-pointer hover:bg-[var(--color-neutral-100)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="font-body text-sm font-medium px-5 py-2 rounded-md border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] bg-transparent cursor-pointer hover:bg-[var(--color-neutral-100)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Send reply
             </button>
             <button
               type="button"
               onClick={() => void fetchReframe()}
-              className="font-[var(--font-body)] text-sm font-semibold px-5 py-2 rounded-md bg-[var(--color-primary-500)] text-white border-none cursor-pointer hover:bg-[var(--color-primary-600)]"
+              className="font-body text-sm font-semibold px-5 py-2 rounded-md bg-[var(--color-primary-500)] text-white border-none cursor-pointer hover:bg-[var(--color-primary-600)]"
             >
               Reframe it now
             </button>
@@ -231,13 +231,13 @@ function ErrorRow({ onRetry }: ErrorRowProps) {
   return (
     <div
       role="alert"
-      className="flex items-center gap-3 font-[var(--font-body)] text-sm text-[var(--color-error-500)]"
+      className="flex items-center gap-3 font-body text-sm text-[var(--color-error-500)]"
     >
       <span>Coach didn&apos;t respond. Try again.</span>
       <button
         type="button"
         onClick={onRetry}
-        className="font-[var(--font-body)] text-xs text-[var(--color-primary-700)] bg-transparent border border-[var(--color-primary-500)] rounded-md px-3 py-1 cursor-pointer hover:bg-[var(--color-primary-50)]"
+        className="font-body text-xs text-[var(--color-primary-700)] bg-transparent border border-[var(--color-primary-500)] rounded-md px-3 py-1 cursor-pointer hover:bg-[var(--color-primary-50)]"
       >
         Retry
       </button>

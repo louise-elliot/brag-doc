@@ -36,10 +36,10 @@ export function EntryList({
   if (entries.length === 0) {
     return (
       <div className="text-center py-16">
-        <p className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-2">
+        <p className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-2">
           No wins yet
         </p>
-        <p className="font-[var(--font-body)] text-base text-[var(--color-neutral-500)]">
+        <p className="font-body text-base text-[var(--color-neutral-500)]">
           They&apos;ll be here when you&apos;re ready.
         </p>
       </div>
@@ -111,7 +111,7 @@ export function EntryList({
                   <button
                     type="button"
                     onClick={() => setCoachOpenId(entry.id)}
-                    className="font-[var(--font-body)] text-sm font-medium text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)] hover:bg-[var(--color-primary-50)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
+                    className="font-body text-sm font-medium text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)] hover:bg-[var(--color-primary-50)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
                   >
                     Talk it through with the coach
                   </button>
@@ -163,7 +163,7 @@ function EntryRowHeader({
     <header className="flex items-baseline justify-between gap-4 mb-3">
       <time
         dateTime={date}
-        className="font-[var(--font-display)] text-lg font-medium text-[var(--color-neutral-800)]"
+        className="font-display text-lg font-medium text-[var(--color-neutral-800)]"
       >
         {date}
       </time>
@@ -171,7 +171,7 @@ function EntryRowHeader({
         {tags.map((tag) => (
           <span
             key={tag}
-            className="font-[var(--font-body)] text-xs font-medium px-3 py-1 rounded-full bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)]"
+            className="font-body text-xs font-medium px-3 py-1 rounded-full bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)]"
           >
             {tag}
           </span>
@@ -256,7 +256,7 @@ function EntryRowBody({
   return (
     <div>
       <p
-        className="font-[var(--font-body)] text-base text-[var(--color-neutral-700)]"
+        className="font-body text-base text-[var(--color-neutral-700)]"
         style={{ lineHeight: 1.75 }}
       >
         {entry.original}
@@ -266,13 +266,13 @@ function EntryRowBody({
           <button
             type="button"
             onClick={onToggleReframed}
-            className="font-[var(--font-body)] text-sm font-medium text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-100)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
+            className="font-body text-sm font-medium text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-100)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
           >
             {expanded ? "Hide reframed" : "Show reframed"}
           </button>
           {expanded && (
             <p
-              className="font-[var(--font-body)] text-base text-[var(--color-neutral-700)] border-l-2 border-[var(--color-primary-500)] pl-3 mt-2"
+              className="font-body text-base text-[var(--color-neutral-700)] border-l-2 border-[var(--color-primary-500)] pl-3 mt-2"
               style={{ lineHeight: 1.75, animation: "fadeIn 0.25s ease both" }}
             >
               {entry.reframed}
@@ -320,7 +320,7 @@ function EditEntryForm({
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={4}
-        className="w-full font-[var(--font-body)] text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none resize-y min-h-[100px] placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+        className="w-full font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none resize-y min-h-[100px] placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
         style={{ lineHeight: 1.6 }}
       />
       <TagPicker tags={availableTags} selected={tags} onChange={setTags} />
@@ -329,7 +329,7 @@ function EditEntryForm({
           type="button"
           onClick={handleSave}
           disabled={!canSave}
-          className={`font-[var(--font-body)] text-sm font-semibold rounded-md px-6 py-3 transition-colors ${
+          className={`font-body text-sm font-semibold rounded-md px-6 py-3 transition-colors ${
             canSave
               ? "bg-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] cursor-pointer"
               : "bg-[var(--color-neutral-100)] text-[var(--color-neutral-400)] cursor-not-allowed"
@@ -340,7 +340,7 @@ function EditEntryForm({
         <button
           type="button"
           onClick={onCancel}
-          className="font-[var(--font-body)] text-sm font-medium text-[var(--color-neutral-700)] border border-[var(--color-neutral-300)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
+          className="font-body text-sm font-medium text-[var(--color-neutral-700)] border border-[var(--color-neutral-300)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
         >
           Cancel
         </button>
@@ -360,21 +360,21 @@ function DeleteConfirm({ onConfirm, onCancel }: DeleteConfirmProps) {
       className="bg-[var(--color-error-50)] rounded-lg border border-[var(--color-error-500)]/25 p-4"
       style={{ animation: "fadeIn 0.2s ease both" }}
     >
-      <p className="font-[var(--font-body)] text-sm text-[var(--color-error-500)] mb-3">
+      <p className="font-body text-sm text-[var(--color-error-500)] mb-3">
         Delete this entry? It can&apos;t be undone.
       </p>
       <div className="flex gap-2.5">
         <button
           type="button"
           onClick={onConfirm}
-          className="font-[var(--font-body)] text-sm font-semibold bg-[var(--color-error-500)] text-white rounded-md px-4 py-1.5 hover:opacity-90 transition-opacity cursor-pointer"
+          className="font-body text-sm font-semibold bg-[var(--color-error-500)] text-white rounded-md px-4 py-1.5 hover:opacity-90 transition-opacity cursor-pointer"
         >
           Yes, delete
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="font-[var(--font-body)] text-sm font-medium text-[var(--color-neutral-700)] border border-[var(--color-neutral-300)] rounded-md px-4 py-1.5 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
+          className="font-body text-sm font-medium text-[var(--color-neutral-700)] border border-[var(--color-neutral-300)] rounded-md px-4 py-1.5 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
         >
           Cancel
         </button>

@@ -94,11 +94,11 @@ function CategoriesCard({
 
   return (
     <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
-      <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
+      <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
         Categories
       </h3>
       <p
-        className="font-[var(--font-body)] text-base text-[var(--color-neutral-600)] mb-6"
+        className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
         These are the tags you can apply to entries. Deleting a category removes
@@ -107,7 +107,7 @@ function CategoriesCard({
       </p>
 
       {tags.length === 0 ? (
-        <p className="font-[var(--font-body)] text-sm italic text-[var(--color-neutral-500)] mb-6">
+        <p className="font-body text-sm italic text-[var(--color-neutral-500)] mb-6">
           No categories yet — add one below.
         </p>
       ) : (
@@ -136,14 +136,14 @@ function CategoriesCard({
                         setEditingDraft("");
                       }
                     }}
-                    className="flex-1 font-[var(--font-body)] text-base text-[var(--color-neutral-800)] bg-white border border-[var(--color-primary-500)] rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary-100)]"
+                    className="flex-1 font-body text-base text-[var(--color-neutral-800)] bg-white border border-[var(--color-primary-500)] rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary-100)]"
                   />
                 ) : (
                   <button
                     type="button"
                     onClick={() => startEditing(tag)}
                     aria-label={`Rename ${tag.name}`}
-                    className="flex-1 text-left font-[var(--font-body)] text-base text-[var(--color-neutral-800)] cursor-text bg-transparent border-none"
+                    className="flex-1 text-left font-body text-base text-[var(--color-neutral-800)] cursor-text bg-transparent border-none"
                   >
                     {tag.name}
                   </button>
@@ -152,7 +152,7 @@ function CategoriesCard({
                   type="button"
                   onClick={() => onDeleteTag(tag.name)}
                   aria-label={`Delete ${tag.name}`}
-                  className="font-[var(--font-body)] text-sm font-medium text-[var(--color-error-500)] hover:bg-[var(--color-error-50)] rounded-md px-3 py-2 transition-colors cursor-pointer"
+                  className="font-body text-sm font-medium text-[var(--color-error-500)] hover:bg-[var(--color-error-50)] rounded-md px-3 py-2 transition-colors cursor-pointer"
                 >
                   Delete
                 </button>
@@ -174,14 +174,14 @@ function CategoriesCard({
               submitNew();
             }
           }}
-          className="flex-1 font-[var(--font-body)] text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+          className="flex-1 font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
         />
         <button
           type="button"
           onClick={submitNew}
           disabled={addDisabled}
           className={[
-            "font-[var(--font-body)] text-sm font-semibold rounded-md px-6 py-3 transition-colors",
+            "font-body text-sm font-semibold rounded-md px-6 py-3 transition-colors",
             addDisabled
               ? "bg-[var(--color-neutral-200)] text-[var(--color-neutral-400)] cursor-not-allowed"
               : "bg-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] cursor-pointer",
@@ -191,7 +191,7 @@ function CategoriesCard({
         </button>
       </div>
       {trimmed.length > 0 && isDuplicateName(tags, trimmed) && (
-        <p role="alert" className="font-[var(--font-body)] text-sm text-[var(--color-error-500)] mt-3">
+        <p role="alert" className="font-body text-sm text-[var(--color-error-500)] mt-3">
           A category with this name already exists.
         </p>
       )}
@@ -214,11 +214,11 @@ function DataCard({
 }: DataCardProps) {
   return (
     <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
-      <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
+      <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
         Data
       </h3>
       <p
-        className="font-[var(--font-body)] text-base text-[var(--color-neutral-600)] mb-6"
+        className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
         Your journal entries are stored locally in this browser. Entry text is
@@ -230,7 +230,7 @@ function DataCard({
         <button
           type="button"
           onClick={onConfirm}
-          className="font-[var(--font-body)] text-sm font-semibold bg-[var(--color-error-50)] text-[var(--color-error-500)] rounded-md px-6 py-3 hover:bg-[var(--color-error-500)] hover:text-white transition-colors cursor-pointer"
+          className="font-body text-sm font-semibold bg-[var(--color-error-50)] text-[var(--color-error-500)] rounded-md px-6 py-3 hover:bg-[var(--color-error-500)] hover:text-white transition-colors cursor-pointer"
         >
           Clear all data
         </button>
@@ -239,21 +239,21 @@ function DataCard({
           className="bg-[var(--color-error-50)] border border-[var(--color-error-500)] rounded-md p-5"
           style={{ animation: "fadeIn 0.2s ease both" }}
         >
-          <p className="font-[var(--font-body)] text-base text-[var(--color-error-500)] mb-4">
+          <p className="font-body text-base text-[var(--color-error-500)] mb-4">
             This will permanently delete all your journal entries.
           </p>
           <div className="flex gap-3">
             <button
               type="button"
               onClick={onClearData}
-              className="font-[var(--font-body)] text-sm font-semibold bg-[var(--color-error-500)] text-white rounded-md px-6 py-3 hover:opacity-90 transition-opacity cursor-pointer"
+              className="font-body text-sm font-semibold bg-[var(--color-error-500)] text-white rounded-md px-6 py-3 hover:opacity-90 transition-opacity cursor-pointer"
             >
               Yes, delete everything
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="font-[var(--font-body)] text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
+              className="font-body text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -277,11 +277,11 @@ function ContextCard() {
 
   return (
     <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
-      <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
+      <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
         Your context
       </h3>
       <p
-        className="font-[var(--font-body)] text-base text-[var(--color-neutral-600)] mb-6"
+        className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
         Helps the coach speak to where you are. None of this leaves your browser
@@ -289,7 +289,7 @@ function ContextCard() {
       </p>
       <div className="flex flex-col gap-5">
         <label className="flex flex-col gap-2">
-          <span className="font-[var(--font-body)] text-sm font-medium text-[var(--color-neutral-700)]">
+          <span className="font-body text-sm font-medium text-[var(--color-neutral-700)]">
             Headline
           </span>
           <input
@@ -298,11 +298,11 @@ function ContextCard() {
             placeholder="e.g. Senior backend engineer at a fintech series-B"
             onChange={(e) => setHeadline(e.target.value)}
             onBlur={(e) => writeSettings({ contextHeadline: e.currentTarget.value })}
-            className="font-[var(--font-body)] text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+            className="font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
           />
         </label>
         <label className="flex flex-col gap-2">
-          <span className="font-[var(--font-body)] text-sm font-medium text-[var(--color-neutral-700)]">
+          <span className="font-body text-sm font-medium text-[var(--color-neutral-700)]">
             What else should the coach know?
           </span>
           <textarea
@@ -312,7 +312,7 @@ function ContextCard() {
             rows={5}
             onChange={(e) => setNotes(e.target.value)}
             onBlur={(e) => writeSettings({ contextNotes: e.currentTarget.value })}
-            className="font-[var(--font-body)] text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none min-h-[120px] resize-y placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+            className="font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none min-h-[120px] resize-y placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
             style={{ lineHeight: 1.6 }}
           />
         </label>
@@ -338,11 +338,11 @@ function CoachingStyleCard() {
 
   return (
     <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
-      <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
+      <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
         Coaching style
       </h3>
       <p
-        className="font-[var(--font-body)] text-base text-[var(--color-neutral-600)] mb-6"
+        className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
         Pick the voice that works best for you. You can change this any time.
@@ -369,11 +369,11 @@ function CoachingStyleCard() {
                   : "bg-white border-[var(--color-neutral-200)] hover:bg-[var(--color-neutral-50)]",
               ].join(" ")}
             >
-              <div className="font-[var(--font-display)] text-lg font-semibold text-[var(--color-neutral-800)] mb-1">
+              <div className="font-display text-lg font-semibold text-[var(--color-neutral-800)] mb-1">
                 {option.label}
               </div>
               <div
-                className="font-[var(--font-body)] text-sm text-[var(--color-neutral-600)]"
+                className="font-body text-sm text-[var(--color-neutral-600)]"
                 style={{ lineHeight: 1.5 }}
               >
                 {option.descriptor}
