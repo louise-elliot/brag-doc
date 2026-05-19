@@ -121,27 +121,12 @@ export function CoachPanel({
   }
 
   return (
-    <div
-      style={{
-        marginTop: "16px",
-        padding: "16px",
-        background: "var(--color-surface)",
-        border: "1px solid var(--color-accent-border)",
-        borderRadius: "var(--radius-md)",
-        animation: "fadeIn 0.25s ease both",
-      }}
+    <section
+      className="mt-4 bg-[var(--color-primary-50)] border-l-[3px] border-l-[var(--color-primary-500)] rounded-md p-5"
+      style={{ animation: "reframeReveal var(--transition-slow) both" }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "10px",
-            fontWeight: 600,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--color-accent)",
-          }}
-        >
+      <div className="flex justify-between items-center">
+        <span className="font-[var(--font-body)] text-sm font-semibold text-[var(--color-primary-700)]">
           AI Coach
         </span>
         {phase.kind !== "reframing" && (
@@ -149,28 +134,14 @@ export function CoachPanel({
             type="button"
             aria-label="Close coach"
             onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-text-tertiary)",
-              cursor: "pointer",
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-            }}
+            className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)] bg-transparent border-none cursor-pointer hover:bg-[var(--color-neutral-100)] px-3 py-1 rounded-md"
           >
             Close
           </button>
         )}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          marginTop: "16px",
-        }}
-      >
+      <div className="flex flex-col gap-4 mt-4">
         {messages.map((m, i) => (
           <CoachMessage key={i} role={m.role} text={m.text} notes={m.notes} />
         ))}
@@ -179,11 +150,7 @@ export function CoachPanel({
           <p
             role="status"
             aria-live="polite"
-            style={{
-              color: "var(--color-text-tertiary)",
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-            }}
+            className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]"
           >
             Coach is reading...
           </p>
@@ -193,11 +160,7 @@ export function CoachPanel({
           <p
             role="status"
             aria-live="polite"
-            style={{
-              color: "var(--color-text-tertiary)",
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-            }}
+            className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]"
           >
             Coach is rewriting...
           </p>
@@ -211,19 +174,10 @@ export function CoachPanel({
       </div>
 
       {phase.kind === "chatting" && (
-        <div style={{ marginTop: "16px" }}>
+        <div className="mt-4">
           <label
             htmlFor={`coach-reply-${entry.id}`}
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--color-text-tertiary)",
-              display: "block",
-              marginBottom: "8px",
-            }}
+            className="font-[var(--font-body)] text-xs font-semibold uppercase tracking-wider text-[var(--color-neutral-500)] block mb-2"
           >
             Your reply
           </label>
@@ -232,53 +186,21 @@ export function CoachPanel({
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             rows={3}
-            style={{
-              width: "100%",
-              background: "var(--color-base)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-sm)",
-              padding: "10px 12px",
-              fontFamily: "var(--font-body)",
-              fontSize: "14px",
-              color: "var(--color-text-primary)",
-              resize: "vertical",
-              outline: "none",
-            }}
+            className="w-full font-[var(--font-body)] text-base text-[var(--color-neutral-700)] bg-[var(--color-neutral-0)] border border-[var(--color-neutral-300)] rounded-md px-4 py-3 resize-y outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
           />
-          <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+          <div className="flex gap-2 mt-2">
             <button
               type="button"
               onClick={handleSendReply}
               disabled={!reply.trim()}
-              style={{
-                padding: "8px 18px",
-                background: "var(--color-surface-raised)",
-                color: "var(--color-text-secondary)",
-                fontFamily: "var(--font-body)",
-                fontSize: "13px",
-                fontWeight: 500,
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--color-border)",
-                cursor: reply.trim() ? "pointer" : "not-allowed",
-                opacity: reply.trim() ? 1 : 0.5,
-              }}
+              className="font-[var(--font-body)] text-sm font-medium px-5 py-2 rounded-md border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] bg-transparent cursor-pointer hover:bg-[var(--color-neutral-100)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Send reply
             </button>
             <button
               type="button"
               onClick={() => void fetchReframe()}
-              style={{
-                padding: "8px 18px",
-                background: "var(--color-accent)",
-                color: "var(--color-base)",
-                fontFamily: "var(--font-body)",
-                fontSize: "13px",
-                fontWeight: 600,
-                borderRadius: "var(--radius-sm)",
-                border: "none",
-                cursor: "pointer",
-              }}
+              className="font-[var(--font-body)] text-sm font-semibold px-5 py-2 rounded-md bg-[var(--color-primary-500)] text-white border-none cursor-pointer hover:bg-[var(--color-primary-600)]"
             >
               Reframe it now
             </button>
@@ -287,7 +209,7 @@ export function CoachPanel({
       )}
 
       {phase.kind === "reframing" && (
-        <div style={{ marginTop: "16px" }}>
+        <div className="mt-4">
           <ReframeView
             original={entry.original}
             reframed={phase.reframed}
@@ -297,7 +219,7 @@ export function CoachPanel({
           />
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -309,28 +231,13 @@ function ErrorRow({ onRetry }: ErrorRowProps) {
   return (
     <div
       role="alert"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-        fontSize: "13px",
-        color: "var(--color-danger)",
-      }}
+      className="flex items-center gap-3 font-[var(--font-body)] text-sm text-[var(--color-error-500)]"
     >
       <span>Coach didn&apos;t respond. Try again.</span>
       <button
         type="button"
         onClick={onRetry}
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "11px",
-          color: "var(--color-accent)",
-          background: "none",
-          border: "1px solid var(--color-accent-border)",
-          borderRadius: "var(--radius-sm)",
-          padding: "4px 10px",
-          cursor: "pointer",
-        }}
+        className="font-[var(--font-body)] text-xs text-[var(--color-primary-700)] bg-transparent border border-[var(--color-primary-500)] rounded-md px-3 py-1 cursor-pointer hover:bg-[var(--color-primary-50)]"
       >
         Retry
       </button>

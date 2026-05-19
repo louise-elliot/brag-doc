@@ -1,11 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
-  PALETTE,
   getTags,
   saveTags,
-  nextUnusedColor,
-  tagColorFor,
-  tagColorFromHex,
   isDuplicateName,
 } from "./tags";
 
@@ -29,54 +25,13 @@ describe("tags", () => {
     });
 
     it("returns the stored list on subsequent reads", () => {
-      saveTags([{ name: "focus", color: "#D4863C" }]);
-      expect(getTags()).toEqual([{ name: "focus", color: "#D4863C" }]);
+      saveTags([{ name: "focus" }]);
+      expect(getTags()).toEqual([{ name: "focus" }]);
     });
 
     it("returns empty list when user has deleted all tags", () => {
       saveTags([]);
       expect(getTags()).toEqual([]);
-    });
-  });
-
-  describe("nextUnusedColor", () => {
-    it("returns the first palette color that is not in use", () => {
-      const tags = [
-        { name: "a", color: PALETTE[0] },
-        { name: "b", color: PALETTE[1] },
-      ];
-      expect(nextUnusedColor(tags)).toBe(PALETTE[2]);
-    });
-
-    it("cycles the palette when every color is already used", () => {
-      const tags = PALETTE.map((color, i) => ({ name: `t${i}`, color }));
-      expect(PALETTE).toContain(nextUnusedColor(tags));
-    });
-  });
-
-  describe("tagColorFor", () => {
-    it("returns a TagColor from the matching tag's hex", () => {
-      const tags = [{ name: "focus", color: "#D4863C" }];
-      const c = tagColorFor(tags, "focus");
-      expect(c).toEqual({
-        color: "#D4863C",
-        bg: "rgba(212,134,60,0.12)",
-        border: "rgba(212,134,60,0.3)",
-      });
-    });
-
-    it("returns null for tag names that are not in the list", () => {
-      expect(tagColorFor([], "missing")).toBeNull();
-    });
-  });
-
-  describe("tagColorFromHex", () => {
-    it("derives bg and border in the same alpha pattern as the old palette", () => {
-      expect(tagColorFromHex("#6B8AE0")).toEqual({
-        color: "#6B8AE0",
-        bg: "rgba(107,138,224,0.12)",
-        border: "rgba(107,138,224,0.3)",
-      });
     });
   });
 

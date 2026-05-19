@@ -1,6 +1,6 @@
 "use client";
 
-import { tagColorFromHex, type TagDef } from "@/lib/tags";
+import type { TagDef } from "@/lib/tags";
 
 interface TagPickerProps {
   tags: TagDef[];
@@ -18,29 +18,21 @@ export function TagPicker({ tags, selected, onChange }: TagPickerProps) {
   }
 
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+    <div className="flex flex-wrap gap-2">
       {tags.map((tag) => {
         const isSelected = selected.includes(tag.name);
-        const colors = tagColorFromHex(tag.color);
         return (
           <button
             key={tag.name}
             type="button"
             onClick={() => toggle(tag.name)}
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-              fontWeight: 500,
-              padding: "5px 12px",
-              borderRadius: "var(--radius-sm)",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              border: isSelected
-                ? `1px solid ${colors.border}`
-                : "1px solid var(--color-border)",
-              background: isSelected ? colors.bg : "var(--color-surface)",
-              color: isSelected ? colors.color : "var(--color-text-tertiary)",
-            }}
+            aria-pressed={isSelected}
+            className={[
+              "font-[var(--font-body)] text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors",
+              isSelected
+                ? "bg-[var(--color-primary-100)] text-[var(--color-primary-700)]"
+                : "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-200)]",
+            ].join(" ")}
           >
             {tag.name}
           </button>

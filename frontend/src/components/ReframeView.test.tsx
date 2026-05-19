@@ -43,7 +43,7 @@ describe("ReframeView", () => {
 
   it("calls onAccept with the user's edited text when Accept is clicked after editing", async () => {
     render(<ReframeView {...props} />);
-    const field = screen.getByLabelText(/reframed/i);
+    const field = screen.getByRole("textbox", { name: /reframed/i });
     await userEvent.clear(field);
     await userEvent.type(field, "Led the project end-to-end");
     await userEvent.click(screen.getByRole("button", { name: "Accept" }));

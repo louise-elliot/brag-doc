@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Entry } from "@/lib/types";
 import { computeDateRange, type Timeframe } from "@/lib/dates";
-import { tagColorFromHex, type TagDef } from "@/lib/tags";
+import type { TagDef } from "@/lib/tags";
 import { readSettings, serializeContext } from "@/lib/settings";
 
 interface BragDocProps {
@@ -62,16 +62,14 @@ export function BragDoc({ entries, tags }: BragDocProps) {
 
   if (entries.length === 0) {
     return (
-      <p
-        style={{
-          color: "var(--color-text-tertiary)",
-          fontSize: "14px",
-          textAlign: "center",
-          paddingTop: "80px",
-        }}
-      >
-        Add some journal entries first
-      </p>
+      <div className="pt-12 text-center py-16">
+        <p className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-2">
+          Nothing to summarize yet
+        </p>
+        <p className="font-[var(--font-body)] text-base text-[var(--color-neutral-500)]">
+          Add some journal entries first
+        </p>
+      </div>
     );
   }
 
@@ -140,19 +138,8 @@ export function BragDoc({ entries, tags }: BragDocProps) {
   }
 
   return (
-    <div style={{ paddingTop: "48px" }}>
-      <div
-        style={{
-          background: "var(--color-surface)",
-          borderRadius: "var(--radius-lg)",
-          border: "1px solid var(--color-border)",
-          padding: "24px 28px",
-          marginBottom: "20px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "20px",
-        }}
-      >
+    <div className="pt-12">
+      <div className="bg-[var(--color-neutral-0)] border border-[var(--color-neutral-200)] rounded-lg p-6 mb-5 flex flex-col gap-5">
         <SettingRow label="Timeframe">
           <SegmentedControl
             ariaLabel="Timeframe"
@@ -175,13 +162,12 @@ export function BragDoc({ entries, tags }: BragDocProps) {
           <div
             role="group"
             aria-label="Filter tags"
-            style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}
+            className="flex flex-wrap gap-2"
           >
             {tags.map((tag) => (
               <TagChip
                 key={tag.name}
                 name={tag.name}
-                color={tag.color}
                 selected={selectedTags.has(tag.name)}
                 onClick={() => toggleTag(tag.name)}
               />
@@ -201,82 +187,40 @@ export function BragDoc({ entries, tags }: BragDocProps) {
             onChange={(e) => setUserPrompt(e.target.value)}
             placeholder="Anything you want to emphasize? e.g. 'focus on cross-functional impact', 'this is for a promo case to director level'..."
             rows={2}
-            style={{
-              width: "100%",
-              background: "var(--color-surface-raised)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-sm)",
-              padding: "10px 12px",
-              fontFamily: "var(--font-body)",
-              fontSize: "13px",
-              color: "var(--color-text-primary)",
-              resize: "vertical",
-              minHeight: "52px",
-              outline: "none",
-            }}
+            className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-300)] rounded-md px-4 py-3 font-[var(--font-body)] text-base text-[var(--color-neutral-700)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)] resize-y min-h-[52px] transition-colors"
           />
         </SettingRow>
       </div>
 
-      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+      <div className="flex gap-3 items-center">
         <button
+          type="button"
           onClick={generate}
           disabled={generateDisabled}
-          style={{
-            padding: "8px 24px",
-            background: generateDisabled
-              ? "var(--color-surface-raised)"
-              : "var(--color-accent)",
-            color: generateDisabled
-              ? "var(--color-text-tertiary)"
-              : "var(--color-base)",
-            fontFamily: "var(--font-body)",
-            fontSize: "14px",
-            fontWeight: 600,
-            borderRadius: "var(--radius-sm)",
-            border: "none",
-            cursor: generateDisabled ? "not-allowed" : "pointer",
-            opacity: generateDisabled ? 0.6 : 1,
-            transition: "all 0.2s",
-          }}
+          className="font-[var(--font-body)] text-sm font-semibold bg-[var(--color-primary-500)] text-white rounded-md px-6 py-3 hover:bg-[var(--color-primary-600)] disabled:bg-[var(--color-neutral-200)] disabled:text-[var(--color-neutral-400)] disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {loading ? "Generating..." : "Generate"}
         </button>
         {noTagsSelected && (
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-              color: "var(--color-text-tertiary)",
-            }}
-          >
+          <span className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]">
             Select at least one tag
           </span>
         )}
       </div>
 
       {error && (
-        <p
-          style={{
-            color: "var(--color-danger)",
-            fontSize: "14px",
-            marginTop: "20px",
-          }}
-        >
-          {error}
-        </p>
+        <div className="mt-5 bg-[var(--color-error-50)] rounded-md px-4 py-3">
+          <p className="font-[var(--font-body)] text-sm text-[var(--color-error-500)]">
+            {error}
+          </p>
+        </div>
       )}
 
       {loading && (
-        <div style={{ textAlign: "center", paddingTop: "40px" }}>
+        <div className="text-center pt-10">
           <p
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-              color: "var(--color-text-tertiary)",
-              letterSpacing: "0.05em",
-              animation: "shimmer 1.5s ease-in-out infinite",
-            }}
+            className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]"
+            style={{ animation: "shimmer 1.5s ease-in-out infinite" }}
           >
             Synthesizing your accomplishments...
           </p>
@@ -284,121 +228,47 @@ export function BragDoc({ entries, tags }: BragDocProps) {
       )}
 
       {bullets && (
-        <div
-          style={{
-            position: "relative",
-            background: "var(--color-surface)",
-            borderRadius: "var(--radius-lg)",
-            border: "1px solid var(--color-border)",
-            padding: "32px 28px",
-            marginTop: "24px",
-            animation: "fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: "-10px",
-              left: "20px",
-              background: "var(--color-surface)",
-              padding: "0 10px",
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--color-accent)",
-            }}
-          >
-            Generated Brag Doc
-          </div>
-
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "28px" }}
-          >
+        <div className="mt-6 bg-[var(--color-neutral-0)] border border-[var(--color-neutral-200)] rounded-lg px-7 pt-8 pb-6">
+          <div className="flex flex-col">
             {bullets.map((group, groupIndex) => (
-              <div key={`${group.tag}-${groupIndex}`}>
+              <section key={`${group.tag}-${groupIndex}`} className="mt-10">
                 {group.tag && (
-                  <h3
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "16px",
-                      fontWeight: 600,
-                      color: "var(--color-text-primary)",
-                      marginBottom: "12px",
-                      textTransform: "capitalize",
-                    }}
-                  >
+                  <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-4 capitalize">
                     {group.tag}
                   </h3>
                 )}
-                <ul
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                  }}
-                >
+                <ul className="flex flex-col gap-3">
                   {group.points.map((point, i) => (
                     <li
                       key={i}
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: "12px",
-                        fontSize: "14px",
-                        color: "var(--color-text-secondary)",
-                        lineHeight: 1.6,
-                      }}
+                      className="font-[var(--font-body)] text-base text-[var(--color-neutral-700)] pl-6 relative before:absolute before:left-0 before:top-3 before:w-1 before:h-1 before:rounded-full before:bg-[var(--color-primary-500)]"
+                      style={{ lineHeight: 1.75 }}
                     >
-                      <span
-                        style={{
-                          width: "6px",
-                          height: "6px",
-                          borderRadius: "50%",
-                          border: "1.5px solid var(--color-accent)",
-                          flexShrink: 0,
-                          marginTop: "7px",
-                        }}
-                      />
                       {point}
                     </li>
                   ))}
                 </ul>
-              </div>
+              </section>
             ))}
           </div>
 
-          <div
-            style={{
-              marginTop: "24px",
-              borderTop: "1px solid var(--color-border)",
-              paddingTop: "20px",
-            }}
-          >
+          <div className="mt-6 border-t border-[var(--color-neutral-200)] pt-5 flex items-center">
             <button
+              type="button"
               onClick={copyToClipboard}
-              style={{
-                padding: "8px 20px",
-                background: copied
-                  ? "var(--color-positive-muted)"
-                  : "var(--color-surface-raised)",
-                color: copied
-                  ? "var(--color-positive)"
-                  : "var(--color-text-secondary)",
-                fontFamily: "var(--font-body)",
-                fontSize: "13px",
-                fontWeight: 500,
-                borderRadius: "var(--radius-sm)",
-                border: `1px solid ${
-                  copied ? "rgba(76, 175, 130, 0.25)" : "var(--color-border)"
-                }`,
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}
+              className="font-[var(--font-body)] text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
             >
-              {copied ? "Copied" : "Copy to clipboard"}
+              Copy to clipboard
             </button>
+            {copied && (
+              <span
+                role="status"
+                className="font-[var(--font-body)] text-sm font-medium bg-[var(--color-success-50)] text-[var(--color-success-500)] rounded-full px-3 py-1 ml-3"
+                style={{ animation: "fadeIn 0.2s ease" }}
+              >
+                Copied
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -423,36 +293,23 @@ function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}
+      className="flex flex-wrap gap-2"
     >
       {options.map((opt) => {
-        const selected = opt.value === value;
+        const active = opt.value === value;
         return (
           <button
             key={opt.value}
             type="button"
             role="radio"
-            aria-checked={selected}
+            aria-checked={active}
             onClick={() => onChange(opt.value)}
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-              fontWeight: 500,
-              padding: "6px 14px",
-              borderRadius: "999px",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              border: selected
-                ? "1px solid var(--color-accent-border)"
-                : "1px solid var(--color-border)",
-              background: selected
-                ? "var(--color-accent-muted)"
-                : "transparent",
-              color: selected
-                ? "var(--color-accent)"
-                : "var(--color-text-tertiary)",
-              letterSpacing: "0.02em",
-            }}
+            className={[
+              "font-[var(--font-body)] text-sm font-medium rounded-full px-4 py-2 transition-colors cursor-pointer",
+              active
+                ? "bg-[var(--color-neutral-100)] text-[var(--color-neutral-800)]"
+                : "text-[var(--color-neutral-500)] hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-700)]",
+            ].join(" ")}
           >
             {opt.label}
           </button>
@@ -469,17 +326,8 @@ interface SettingRowProps {
 
 function SettingRow({ label, children }: SettingRowProps) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      <span
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "10px",
-          fontWeight: 600,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--color-text-tertiary)",
-        }}
-      >
+    <div className="flex flex-col gap-2">
+      <span className="font-[var(--font-body)] text-xs font-semibold tracking-widest uppercase text-[var(--color-neutral-500)]">
         {label}
       </span>
       {children}
@@ -489,43 +337,22 @@ function SettingRow({ label, children }: SettingRowProps) {
 
 interface TagChipProps {
   name: string;
-  color?: string;
   selected: boolean;
   onClick: () => void;
 }
 
-function TagChip({ name, color, selected, onClick }: TagChipProps) {
-  const colors = color ? tagColorFromHex(color) : null;
+function TagChip({ name, selected, onClick }: TagChipProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "11px",
-        fontWeight: 500,
-        padding: "5px 12px",
-        borderRadius: "var(--radius-sm)",
-        cursor: "pointer",
-        transition: "all 0.15s ease",
-        border: selected && colors
-          ? `1px solid ${colors.border}`
-          : selected
-            ? "1px solid var(--color-text-tertiary)"
-            : "1px solid var(--color-border)",
-        background: selected && colors
-          ? colors.bg
-          : selected
-            ? "var(--color-surface-raised)"
-            : "var(--color-surface)",
-        color: selected && colors
-          ? colors.color
-          : selected
-            ? "var(--color-text-primary)"
-            : "var(--color-text-tertiary)",
-        opacity: selected ? 1 : 0.6,
-      }}
+      className={[
+        "font-[var(--font-body)] text-sm font-medium px-3 py-1 rounded-full cursor-pointer transition-colors",
+        selected
+          ? "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] border border-[var(--color-neutral-400)] opacity-100"
+          : "bg-transparent text-[var(--color-neutral-500)] border border-[var(--color-neutral-300)] opacity-60",
+      ].join(" ")}
     >
       {name}
     </button>

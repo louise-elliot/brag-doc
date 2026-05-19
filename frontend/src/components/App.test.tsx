@@ -31,8 +31,8 @@ vi.mock("@/lib/tags", async () => {
   return {
     ...actual,
     getTags: vi.fn().mockReturnValue([
-      { name: "leadership", color: "#D4863C" },
-      { name: "technical", color: "#6B8AE0" },
+      { name: "leadership" },
+      { name: "technical" },
     ]),
     saveTags: vi.fn(),
   };
@@ -69,8 +69,10 @@ describe("App", () => {
   it("highlights active tab", async () => {
     render(<App />);
     const journalTab = screen.getByRole("tab", { name: "Journal" });
-    expect(journalTab.style.borderBottom).toContain("solid");
-    expect(journalTab.style.color).toBeTruthy();
+    // Styling moved from inline styles to className; verify semantic state instead.
+    expect(journalTab).toHaveAttribute("aria-selected", "true");
+    const bragDocTab = screen.getByRole("tab", { name: "Brag Doc" });
+    expect(bragDocTab).toHaveAttribute("aria-selected", "false");
   });
 
   it("exposes ARIA tablist/tabpanel semantics", async () => {

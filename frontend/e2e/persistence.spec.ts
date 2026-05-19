@@ -26,5 +26,5 @@ test("clear all data removes entries", async ({ page }) => {
   await page.click('button:has-text("Yes, delete everything")');
 
   await page.click('button[role="tab"]:has-text("Journal")');
-  await expect(page.locator("text=No entries yet")).toBeVisible();
+  await expect(page.getByText("No wins yet")).toBeVisible();
 });

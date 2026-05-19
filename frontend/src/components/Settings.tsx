@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  PALETTE,
-  isDuplicateName,
-  nextUnusedColor,
-  type TagDef,
-} from "@/lib/tags";
+import { isDuplicateName, type TagDef } from "@/lib/tags";
 import {
   COACHING_STYLE_OPTIONS,
   DEFAULT_USER_SETTINGS,
@@ -16,7 +11,7 @@ import { readSettings, writeSettings } from "@/lib/settings";
 
 interface SettingsProps {
   tags: TagDef[];
-  onAddTag: (name: string, color: string) => void;
+  onAddTag: (name: string) => void;
   onDeleteTag: (name: string) => void;
   onRenameTag: (oldName: string, newName: string) => void;
   onClearData: () => void;
@@ -32,7 +27,7 @@ export function Settings({
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <div style={{ paddingTop: "48px", display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div className="pt-12 flex flex-col gap-12">
       <CoachingStyleCard />
       <ContextCard />
       <CategoriesCard
@@ -56,7 +51,7 @@ export function Settings({
 
 interface CategoriesCardProps {
   tags: TagDef[];
-  onAddTag: (name: string, color: string) => void;
+  onAddTag: (name: string) => void;
   onDeleteTag: (name: string) => void;
   onRenameTag: (oldName: string, newName: string) => void;
 }
@@ -68,19 +63,16 @@ function CategoriesCard({
   onRenameTag,
 }: CategoriesCardProps) {
   const [newName, setNewName] = useState("");
-  const [newColor, setNewColor] = useState<string>(() => nextUnusedColor(tags));
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editingDraft, setEditingDraft] = useState("");
 
   const trimmed = newName.trim();
-  const addDisabled =
-    trimmed.length === 0 || isDuplicateName(tags, trimmed);
+  const addDisabled = trimmed.length === 0 || isDuplicateName(tags, trimmed);
 
   function submitNew() {
     if (addDisabled) return;
-    onAddTag(trimmed, newColor);
+    onAddTag(trimmed);
     setNewName("");
-    setNewColor(nextUnusedColor([...tags, { name: trimmed, color: newColor }]));
   }
 
   function startEditing(tag: TagDef) {
@@ -92,8 +84,7 @@ function CategoriesCard({
     if (!editingName) return;
     const nextName = editingDraft.trim();
     const isSame = nextName === editingName;
-    const invalid =
-      !nextName || isDuplicateName(tags, nextName, editingName);
+    const invalid = !nextName || isDuplicateName(tags, nextName, editingName);
     if (!isSame && !invalid) {
       onRenameTag(editingName, nextName);
     }
@@ -102,34 +93,13 @@ function CategoriesCard({
   }
 
   return (
-    <div
-      style={{
-        background: "var(--color-surface)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        padding: "28px",
-      }}
-    >
-      <h3
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "10px",
-          fontWeight: 600,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--color-text-tertiary)",
-          marginBottom: "16px",
-        }}
-      >
+    <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
+      <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
         Categories
       </h3>
       <p
-        style={{
-          fontSize: "14px",
-          color: "var(--color-text-secondary)",
-          lineHeight: 1.6,
-          marginBottom: "24px",
-        }}
+        className="font-[var(--font-body)] text-base text-[var(--color-neutral-600)] mb-6"
+        style={{ lineHeight: 1.6 }}
       >
         These are the tags you can apply to entries. Deleting a category removes
         it from the picker — past entries keep their tag. Renaming updates the
@@ -137,48 +107,18 @@ function CategoriesCard({
       </p>
 
       {tags.length === 0 ? (
-        <p
-          style={{
-            fontSize: "13px",
-            color: "var(--color-text-tertiary)",
-            fontStyle: "italic",
-            marginBottom: "20px",
-          }}
-        >
+        <p className="font-[var(--font-body)] text-sm italic text-[var(--color-neutral-500)] mb-6">
           No categories yet — add one below.
         </p>
       ) : (
-        <ul
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "4px",
-            marginBottom: "24px",
-          }}
-        >
+        <ul className="flex flex-col mb-6">
           {tags.map((tag) => {
             const isEditing = editingName === tag.name;
             return (
               <li
                 key={tag.name}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "8px 0",
-                  borderBottom: "1px solid var(--color-border-subtle)",
-                }}
+                className="flex items-center gap-3 py-3 border-b border-[var(--color-neutral-200)]"
               >
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: "10px",
-                    height: "10px",
-                    borderRadius: "50%",
-                    background: tag.color,
-                    flexShrink: 0,
-                  }}
-                />
                 {isEditing ? (
                   <input
                     autoFocus
@@ -196,34 +136,14 @@ function CategoriesCard({
                         setEditingDraft("");
                       }
                     }}
-                    style={{
-                      flex: 1,
-                      background: "var(--color-surface-raised)",
-                      border: "1px solid var(--color-accent-border)",
-                      borderRadius: "var(--radius-sm)",
-                      padding: "4px 10px",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "13px",
-                      color: "var(--color-text-primary)",
-                      outline: "none",
-                    }}
+                    className="flex-1 font-[var(--font-body)] text-base text-[var(--color-neutral-800)] bg-white border border-[var(--color-primary-500)] rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary-100)]"
                   />
                 ) : (
                   <button
                     type="button"
                     onClick={() => startEditing(tag)}
                     aria-label={`Rename ${tag.name}`}
-                    style={{
-                      flex: 1,
-                      textAlign: "left",
-                      background: "none",
-                      border: "none",
-                      padding: "4px 0",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "13px",
-                      color: "var(--color-text-primary)",
-                      cursor: "text",
-                    }}
+                    className="flex-1 text-left font-[var(--font-body)] text-base text-[var(--color-neutral-800)] cursor-text bg-transparent border-none"
                   >
                     {tag.name}
                   </button>
@@ -232,24 +152,9 @@ function CategoriesCard({
                   type="button"
                   onClick={() => onDeleteTag(tag.name)}
                   aria-label={`Delete ${tag.name}`}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--color-text-tertiary)",
-                    cursor: "pointer",
-                    fontSize: "16px",
-                    lineHeight: 1,
-                    padding: "4px 8px",
-                    transition: "color 0.15s",
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.color = "var(--color-danger)";
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.color = "var(--color-text-tertiary)";
-                  }}
+                  className="font-[var(--font-body)] text-sm font-medium text-[var(--color-error-500)] hover:bg-[var(--color-error-50)] rounded-md px-3 py-2 transition-colors cursor-pointer"
                 >
-                  ×
+                  Delete
                 </button>
               </li>
             );
@@ -257,100 +162,40 @@ function CategoriesCard({
         </ul>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <input
-            aria-label="New category name"
-            placeholder="New category name..."
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                submitNew();
-              }
-            }}
-            style={{
-              flex: 1,
-              background: "var(--color-surface-raised)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-sm)",
-              padding: "8px 12px",
-              fontFamily: "var(--font-mono)",
-              fontSize: "13px",
-              color: "var(--color-text-primary)",
-              outline: "none",
-            }}
-          />
-          <button
-            type="button"
-            onClick={submitNew}
-            disabled={addDisabled}
-            style={{
-              padding: "8px 20px",
-              background: addDisabled
-                ? "var(--color-surface-raised)"
-                : "var(--color-accent)",
-              color: addDisabled
-                ? "var(--color-text-tertiary)"
-                : "var(--color-base)",
-              fontFamily: "var(--font-body)",
-              fontSize: "13px",
-              fontWeight: 600,
-              borderRadius: "var(--radius-sm)",
-              border: "none",
-              cursor: addDisabled ? "not-allowed" : "pointer",
-              transition: "all 0.15s",
-            }}
-          >
-            Add
-          </button>
-        </div>
-        <div
-          role="radiogroup"
-          aria-label="Category color"
-          style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
+      <div className="flex gap-2">
+        <input
+          aria-label="New category name"
+          placeholder="New category name..."
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              submitNew();
+            }
+          }}
+          className="flex-1 font-[var(--font-body)] text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+        />
+        <button
+          type="button"
+          onClick={submitNew}
+          disabled={addDisabled}
+          className={[
+            "font-[var(--font-body)] text-sm font-semibold rounded-md px-6 py-3 transition-colors",
+            addDisabled
+              ? "bg-[var(--color-neutral-200)] text-[var(--color-neutral-400)] cursor-not-allowed"
+              : "bg-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] cursor-pointer",
+          ].join(" ")}
         >
-          {PALETTE.map((hex) => {
-            const selected = hex === newColor;
-            return (
-              <button
-                key={hex}
-                role="radio"
-                aria-checked={selected}
-                aria-label={`Color ${hex}`}
-                type="button"
-                onClick={() => setNewColor(hex)}
-                style={{
-                  width: "22px",
-                  height: "22px",
-                  borderRadius: "50%",
-                  background: hex,
-                  border: selected
-                    ? "2px solid var(--color-text-primary)"
-                    : "2px solid transparent",
-                  cursor: "pointer",
-                  padding: 0,
-                  transition: "border-color 0.15s",
-                }}
-              />
-            );
-          })}
-        </div>
-        {trimmed.length > 0 && isDuplicateName(tags, trimmed) && (
-          <p
-            role="alert"
-            style={{
-              fontSize: "12px",
-              color: "var(--color-danger)",
-              margin: 0,
-            }}
-          >
-            A category with this name already exists.
-          </p>
-        )}
+          Add
+        </button>
       </div>
-    </div>
+      {trimmed.length > 0 && isDuplicateName(tags, trimmed) && (
+        <p role="alert" className="font-[var(--font-body)] text-sm text-[var(--color-error-500)] mt-3">
+          A category with this name already exists.
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -368,123 +213,59 @@ function DataCard({
   onClearData,
 }: DataCardProps) {
   return (
-    <div
-      style={{
-        background: "var(--color-surface)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        padding: "28px",
-      }}
-    >
-      <h3
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "10px",
-          fontWeight: 600,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--color-text-tertiary)",
-          marginBottom: "16px",
-        }}
-      >
-        Data Management
+    <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
+      <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
+        Data
       </h3>
       <p
-        style={{
-          fontSize: "14px",
-          color: "var(--color-text-secondary)",
-          lineHeight: 1.6,
-          marginBottom: "24px",
-        }}
+        className="font-[var(--font-body)] text-base text-[var(--color-neutral-600)] mb-6"
+        style={{ lineHeight: 1.6 }}
       >
         Your journal entries are stored locally in this browser. Entry text is
-        sent to Anthropic only when you reframe an entry or generate a brag
-        doc, and is not stored on our servers.
+        sent to Anthropic only when you reframe an entry or generate a brag doc,
+        and is not stored on our servers.
       </p>
 
       {!confirming ? (
         <button
+          type="button"
           onClick={onConfirm}
-          style={{
-            padding: "8px 20px",
-            background: "var(--color-danger-muted)",
-            color: "var(--color-danger)",
-            fontFamily: "var(--font-body)",
-            fontSize: "13px",
-            fontWeight: 600,
-            borderRadius: "var(--radius-sm)",
-            border: "1px solid rgba(207,68,68,0.25)",
-            cursor: "pointer",
-            transition: "background 0.15s",
-          }}
+          className="font-[var(--font-body)] text-sm font-semibold bg-[var(--color-error-50)] text-[var(--color-error-500)] rounded-md px-6 py-3 hover:bg-[var(--color-error-500)] hover:text-white transition-colors cursor-pointer"
         >
           Clear all data
         </button>
       ) : (
         <div
-          style={{
-            background: "var(--color-danger-muted)",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid rgba(207,68,68,0.25)",
-            padding: "20px",
-            animation: "fadeIn 0.2s ease both",
-          }}
+          className="bg-[var(--color-error-50)] border border-[var(--color-error-500)] rounded-md p-5"
+          style={{ animation: "fadeIn 0.2s ease both" }}
         >
-          <p
-            style={{
-              fontSize: "14px",
-              color: "var(--color-danger)",
-              marginBottom: "16px",
-            }}
-          >
+          <p className="font-[var(--font-body)] text-base text-[var(--color-error-500)] mb-4">
             This will permanently delete all your journal entries.
           </p>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div className="flex gap-3">
             <button
+              type="button"
               onClick={onClearData}
-              style={{
-                padding: "8px 20px",
-                background: "var(--color-danger)",
-                color: "#fff",
-                fontFamily: "var(--font-body)",
-                fontSize: "13px",
-                fontWeight: 600,
-                borderRadius: "var(--radius-sm)",
-                border: "none",
-                cursor: "pointer",
-                transition: "background 0.15s",
-              }}
+              className="font-[var(--font-body)] text-sm font-semibold bg-[var(--color-error-500)] text-white rounded-md px-6 py-3 hover:opacity-90 transition-opacity cursor-pointer"
             >
               Yes, delete everything
             </button>
             <button
+              type="button"
               onClick={onCancel}
-              style={{
-                padding: "8px 20px",
-                background: "var(--color-surface-raised)",
-                color: "var(--color-text-secondary)",
-                fontFamily: "var(--font-body)",
-                fontSize: "13px",
-                fontWeight: 500,
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--color-border)",
-                cursor: "pointer",
-                transition: "background 0.15s",
-              }}
+              className="font-[var(--font-body)] text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
             >
               Cancel
             </button>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
 function ContextCard() {
-  const [headline, setHeadline] = useState(
-    DEFAULT_USER_SETTINGS.contextHeadline
-  );
+  const [headline, setHeadline] = useState(DEFAULT_USER_SETTINGS.contextHeadline);
   const [notes, setNotes] = useState(DEFAULT_USER_SETTINGS.contextNotes);
 
   useEffect(() => {
@@ -495,53 +276,20 @@ function ContextCard() {
   }, []);
 
   return (
-    <div
-      style={{
-        background: "var(--color-surface)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        padding: "28px",
-      }}
-    >
-      <h3
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "10px",
-          fontWeight: 600,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--color-text-tertiary)",
-          marginBottom: "16px",
-        }}
-      >
-        Your Context
+    <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
+      <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
+        Your context
       </h3>
       <p
-        style={{
-          fontSize: "14px",
-          color: "var(--color-text-secondary)",
-          lineHeight: 1.6,
-          marginBottom: "20px",
-        }}
+        className="font-[var(--font-body)] text-base text-[var(--color-neutral-600)] mb-6"
+        style={{ lineHeight: 1.6 }}
       >
-        Helps the coach speak to where you are. None of this leaves your
-        browser unless an entry is being reframed or a brag doc is being
-        generated.
+        Helps the coach speak to where you are. None of this leaves your browser
+        unless an entry is being reframed or a brag doc is being generated.
       </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-        <label
-          style={{ display: "flex", flexDirection: "column", gap: "6px" }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--color-text-tertiary)",
-            }}
-          >
+      <div className="flex flex-col gap-5">
+        <label className="flex flex-col gap-2">
+          <span className="font-[var(--font-body)] text-sm font-medium text-[var(--color-neutral-700)]">
             Headline
           </span>
           <input
@@ -550,31 +298,11 @@ function ContextCard() {
             placeholder="e.g. Senior backend engineer at a fintech series-B"
             onChange={(e) => setHeadline(e.target.value)}
             onBlur={(e) => writeSettings({ contextHeadline: e.currentTarget.value })}
-            style={{
-              background: "var(--color-surface-raised)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-sm)",
-              padding: "10px 12px",
-              fontFamily: "var(--font-body)",
-              fontSize: "14px",
-              color: "var(--color-text-primary)",
-              outline: "none",
-            }}
+            className="font-[var(--font-body)] text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
           />
         </label>
-        <label
-          style={{ display: "flex", flexDirection: "column", gap: "6px" }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--color-text-tertiary)",
-            }}
-          >
+        <label className="flex flex-col gap-2">
+          <span className="font-[var(--font-body)] text-sm font-medium text-[var(--color-neutral-700)]">
             What else should the coach know?
           </span>
           <textarea
@@ -584,22 +312,12 @@ function ContextCard() {
             rows={5}
             onChange={(e) => setNotes(e.target.value)}
             onBlur={(e) => writeSettings({ contextNotes: e.currentTarget.value })}
-            style={{
-              background: "var(--color-surface-raised)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-sm)",
-              padding: "10px 12px",
-              fontFamily: "var(--font-body)",
-              fontSize: "14px",
-              color: "var(--color-text-primary)",
-              outline: "none",
-              resize: "vertical",
-              minHeight: "100px",
-            }}
+            className="font-[var(--font-body)] text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none min-h-[120px] resize-y placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+            style={{ lineHeight: 1.6 }}
           />
         </label>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -619,41 +337,20 @@ function CoachingStyleCard() {
   }
 
   return (
-    <div
-      style={{
-        background: "var(--color-surface)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        padding: "28px",
-      }}
-    >
-      <h3
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "10px",
-          fontWeight: 600,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--color-text-tertiary)",
-          marginBottom: "16px",
-        }}
-      >
-        Coaching Style
+    <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
+      <h3 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
+        Coaching style
       </h3>
       <p
-        style={{
-          fontSize: "14px",
-          color: "var(--color-text-secondary)",
-          lineHeight: 1.6,
-          marginBottom: "20px",
-        }}
+        className="font-[var(--font-body)] text-base text-[var(--color-neutral-600)] mb-6"
+        style={{ lineHeight: 1.6 }}
       >
         Pick the voice that works best for you. You can change this any time.
       </p>
       <div
         role="radiogroup"
         aria-label="Coaching style"
-        style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+        className="flex flex-col gap-3"
       >
         {COACHING_STYLE_OPTIONS.map((option) => {
           const selected = style === option.key;
@@ -665,37 +362,19 @@ function CoachingStyleCard() {
               aria-checked={selected}
               aria-label={option.label}
               onClick={() => pick(option.key)}
-              style={{
-                textAlign: "left",
-                padding: "16px 18px",
-                background: selected
-                  ? "var(--color-accent-muted)"
-                  : "transparent",
-                border: selected
-                  ? "1px solid var(--color-accent-border)"
-                  : "1px solid var(--color-border)",
-                borderRadius: "var(--radius-md)",
-                cursor: "pointer",
-                transition: "all 0.15s",
-              }}
+              className={[
+                "text-left rounded-md px-5 py-4 border transition-colors cursor-pointer",
+                selected
+                  ? "bg-[var(--color-primary-50)] border-[var(--color-primary-500)]"
+                  : "bg-white border-[var(--color-neutral-200)] hover:bg-[var(--color-neutral-50)]",
+              ].join(" ")}
             >
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "var(--color-text-primary)",
-                  marginBottom: "4px",
-                }}
-              >
+              <div className="font-[var(--font-display)] text-lg font-semibold text-[var(--color-neutral-800)] mb-1">
                 {option.label}
               </div>
               <div
-                style={{
-                  fontSize: "13px",
-                  color: "var(--color-text-secondary)",
-                  lineHeight: 1.5,
-                }}
+                className="font-[var(--font-body)] text-sm text-[var(--color-neutral-600)]"
+                style={{ lineHeight: 1.5 }}
               >
                 {option.descriptor}
               </div>
@@ -703,6 +382,6 @@ function CoachingStyleCard() {
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }

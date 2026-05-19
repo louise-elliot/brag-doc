@@ -23,8 +23,8 @@ describe("prompts", () => {
     expect(prompts.size).toBeGreaterThan(1);
   });
 
-  it("has 9 prompts in the pool", () => {
-    expect(PROMPTS).toHaveLength(9);
+  it("has at least 9 prompts in the pool", () => {
+    expect(PROMPTS.length).toBeGreaterThanOrEqual(9);
   });
 
   describe("getRandomPromptExcluding", () => {

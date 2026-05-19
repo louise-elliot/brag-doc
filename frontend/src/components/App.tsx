@@ -54,8 +54,8 @@ export function App() {
     refreshTags();
   }, [refreshEntries, refreshTags]);
 
-  function handleAddTag(name: string, color: string) {
-    const next = [...tags, { name, color }];
+  function handleAddTag(name: string) {
+    const next = [...tags, { name }];
     saveTags(next);
     setTags(next);
   }
@@ -117,105 +117,58 @@ export function App() {
   }
 
   return (
-    <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }}>
-      <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+    <div className="min-h-screen relative" style={{ zIndex: 1 }}>
+      <div className="max-w-[1200px] mx-auto">
         <header
-          style={{
-            padding: "32px 40px 0",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-          className="animate-in"
+          className="animate-in flex justify-between items-center px-12 pt-12 pb-6 border-b border-[var(--color-neutral-200)]"
         >
-          <div
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "20px",
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
-              color: "var(--color-text-primary)",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-            }}
-          >
-            <div
-              style={{
-                width: "3px",
-                height: "18px",
-                background: "var(--color-accent)",
-                borderRadius: "2px",
-              }}
-            />
+          <div className="font-[var(--font-display)] text-xl font-bold tracking-tight text-[var(--color-neutral-800)]">
             Confidence
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                color: "var(--color-text-tertiary)",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {new Date().toLocaleDateString("en-US", {
-                month: "short",
-                day: "2-digit",
-                year: "numeric",
-              })}
-            </span>
-          </div>
+          <span className="font-[var(--font-body)] text-xs text-[var(--color-neutral-500)]">
+            {new Date().toLocaleDateString("en-US", {
+              month: "short",
+              day: "2-digit",
+              year: "numeric",
+            })}
+          </span>
         </header>
 
         <nav
           role="tablist"
-          style={{
-            display: "flex",
-            padding: "28px 40px 0",
-            borderBottom: "1px solid var(--color-border-subtle)",
-          }}
-          className="animate-in animate-delay-1"
+          className="animate-in animate-delay-1 flex gap-8 px-12 pt-6"
         >
-          {TABS.map(({ key, label }) => (
-            <button
-              key={key}
-              id={`tab-${key}`}
-              role="tab"
-              aria-selected={tab === key}
-              aria-controls={`tabpanel-${key}`}
-              onClick={() => setTab(key)}
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                fontWeight: 500,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                padding: "12px 24px 14px",
-                color:
-                  tab === key
-                    ? "var(--color-accent)"
-                    : "var(--color-text-tertiary)",
-                border: "none",
-                background: "none",
-                cursor: "pointer",
-                borderBottom:
-                  tab === key
-                    ? "2px solid var(--color-accent)"
-                    : "2px solid transparent",
-                marginBottom: "-1px",
-                transition: "color 0.2s, border-color 0.3s",
-              }}
-              className={tab === key ? "border-accent-active" : ""}
-            >
-              {label}
-            </button>
-          ))}
+          {TABS.map(({ key, label }) => {
+            const active = tab === key;
+            return (
+              <button
+                key={key}
+                id={`tab-${key}`}
+                role="tab"
+                aria-selected={active}
+                aria-controls={`tabpanel-${key}`}
+                onClick={() => setTab(key)}
+                className={[
+                  "font-[var(--font-body)] text-sm font-medium pb-3 -mb-px border-b-2 transition-colors cursor-pointer",
+                  active
+                    ? "text-[var(--color-neutral-800)] border-[var(--color-primary-500)]"
+                    : "text-[var(--color-neutral-500)] border-transparent hover:text-[var(--color-neutral-700)]",
+                ].join(" ")}
+              >
+                {label}
+              </button>
+            );
+          })}
         </nav>
 
-        <main style={{ padding: "0 40px 80px" }}>
+        <main className="px-12 pb-20">
           {tab === "journal" && (
-            <div role="tabpanel" id="tabpanel-journal" aria-labelledby="tab-journal">
+            <div
+              role="tabpanel"
+              id="tabpanel-journal"
+              aria-labelledby="tab-journal"
+              className="max-w-[800px] mx-auto"
+            >
               <div className="animate-in animate-delay-2">
                 <EntryForm
                   prompt={prompt}
@@ -225,42 +178,14 @@ export function App() {
                 />
               </div>
 
-              <div
-                style={{ marginTop: "48px" }}
-                className="animate-in animate-delay-4"
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    marginBottom: "20px",
-                  }}
-                >
-                  <h2
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase",
-                      color: "var(--color-text-tertiary)",
-                    }}
-                  >
-                    Past Entries
+              <div className="mt-16 animate-in animate-delay-4">
+                <div className="flex items-baseline gap-3 mb-6">
+                  <h2 className="font-[var(--font-display)] text-2xl font-semibold text-[var(--color-neutral-800)]">
+                    Past entries
                   </h2>
                   {entries.length > 0 && (
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "11px",
-                        color: "var(--color-text-tertiary)",
-                        background: "var(--color-surface)",
-                        padding: "2px 8px",
-                        borderRadius: "var(--radius-sm)",
-                      }}
-                    >
-                      {entries.length}
+                    <span className="font-[var(--font-body)] text-sm text-[var(--color-neutral-500)]">
+                      · {entries.length}
                     </span>
                   )}
                 </div>
@@ -292,7 +217,7 @@ export function App() {
               role="tabpanel"
               id="tabpanel-settings"
               aria-labelledby="tab-settings"
-              className="animate-in animate-delay-2"
+              className="max-w-[800px] mx-auto animate-in animate-delay-2"
             >
               <Settings
                 tags={tags}

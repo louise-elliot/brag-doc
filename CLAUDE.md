@@ -15,7 +15,7 @@ Women in tech/corporate roles preparing for performance reviews. The tone, promp
 
 ## Key Documentation References
 - Implementation plan: @docs/superpowers/plans/implementation-plan-summary.md
-- Frontend design guidelines: @docs/superpowers/specs/ui-design.md
+- Design guidelines: @docs/superpowers/specs/DESIGN_GUIDELINES.md
 - Architecture and technical spec: @docs/superpowers/specs/tech-spec.md
 - Coding standards: @docs/superpowers/specs/coding-standards.md
 - Test strategy: @docs/superpowers/specs/test-strategy.md

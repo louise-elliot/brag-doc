@@ -66,7 +66,7 @@ describe("Settings — Data Management card", () => {
 });
 
 describe("Settings — Categories card", () => {
-  it("renders one row per tag with its color swatch", () => {
+  it("renders one row per tag", () => {
     renderSettings();
     expect(screen.getByText("leadership")).toBeInTheDocument();
     expect(screen.getByText("technical")).toBeInTheDocument();
@@ -102,7 +102,7 @@ describe("Settings — Categories card", () => {
     ).toBeInTheDocument();
   });
 
-  it("calls onAddTag with the trimmed name and selected color", async () => {
+  it("calls onAddTag with the trimmed name", async () => {
     const { onAddTag } = renderSettings();
     await userEvent.type(
       screen.getByLabelText("New category name"),
@@ -110,10 +110,10 @@ describe("Settings — Categories card", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
     expect(onAddTag).toHaveBeenCalledTimes(1);
-    expect(onAddTag).toHaveBeenCalledWith("focus", expect.stringMatching(/^#/));
+    expect(onAddTag).toHaveBeenCalledWith("focus");
   });
 
-  it("calls onDeleteTag when the × button is clicked", async () => {
+  it("calls onDeleteTag when the Delete button is clicked", async () => {
     const { onDeleteTag } = renderSettings();
     await userEvent.click(
       screen.getByRole("button", { name: "Delete leadership" })
