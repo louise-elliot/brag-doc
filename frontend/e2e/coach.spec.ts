@@ -45,7 +45,7 @@ test("user can talk through an entry with the coach and accept the reframe", asy
     page.locator("p:has-text('I just helped a bit with the migration')")
   ).toBeVisible();
 
-  await page.click('button:has-text("Talk it through with the coach")');
+  await page.click('button:has-text("Coach me")');
 
   await expect(
     page.locator("text=Who specifically benefited from the migration?")
@@ -72,7 +72,7 @@ test("user can talk through an entry with the coach and accept the reframe", asy
 
   await expect(page.locator("text=minimising-language").first()).toBeVisible();
   await expect(
-    page.locator('button:has-text("Talk it through with the coach")')
+    page.locator('button:has-text("Coach me")')
   ).toHaveCount(0);
 });
 
@@ -85,7 +85,7 @@ test("dismissing the reframe retires the button but keeps the entry untouched", 
   );
   await page.click('button:has-text("Save")');
 
-  await page.click('button:has-text("Talk it through with the coach")');
+  await page.click('button:has-text("Coach me")');
   await expect(
     page.locator("text=Who specifically benefited from the migration?")
   ).toBeVisible();
@@ -94,7 +94,7 @@ test("dismissing the reframe retires the button but keeps the entry untouched", 
   await page.click('button:has-text("Dismiss")');
 
   await expect(
-    page.locator('button:has-text("Talk it through with the coach")')
+    page.locator('button:has-text("Coach me")')
   ).toHaveCount(0);
   await expect(
     page.locator("p:has-text('I just helped a bit with the migration')")
@@ -111,7 +111,7 @@ test("closing the coach mid-conversation keeps the button available", async ({
   );
   await page.click('button:has-text("Save")');
 
-  await page.click('button:has-text("Talk it through with the coach")');
+  await page.click('button:has-text("Coach me")');
   await expect(
     page.locator("text=Who specifically benefited from the migration?")
   ).toBeVisible();
@@ -119,6 +119,6 @@ test("closing the coach mid-conversation keeps the button available", async ({
   await page.click('button[aria-label="Close coach"]');
 
   await expect(
-    page.locator('button:has-text("Talk it through with the coach")')
+    page.locator('button:has-text("Coach me")')
   ).toBeVisible();
 });

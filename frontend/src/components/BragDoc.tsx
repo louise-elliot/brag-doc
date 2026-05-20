@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Entry } from "@/lib/types";
 import { computeDateRange, type Timeframe } from "@/lib/dates";
 import type { TagDef } from "@/lib/tags";
@@ -20,6 +20,13 @@ interface BulletGroup {
 
 const UNTAGGED = "__untagged__";
 
+const LOADING_MESSAGES = [
+  "Polishing your wins…",
+  "Hyping you up…",
+  "Doing the bragging so you don't have to…",
+  "Making you sound as impressive as you actually are…",
+];
+
 const TIMEFRAME_OPTIONS: { value: Timeframe; label: string }[] = [
   { value: "last-month", label: "Last month" },
   { value: "last-quarter", label: "Last quarter" },
@@ -29,9 +36,9 @@ const TIMEFRAME_OPTIONS: { value: Timeframe; label: string }[] = [
 ];
 
 const GROUPBY_OPTIONS: { value: GroupBy; label: string }[] = [
-  { value: "tag", label: "Tag" },
-  { value: "month", label: "Month" },
-  { value: "chronological", label: "Chronological" },
+  { value: "tag", label: "By tag" },
+  { value: "month", label: "By month" },
+  { value: "chronological", label: "Timeline (no sections)" },
 ];
 
 function filterEntries(
@@ -59,6 +66,18 @@ export function BragDoc({ entries, tags }: BragDocProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingMessageIndex(0);
+      return;
+    }
+    const id = setInterval(() => {
+      setLoadingMessageIndex((i) => (i + 1) % LOADING_MESSAGES.length);
+    }, 2500);
+    return () => clearInterval(id);
+  }, [loading]);
 
   if (entries.length === 0) {
     return (
@@ -139,6 +158,19 @@ export function BragDoc({ entries, tags }: BragDocProps) {
 
   return (
     <div className="pt-12">
+      <header className="max-w-[800px] mb-10">
+        <h2 className="font-display text-4xl font-semibold leading-tight text-[var(--color-neutral-800)] mb-4">
+          Time for a chat with your boss?
+        </h2>
+        <p
+          className="font-body text-base text-[var(--color-neutral-600)]"
+          style={{ lineHeight: 1.6 }}
+        >
+          Let&apos;s get you ready. Summarise the wins you&apos;ve been logging
+          into a polished one-pager, ready for your next performance review,
+          1:1, or promotion case.
+        </p>
+      </header>
       <div className="bg-[var(--color-neutral-0)] border border-[var(--color-neutral-200)] rounded-lg p-6 mb-5 flex flex-col gap-5">
         <SettingRow label="Timeframe">
           <SegmentedControl
@@ -149,9 +181,9 @@ export function BragDoc({ entries, tags }: BragDocProps) {
           />
         </SettingRow>
 
-        <SettingRow label="Organise by">
+        <SettingRow label="Sections">
           <SegmentedControl
-            ariaLabel="Organise by"
+            ariaLabel="Sections"
             options={GROUPBY_OPTIONS}
             value={groupBy}
             onChange={setGroupBy}
@@ -173,7 +205,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
               />
             ))}
             <TagChip
-              name="Untagged"
+              name="untagged"
               selected={selectedTags.has(UNTAGGED)}
               onClick={() => toggleTag(UNTAGGED)}
             />
@@ -185,7 +217,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
             aria-label="Additional guidance"
             value={userPrompt}
             onChange={(e) => setUserPrompt(e.target.value)}
-            placeholder="Anything you want to emphasize? e.g. 'focus on cross-functional impact', 'this is for a promo case to director level'..."
+            placeholder="e.g. focus on cross-functional impact"
             rows={2}
             className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-300)] rounded-md px-4 py-3 font-body text-base text-[var(--color-neutral-700)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)] resize-y min-h-[52px] transition-colors"
           />
@@ -219,10 +251,11 @@ export function BragDoc({ entries, tags }: BragDocProps) {
       {loading && (
         <div className="text-center pt-10">
           <p
+            key={loadingMessageIndex}
             className="font-body text-sm text-[var(--color-neutral-500)]"
             style={{ animation: "shimmer 1.5s ease-in-out infinite" }}
           >
-            Synthesizing your accomplishments...
+            {LOADING_MESSAGES[loadingMessageIndex]}
           </p>
         </div>
       )}
@@ -307,7 +340,7 @@ function SegmentedControl<T extends string>({
             className={[
               "font-body text-sm font-medium rounded-full px-4 py-2 transition-colors cursor-pointer",
               active
-                ? "bg-[var(--color-neutral-100)] text-[var(--color-neutral-800)]"
+                ? "bg-[var(--color-neutral-800)] text-white"
                 : "text-[var(--color-neutral-500)] hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-700)]",
             ].join(" ")}
           >
@@ -327,7 +360,7 @@ interface SettingRowProps {
 function SettingRow({ label, children }: SettingRowProps) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="font-body text-xs font-semibold tracking-widest uppercase text-[var(--color-neutral-500)]">
+      <span className="font-display text-lg font-medium text-[var(--color-neutral-800)]">
         {label}
       </span>
       {children}
@@ -348,12 +381,27 @@ function TagChip({ name, selected, onClick }: TagChipProps) {
       onClick={onClick}
       aria-pressed={selected}
       className={[
-        "font-body text-sm font-medium px-3 py-1 rounded-full cursor-pointer transition-colors",
+        "font-body text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors border inline-flex items-center gap-1.5",
         selected
-          ? "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] border border-[var(--color-neutral-400)] opacity-100"
-          : "bg-transparent text-[var(--color-neutral-500)] border border-[var(--color-neutral-300)] opacity-60",
+          ? "bg-[var(--color-primary-500)] border-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] hover:border-[var(--color-primary-600)]"
+          : "bg-white border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-400)]",
       ].join(" ")}
     >
+      {selected && (
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 8l3 3 7-7" />
+        </svg>
+      )}
       {name}
     </button>
   );

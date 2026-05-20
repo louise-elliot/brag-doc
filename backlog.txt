@@ -1,11 +1,5 @@
-Storing common patterns for self-awareness 
 Guardrails 
-About page
 Auth and rate limiting for the Python LLM service
 Request logging, observability, and cost tracking for the LLM service
 Hosting and deployment configuration for the Python LLM service
-Streaming LLM responses
 Confirm if brag doc generator considers reframed entries or just original? 
-Figure out the editing existing entries - if reframed one exists then it should edit the reframed one, not the original
-
-

@@ -5,6 +5,7 @@ import { EntryForm } from "./EntryForm";
 import { EntryList } from "./EntryList";
 import { BragDoc } from "./BragDoc";
 import { SettingsDrawer } from "./SettingsDrawer";
+import { AboutModal } from "./AboutModal";
 import {
   getEntries,
   addEntry,
@@ -22,13 +23,14 @@ import type { Entry } from "@/lib/types";
 type Tab = "journal" | "bragdoc";
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: "journal", label: "Journal" },
-  { key: "bragdoc", label: "Brag Doc" },
+  { key: "journal", label: "Daily Wins ✨" },
+  { key: "bragdoc", label: "Brag Doc 📝" },
 ];
 
 export function App() {
   const [tab, setTab] = useState<Tab>("journal");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [entries, setEntries] = useState<Entry[]>([]);
 
   const today = todayLocal();
@@ -100,7 +102,7 @@ export function App() {
 
   function handleEditEntry(
     id: string,
-    updates: { original?: string; tags?: string[] }
+    updates: { original?: string; reframed?: string; tags?: string[] }
   ) {
     editEntry(id, updates);
     refreshEntries();
@@ -120,9 +122,14 @@ export function App() {
     <div className="min-h-screen relative" style={{ zIndex: 1 }}>
       <div className="max-w-[1200px] mx-auto">
         <header className="animate-in flex justify-between items-center px-12 pt-12 pb-6 border-b border-[var(--color-neutral-200)]">
-          <div className="font-display text-xl font-bold tracking-tight text-[var(--color-neutral-800)]">
+          <button
+            type="button"
+            onClick={() => setAboutOpen(true)}
+            aria-label="About Byline"
+            className="font-display text-xl font-bold tracking-tight text-[var(--color-neutral-800)] hover:text-[var(--color-neutral-600)] bg-transparent border-none p-0 cursor-pointer transition-colors"
+          >
             Byline
-          </div>
+          </button>
           <div className="flex items-center gap-4">
             <span className="font-body text-xs text-[var(--color-neutral-500)]">
               {new Date().toLocaleDateString("en-US", {
@@ -244,6 +251,7 @@ export function App() {
         onRenameTag={handleRenameTag}
         onClearData={handleClearData}
       />
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   );
 }

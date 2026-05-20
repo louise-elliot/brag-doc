@@ -28,12 +28,27 @@ export function TagPicker({ tags, selected, onChange }: TagPickerProps) {
             onClick={() => toggle(tag.name)}
             aria-pressed={isSelected}
             className={[
-              "font-body text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors",
+              "font-body text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors border inline-flex items-center gap-1.5",
               isSelected
-                ? "bg-[var(--color-primary-100)] text-[var(--color-primary-700)]"
-                : "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-200)]",
+                ? "bg-[var(--color-primary-500)] border-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] hover:border-[var(--color-primary-600)]"
+                : "bg-white border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-400)]",
             ].join(" ")}
           >
+            {isSelected && (
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 8l3 3 7-7" />
+              </svg>
+            )}
             {tag.name}
           </button>
         );

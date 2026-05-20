@@ -35,7 +35,7 @@ test("changing coaching style is sent on the next coach turn", async ({
   await page.getByRole("button", { name: "Close settings" }).first().click();
 
   // Go to Journal, save an entry, then open the coach
-  await page.getByRole("tab", { name: "Journal" }).click();
+  await page.getByRole("tab", { name: /daily wins/i }).click();
   await page
     .locator('textarea[placeholder="Write about your win..."]')
     .fill("I shipped a new feature today");
@@ -45,7 +45,7 @@ test("changing coaching style is sent on the next coach turn", async ({
     page.locator("p", { hasText: "I shipped a new feature today" }).first()
   ).toBeVisible();
 
-  await page.click('button:has-text("Talk it through with the coach")');
+  await page.click('button:has-text("Coach me")');
 
   await expect(page.locator("text=Great start — tell me more.")).toBeVisible();
 
@@ -86,7 +86,7 @@ test("user_context is sent to the coach when set in Settings", async ({
   await page.getByRole("button", { name: "Close settings" }).first().click();
 
   // Go to Journal, save an entry, then open the coach
-  await page.getByRole("tab", { name: "Journal" }).click();
+  await page.getByRole("tab", { name: /daily wins/i }).click();
   await page
     .locator('textarea[placeholder="Write about your win..."]')
     .fill("I led the incident response today");
@@ -96,7 +96,7 @@ test("user_context is sent to the coach when set in Settings", async ({
     page.locator("p", { hasText: "I led the incident response today" }).first()
   ).toBeVisible();
 
-  await page.click('button:has-text("Talk it through with the coach")');
+  await page.click('button:has-text("Coach me")');
 
   await expect(page.locator("text=Tell me more about that.")).toBeVisible();
 

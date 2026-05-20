@@ -41,6 +41,7 @@ export function CoachPanel({
   const [messages, setMessages] = useState<ApiMessage[]>([]);
   const [phase, setPhase] = useState<Phase>({ kind: "loading-turn" });
   const [reply, setReply] = useState("");
+  const [animatingIndex, setAnimatingIndex] = useState<number | null>(null);
   const fetchedFirstRef = useRef(false);
 
   function settingsFields() {
@@ -65,6 +66,7 @@ export function CoachPanel({
         ...history,
         { role: "coach", text: result.text, notes: result.notes },
       ]);
+      setAnimatingIndex(history.length);
       setPhase({ kind: "chatting" });
     } catch {
       setPhase({ kind: "error-turn" });
@@ -127,7 +129,7 @@ export function CoachPanel({
     >
       <div className="flex justify-between items-center">
         <span className="font-body text-sm font-semibold text-[var(--color-primary-700)]">
-          AI Coach
+          Your Coaching Conversation
         </span>
         {phase.kind !== "reframing" && (
           <button
@@ -143,7 +145,13 @@ export function CoachPanel({
 
       <div className="flex flex-col gap-4 mt-4">
         {messages.map((m, i) => (
-          <CoachMessage key={i} role={m.role} text={m.text} notes={m.notes} />
+          <CoachMessage
+            key={i}
+            role={m.role}
+            text={m.text}
+            notes={m.notes}
+            animate={i === animatingIndex && m.role === "coach"}
+          />
         ))}
 
         {phase.kind === "loading-turn" && (
@@ -152,7 +160,7 @@ export function CoachPanel({
             aria-live="polite"
             className="font-body text-sm text-[var(--color-neutral-500)]"
           >
-            Coach is reading...
+            Coach is thinking...
           </p>
         )}
 
@@ -162,7 +170,7 @@ export function CoachPanel({
             aria-live="polite"
             className="font-body text-sm text-[var(--color-neutral-500)]"
           >
-            Coach is rewriting...
+            Coach is wordsmithing...
           </p>
         )}
 

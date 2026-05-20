@@ -1,12 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { CoachNotePills } from "./CoachNotePills";
 
 interface CoachMessageProps {
   role: "coach" | "user";
   text: string;
   notes?: string[];
+  animate?: boolean;
 }
 
-export function CoachMessage({ role, text, notes }: CoachMessageProps) {
+const TYPE_INTERVAL_MS = 18;
+
+export function CoachMessage({
+  role,
+  text,
+  notes,
+  animate = false,
+}: CoachMessageProps) {
+  const [displayed, setDisplayed] = useState(animate ? "" : text);
+
+  useEffect(() => {
+    if (!animate) {
+      setDisplayed(text);
+      return;
+    }
+    setDisplayed("");
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) clearInterval(id);
+    }, TYPE_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [animate, text]);
+
   const isCoach = role === "coach";
   return (
     <div className={`flex flex-col gap-2 ${isCoach ? "items-start" : "items-end"}`}>
@@ -22,7 +50,7 @@ export function CoachMessage({ role, text, notes }: CoachMessageProps) {
         }
         style={{ lineHeight: 1.6 }}
       >
-        {text}
+        {displayed}
       </p>
     </div>
   );

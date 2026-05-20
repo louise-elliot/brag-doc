@@ -80,19 +80,20 @@ export function deleteEntry(id: string): void {
 
 export function editEntry(
   id: string,
-  updates: { original?: string; tags?: string[] }
+  updates: { original?: string; reframed?: string; tags?: string[] }
 ): void {
   const entries = readEntries();
   const index = entries.findIndex((e) => e.id === id);
   if (index === -1) return;
   const current = entries[index];
-  const textChanged =
+  const originalChanged =
     updates.original !== undefined && updates.original !== current.original;
   entries[index] = {
     ...current,
     ...(updates.original !== undefined && { original: updates.original }),
+    ...(updates.reframed !== undefined && { reframed: updates.reframed }),
     ...(updates.tags !== undefined && { tags: updates.tags }),
-    ...(textChanged && { reframed: null }),
+    ...(originalChanged && updates.reframed === undefined && { reframed: null }),
   };
   writeEntries(entries);
 }

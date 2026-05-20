@@ -12,7 +12,7 @@ interface EntryListProps {
   tags: TagDef[];
   onEditEntry: (
     id: string,
-    updates: { original?: string; tags?: string[] }
+    updates: { original?: string; reframed?: string; tags?: string[] }
   ) => void;
   onDeleteEntry: (id: string) => void;
   onCoachAccept: (entryId: string, reframed: string, notes: string[]) => void;
@@ -78,11 +78,15 @@ export function EntryList({
 
             {isEditing ? (
               <EditEntryForm
-                initialText={entry.original}
+                initialText={entry.reframed ?? entry.original}
                 initialTags={entry.tags}
                 availableTags={tags}
                 onSave={(data) => {
-                  onEditEntry(entry.id, data);
+                  const textKey = entry.reframed !== null ? "reframed" : "original";
+                  onEditEntry(entry.id, {
+                    [textKey]: data.original,
+                    tags: data.tags,
+                  });
                   setActiveRow(null);
                 }}
                 onCancel={() => setActiveRow(null)}
@@ -108,7 +112,7 @@ export function EntryList({
                     onClick={() => setCoachOpenId(entry.id)}
                     className="font-body text-sm font-medium text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)] hover:bg-[var(--color-primary-50)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
                   >
-                    Talk it through with the coach
+                    Coach me
                   </button>
                 )}
                 {coachOpenId === entry.id && (

@@ -108,27 +108,51 @@ describe("EntryList", () => {
 });
 
 describe("EntryList — edit flow", () => {
-  it("enters edit mode when Edit is clicked and shows the textarea pre-filled", async () => {
+  it("pre-fills with the reframed text when one exists", async () => {
     renderList();
     await userEvent.click(
       screen.getAllByRole("button", { name: "Edit entry" })[0]
     );
     const textarea = screen.getByRole("textbox", { name: "Edit entry text" });
-    expect(textarea).toHaveValue("Led the architecture review");
+    expect(textarea).toHaveValue("Drove architectural decisions for the team");
   });
 
-  it("calls onEditEntry with trimmed text and current tags when Save is clicked", async () => {
+  it("pre-fills with the original text when no reframed exists", async () => {
+    renderList();
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Edit entry" })[1]
+    );
+    const textarea = screen.getByRole("textbox", { name: "Edit entry text" });
+    expect(textarea).toHaveValue("Shipped the new dashboard");
+  });
+
+  it("saves edits to the reframed field when a reframed version exists", async () => {
     const { onEditEntry } = renderList();
     await userEvent.click(
       screen.getAllByRole("button", { name: "Edit entry" })[0]
     );
     const textarea = screen.getByRole("textbox", { name: "Edit entry text" });
     await userEvent.clear(textarea);
-    await userEvent.type(textarea, "  Led the architecture review (revised)  ");
+    await userEvent.type(textarea, "  Drove architectural decisions across teams  ");
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(onEditEntry).toHaveBeenCalledWith("1", {
-      original: "Led the architecture review (revised)",
+      reframed: "Drove architectural decisions across teams",
       tags: ["leadership"],
+    });
+  });
+
+  it("saves edits to the original field when no reframed exists", async () => {
+    const { onEditEntry } = renderList();
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Edit entry" })[1]
+    );
+    const textarea = screen.getByRole("textbox", { name: "Edit entry text" });
+    await userEvent.clear(textarea);
+    await userEvent.type(textarea, "Shipped the new dashboard (v2)");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onEditEntry).toHaveBeenCalledWith("2", {
+      original: "Shipped the new dashboard (v2)",
+      tags: ["technical"],
     });
   });
 
@@ -227,21 +251,21 @@ describe("EntryList — coach affordance", () => {
   it("shows the Talk-it-through button when coachNotes is null", () => {
     renderCoachList([baseCoachEntry]);
     expect(
-      screen.getByRole("button", { name: /talk it through/i })
+      screen.getByRole("button", { name: /coach me/i })
     ).toBeInTheDocument();
   });
 
   it("hides the Talk-it-through button when coachNotes is an empty array", () => {
     renderCoachList([{ ...baseCoachEntry, coachNotes: [] }]);
     expect(
-      screen.queryByRole("button", { name: /talk it through/i })
+      screen.queryByRole("button", { name: /coach me/i })
     ).not.toBeInTheDocument();
   });
 
   it("hides the Talk-it-through button when coachNotes is populated", () => {
     renderCoachList([{ ...baseCoachEntry, coachNotes: ["minimising-language"] }]);
     expect(
-      screen.queryByRole("button", { name: /talk it through/i })
+      screen.queryByRole("button", { name: /coach me/i })
     ).not.toBeInTheDocument();
   });
 
@@ -268,7 +292,7 @@ describe("EntryList — coach affordance", () => {
     renderCoachList([baseCoachEntry]);
     expect(screen.queryByTestId("mock-coach-panel")).not.toBeInTheDocument();
     await userEvent.click(
-      screen.getByRole("button", { name: /talk it through/i })
+      screen.getByRole("button", { name: /coach me/i })
     );
     expect(screen.getByTestId("mock-coach-panel")).toBeInTheDocument();
   });
@@ -277,7 +301,7 @@ describe("EntryList — coach affordance", () => {
     const second: Entry = { ...baseCoachEntry, id: "e2", date: "2026-04-02" };
     renderCoachList([baseCoachEntry, second]);
 
-    const buttons = screen.getAllByRole("button", { name: /talk it through/i });
+    const buttons = screen.getAllByRole("button", { name: /coach me/i });
     await userEvent.click(buttons[0]);
     await userEvent.click(buttons[1]);
 

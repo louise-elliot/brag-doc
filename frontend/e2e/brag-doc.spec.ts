@@ -39,17 +39,17 @@ test("settings card shows all four controls with sensible defaults", async ({
   await page.getByRole("button", { name: "technical", exact: true }).click();
   await page.getByRole("button", { name: "Save" }).click();
 
-  await page.getByRole("tab", { name: "Brag Doc" }).click();
+  await page.getByRole("tab", { name: /brag doc/i }).click();
 
   await expect(
     page.getByRole("radiogroup", { name: "Timeframe" })
   ).toBeVisible();
   await expect(
-    page.getByRole("radiogroup", { name: "Organise by" })
+    page.getByRole("radiogroup", { name: "Sections" })
   ).toBeVisible();
   await expect(page.getByLabel("Additional guidance")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Untagged", pressed: true })
+    page.getByRole("button", { name: "untagged", pressed: true })
   ).toBeVisible();
 });
 
@@ -63,7 +63,7 @@ test("deselecting every tag chip disables Generate with helper text", async ({
   await page.getByRole("button", { name: "technical", exact: true }).click();
   await page.getByRole("button", { name: "Save" }).click();
 
-  await page.getByRole("tab", { name: "Brag Doc" }).click();
+  await page.getByRole("tab", { name: /brag doc/i }).click();
 
   // Deselect all six default tags + Untagged
   for (const name of [
@@ -73,7 +73,7 @@ test("deselecting every tag chip disables Generate with helper text", async ({
     "problem-solving",
     "communication",
     "mentoring",
-    "Untagged",
+    "untagged",
   ]) {
     await page.getByRole("button", { name, exact: true }).click();
   }
@@ -103,9 +103,9 @@ test("chronological output renders without group headings", async ({
   await page.getByRole("button", { name: "technical", exact: true }).click();
   await page.getByRole("button", { name: "Save" }).click();
 
-  await page.getByRole("tab", { name: "Brag Doc" }).click();
-  const organiseBy = page.getByRole("radiogroup", { name: "Organise by" });
-  await organiseBy.getByRole("radio", { name: "Chronological" }).click();
+  await page.getByRole("tab", { name: /brag doc/i }).click();
+  const organiseBy = page.getByRole("radiogroup", { name: "Sections" });
+  await organiseBy.getByRole("radio", { name: "Timeline (no sections)" }).click();
   await page.getByRole("button", { name: "Generate" }).click();
 
   await expect(page.getByText("First bullet")).toBeVisible();

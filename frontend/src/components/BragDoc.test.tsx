@@ -48,7 +48,7 @@ describe("BragDoc — controls", () => {
       screen.getByRole("radiogroup", { name: "Timeframe" })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("radiogroup", { name: "Organise by" })
+      screen.getByRole("radiogroup", { name: "Sections" })
     ).toBeInTheDocument();
   });
 
@@ -61,7 +61,7 @@ describe("BragDoc — controls", () => {
       screen.getByRole("button", { name: "technical", pressed: true })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Untagged", pressed: true })
+      screen.getByRole("button", { name: "untagged", pressed: true })
     ).toBeInTheDocument();
   });
 
@@ -69,7 +69,7 @@ describe("BragDoc — controls", () => {
     renderBragDoc();
     await userEvent.click(screen.getByRole("button", { name: "leadership" }));
     await userEvent.click(screen.getByRole("button", { name: "technical" }));
-    await userEvent.click(screen.getByRole("button", { name: "Untagged" }));
+    await userEvent.click(screen.getByRole("button", { name: "untagged" }));
     expect(screen.getByRole("button", { name: "Generate" })).toBeDisabled();
     expect(screen.getByText("Select at least one tag")).toBeInTheDocument();
   });
@@ -112,10 +112,10 @@ describe("BragDoc — generate payload", () => {
   it("sends the chosen groupBy when a segmented option is selected", async () => {
     renderBragDoc();
     const groupByGroup = screen.getByRole("radiogroup", {
-      name: "Organise by",
+      name: "Sections",
     });
     await userEvent.click(
-      within(groupByGroup).getByRole("radio", { name: "Month" })
+      within(groupByGroup).getByRole("radio", { name: "By month" })
     );
     await userEvent.click(screen.getByRole("button", { name: "Generate" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
@@ -142,7 +142,7 @@ describe("BragDoc — generate payload", () => {
     ];
     renderBragDoc({ entries: e });
     await userEvent.click(screen.getByRole("button", { name: "technical" }));
-    await userEvent.click(screen.getByRole("button", { name: "Untagged" }));
+    await userEvent.click(screen.getByRole("button", { name: "untagged" }));
     await userEvent.click(screen.getByRole("button", { name: "Generate" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
@@ -156,8 +156,8 @@ describe("BragDoc — generate payload", () => {
       { ...entries[0], id: "untagged", tags: [] },
     ];
     renderBragDoc({ entries: e });
-    // Deselect "Untagged"
-    await userEvent.click(screen.getByRole("button", { name: "Untagged" }));
+    // Deselect "untagged"
+    await userEvent.click(screen.getByRole("button", { name: "untagged" }));
     await userEvent.click(screen.getByRole("button", { name: "Generate" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
