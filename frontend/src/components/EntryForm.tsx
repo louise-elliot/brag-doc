@@ -20,7 +20,6 @@ export function EntryForm({
   const [text, setText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
-  const [tooltipVisible, setTooltipVisible] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,187 +36,61 @@ export function EntryForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div style={{ paddingTop: "48px", paddingBottom: "40px" }}>
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "10px",
-            fontWeight: 600,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--color-accent)",
-            marginBottom: "16px",
-          }}
+    <form onSubmit={handleSubmit} className="pt-12">
+      <p className="font-display text-4xl font-semibold leading-tight text-[var(--color-neutral-800)] mb-4">
+        {prompt}
+      </p>
+      {onRefreshPrompt && (
+        <button
+          type="button"
+          onClick={onRefreshPrompt}
+          aria-label="Try another prompt"
+          className="font-body text-sm font-medium text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-100)] rounded-md px-3 py-2 transition-colors cursor-pointer mb-8 -ml-3"
         >
-          Today&apos;s prompt
-        </div>
-        <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
-          <div
-            style={{
-              width: "3px",
-              flexShrink: 0,
-              borderRadius: "2px",
-              background:
-                "linear-gradient(to bottom, var(--color-accent), transparent)",
-              alignSelf: "stretch",
-            }}
-          />
-          <p
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "38px",
-              fontWeight: 600,
-              fontStyle: "italic",
-              lineHeight: 1.2,
-              color: "var(--color-text-primary)",
-              maxWidth: "580px",
-              margin: 0,
-            }}
-          >
-            {prompt}
-          </p>
-          {onRefreshPrompt && (
-            <div
-              style={{
-                position: "relative",
-                flexShrink: 0,
-                marginTop: "14px",
-              }}
-              onMouseEnter={() => setTooltipVisible(true)}
-              onMouseLeave={() => setTooltipVisible(false)}
-            >
-              <button
-                type="button"
-                aria-label="Try another prompt"
-                onClick={onRefreshPrompt}
-                onFocus={() => setTooltipVisible(true)}
-                onBlur={() => setTooltipVisible(false)}
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "transparent",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-sm)",
-                  color: "var(--color-text-tertiary)",
-                  cursor: "pointer",
-                  padding: 0,
-                  transition: "color 0.2s, border-color 0.2s",
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.color = "var(--color-accent)";
-                  e.currentTarget.style.borderColor = "var(--color-accent-border)";
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.color = "var(--color-text-tertiary)";
-                  e.currentTarget.style.borderColor = "var(--color-border)";
-                }}
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M13.5 3.5v3h-3" />
-                  <path d="M13.5 6.5A5.5 5.5 0 1 0 14 10" />
-                </svg>
-              </button>
-              {tooltipVisible && (
-                <span
-                  role="tooltip"
-                  style={{
-                    position: "absolute",
-                    top: "calc(100% + 8px)",
-                    right: 0,
-                    whiteSpace: "nowrap",
-                    background: "var(--color-surface-raised)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "var(--radius-sm)",
-                    padding: "6px 10px",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "11px",
-                    letterSpacing: "0.03em",
-                    color: "var(--color-text-secondary)",
-                    pointerEvents: "none",
-                    zIndex: 2,
-                  }}
-                >
-                  Try another prompt
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+          Try another prompt
+        </button>
+      )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div className="flex flex-col gap-5">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Write about your win..."
-          rows={4}
-          style={{
-            width: "100%",
-            background: "var(--color-surface)",
-            border: saved
-              ? "1px solid var(--color-positive)"
-              : "1px solid var(--color-border)",
-            borderRadius: "var(--radius-md)",
-            padding: "16px",
-            fontFamily: "var(--font-body)",
-            fontSize: "15px",
-            color: "var(--color-text-primary)",
-            minHeight: "130px",
-            resize: "none",
-            outline: "none",
-            transition: "border-color 0.2s",
-          }}
+          rows={5}
+          className={[
+            "w-full font-body text-lg rounded-md outline-none resize-none transition-colors",
+            "px-5 py-4 min-h-[120px] border placeholder:text-[var(--color-neutral-400)] text-[var(--color-neutral-700)]",
+            text
+              ? "bg-white border-[var(--color-neutral-300)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+              : "bg-[var(--color-neutral-50)] border-[var(--color-neutral-300)] focus:bg-white focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]",
+          ].join(" ")}
+          style={{ lineHeight: 1.75 }}
         />
         <TagPicker tags={availableTags} selected={tags} onChange={setTags} />
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div className="flex items-center justify-end gap-4">
+          {saved && (
+            <span
+              className="font-body text-sm text-[var(--color-success-500)]"
+              style={{ animation: "saveCheck 0.3s ease both" }}
+            >
+              Win logged
+            </span>
+          )}
           <button
             type="submit"
             disabled={!text.trim()}
+            className={[
+              "font-body text-sm font-semibold rounded-md px-6 py-3 transition-colors",
+              text.trim()
+                ? "bg-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] cursor-pointer"
+                : "bg-[var(--color-neutral-200)] text-[var(--color-neutral-400)] cursor-not-allowed",
+            ].join(" ")}
             style={{
-              padding: "10px 28px",
-              background: saved
-                ? "var(--color-positive)"
-                : "var(--color-accent)",
-              color: saved ? "#fff" : "var(--color-base)",
-              fontFamily: "var(--font-body)",
-              fontSize: "14px",
-              fontWeight: 600,
-              borderRadius: "var(--radius-sm)",
-              border: "none",
-              cursor: text.trim() ? "pointer" : "not-allowed",
-              opacity: text.trim() ? 1 : 0.4,
-              transition: "all 0.2s",
               animation: saved ? "saveFlash 0.6s ease" : "none",
             }}
           >
             {saved ? "Saved" : "Save"}
           </button>
-          {saved && (
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                color: "var(--color-positive)",
-                animation: "saveCheck 0.3s ease both",
-              }}
-            >
-              Win logged
-            </span>
-          )}
         </div>
       </div>
     </form>

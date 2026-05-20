@@ -7,11 +7,13 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("add a new category and use it on a journal entry", async ({ page }) => {
-  await page.getByRole("tab", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("tab", { name: "Data" }).click();
   await page.getByLabel("New category name").fill("focus");
   await page.getByRole("button", { name: "Add" }).click();
+  await page.getByRole("button", { name: "Close settings" }).first().click();
 
-  await page.getByRole("tab", { name: "Journal" }).click();
+  await page.getByRole("tab", { name: /daily wins/i }).click();
   await page
     .locator('textarea[placeholder="Write about your win..."]')
     .fill("Stayed heads-down on the migration");
@@ -35,12 +37,14 @@ test("deleting a category removes it from the picker but leaves past entries tag
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Win logged")).toBeVisible();
 
-  // Delete leadership in Settings
-  await page.getByRole("tab", { name: "Settings" }).click();
+  // Delete leadership in Settings drawer
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("tab", { name: "Data" }).click();
   await page.getByRole("button", { name: "Delete leadership" }).click();
+  await page.getByRole("button", { name: "Close settings" }).first().click();
 
   // Back on Journal the picker no longer has a leadership button
-  await page.getByRole("tab", { name: "Journal" }).click();
+  await page.getByRole("tab", { name: /daily wins/i }).click();
   await expect(
     page.getByRole("button", { name: "leadership", exact: true })
   ).toHaveCount(0);
@@ -61,13 +65,15 @@ test("renaming a category rewrites the tag on past entries", async ({
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Win logged")).toBeVisible();
 
-  await page.getByRole("tab", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("tab", { name: "Data" }).click();
   await page.getByRole("button", { name: "Rename mentoring" }).click();
   const input = page.getByLabel("Rename mentoring");
   await input.fill("coaching");
   await input.press("Enter");
+  await page.getByRole("button", { name: "Close settings" }).first().click();
 
-  await page.getByRole("tab", { name: "Journal" }).click();
+  await page.getByRole("tab", { name: /daily wins/i }).click();
   await expect(page.getByText("coaching", { exact: true }).first()).toBeVisible();
   await expect(
     page.locator("span", { hasText: "mentoring" })

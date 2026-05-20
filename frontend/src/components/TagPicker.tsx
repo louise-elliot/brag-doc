@@ -1,6 +1,6 @@
 "use client";
 
-import { tagColorFromHex, type TagDef } from "@/lib/tags";
+import type { TagDef } from "@/lib/tags";
 
 interface TagPickerProps {
   tags: TagDef[];
@@ -18,30 +18,37 @@ export function TagPicker({ tags, selected, onChange }: TagPickerProps) {
   }
 
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+    <div className="flex flex-wrap gap-2">
       {tags.map((tag) => {
         const isSelected = selected.includes(tag.name);
-        const colors = tagColorFromHex(tag.color);
         return (
           <button
             key={tag.name}
             type="button"
             onClick={() => toggle(tag.name)}
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-              fontWeight: 500,
-              padding: "5px 12px",
-              borderRadius: "var(--radius-sm)",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              border: isSelected
-                ? `1px solid ${colors.border}`
-                : "1px solid var(--color-border)",
-              background: isSelected ? colors.bg : "var(--color-surface)",
-              color: isSelected ? colors.color : "var(--color-text-tertiary)",
-            }}
+            aria-pressed={isSelected}
+            className={[
+              "font-body text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors border inline-flex items-center gap-1.5",
+              isSelected
+                ? "bg-[var(--color-primary-500)] border-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] hover:border-[var(--color-primary-600)]"
+                : "bg-white border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-400)]",
+            ].join(" ")}
           >
+            {isSelected && (
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 8l3 3 7-7" />
+              </svg>
+            )}
             {tag.name}
           </button>
         );

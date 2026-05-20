@@ -1,4 +1,4 @@
-# Confidence Journal
+# Byline
 
 Daily wins journal for women in tech. Write entries, reframe self-critical language with Claude, generate a brag doc for performance reviews. Data lives in `localStorage`; AI calls are proxied through two Next.js API routes.
 

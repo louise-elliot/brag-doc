@@ -5,8 +5,8 @@ import { EntryForm } from "./EntryForm";
 import type { TagDef } from "@/lib/tags";
 
 const TAGS: TagDef[] = [
-  { name: "leadership", color: "#D4863C" },
-  { name: "technical", color: "#6B8AE0" },
+  { name: "leadership" },
+  { name: "technical" },
 ];
 
 describe("EntryForm", () => {

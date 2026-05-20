@@ -28,7 +28,7 @@ test("coach turn failure renders inline error with retry", async ({ page }) => {
     "Did a thing"
   );
   await page.click('button:has-text("Save")');
-  await page.click('button:has-text("Talk it through with the coach")');
+  await page.click('button:has-text("Coach me")');
 
   await expect(page.locator("text=/coach didn['']t respond/i")).toBeVisible();
   await expect(page.locator('button:has-text("Retry")')).toBeVisible();

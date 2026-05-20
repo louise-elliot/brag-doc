@@ -1,9 +1,18 @@
 import type { Entry } from "./types";
 
-const STORAGE_KEY = "confidence-journal-entries";
+const STORAGE_KEY = "byline-entries";
+const LEGACY_STORAGE_KEY = "confidence-journal-entries";
 
 function readEntries(): Entry[] {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  let raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) {
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy) {
+      localStorage.setItem(STORAGE_KEY, legacy);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      raw = legacy;
+    }
+  }
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -60,6 +69,7 @@ export function updateEntry(
 
 export function deleteAllEntries(): void {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(LEGACY_STORAGE_KEY);
 }
 
 export function deleteEntry(id: string): void {
@@ -70,19 +80,20 @@ export function deleteEntry(id: string): void {
 
 export function editEntry(
   id: string,
-  updates: { original?: string; tags?: string[] }
+  updates: { original?: string; reframed?: string; tags?: string[] }
 ): void {
   const entries = readEntries();
   const index = entries.findIndex((e) => e.id === id);
   if (index === -1) return;
   const current = entries[index];
-  const textChanged =
+  const originalChanged =
     updates.original !== undefined && updates.original !== current.original;
   entries[index] = {
     ...current,
     ...(updates.original !== undefined && { original: updates.original }),
+    ...(updates.reframed !== undefined && { reframed: updates.reframed }),
     ...(updates.tags !== undefined && { tags: updates.tags }),
-    ...(textChanged && { reframed: null }),
+    ...(originalChanged && updates.reframed === undefined && { reframed: null }),
   };
   writeEntries(entries);
 }

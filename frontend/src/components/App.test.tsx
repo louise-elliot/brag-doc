@@ -31,8 +31,8 @@ vi.mock("@/lib/tags", async () => {
   return {
     ...actual,
     getTags: vi.fn().mockReturnValue([
-      { name: "leadership", color: "#D4863C" },
-      { name: "technical", color: "#6B8AE0" },
+      { name: "leadership" },
+      { name: "technical" },
     ]),
     saveTags: vi.fn(),
   };
@@ -52,25 +52,25 @@ describe("App", () => {
 
   it("switches to Brag Doc tab", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("tab", { name: "Brag Doc" }));
+    await userEvent.click(screen.getByRole("tab", { name: /brag doc/i }));
     expect(
       screen.getByText("Add some journal entries first")
     ).toBeInTheDocument();
   });
 
-  it("switches to Settings tab", async () => {
+  it("opens settings drawer when cog button is clicked", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("tab", { name: "Settings" }));
-    expect(
-      screen.getByRole("button", { name: "Clear all data" })
-    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /open settings/i }));
+    expect(screen.getByRole("dialog", { name: /settings/i })).toBeInTheDocument();
   });
 
   it("highlights active tab", async () => {
     render(<App />);
-    const journalTab = screen.getByRole("tab", { name: "Journal" });
-    expect(journalTab.style.borderBottom).toContain("solid");
-    expect(journalTab.style.color).toBeTruthy();
+    const journalTab = screen.getByRole("tab", { name: /daily wins/i });
+    // Styling moved from inline styles to className; verify semantic state instead.
+    expect(journalTab).toHaveAttribute("aria-selected", "true");
+    const bragDocTab = screen.getByRole("tab", { name: /brag doc/i });
+    expect(bragDocTab).toHaveAttribute("aria-selected", "false");
   });
 
   it("exposes ARIA tablist/tabpanel semantics", async () => {
@@ -79,7 +79,7 @@ describe("App", () => {
     expect(screen.getByRole("tablist")).toBeInTheDocument();
 
     // Journal tab links to its panel via aria-controls
-    const journalTab = screen.getByRole("tab", { name: "Journal" });
+    const journalTab = screen.getByRole("tab", { name: /daily wins/i });
     const panelId = journalTab.getAttribute("aria-controls");
     expect(panelId).toBeTruthy();
 

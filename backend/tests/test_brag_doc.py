@@ -145,6 +145,22 @@ class TestBragDocEndpoint:
             in user_content
         )
 
+    def test_uses_reframed_text_when_present(self, mock_client, http_client):
+        _mock_text_response(mock_client, '{"bullets": []}')
+        reframed_entry = {
+            **SAMPLE_ENTRY,
+            "original": "Helped a bit with the launch",
+            "reframed": "Led the launch end-to-end",
+        }
+
+        _post(http_client, {"entries": [reframed_entry]})
+
+        user_content = mock_client.messages.create.call_args.kwargs["messages"][0][
+            "content"
+        ]
+        assert "Led the launch end-to-end" in user_content
+        assert "Helped a bit with the launch" not in user_content
+
 
 class TestBragDocUserContext:
     def test_includes_user_context_in_system_prompt_when_provided(

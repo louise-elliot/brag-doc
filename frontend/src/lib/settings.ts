@@ -6,7 +6,8 @@ import {
   type UserSettings,
 } from "./types";
 
-const STORAGE_KEY = "confidence-journal-settings";
+const STORAGE_KEY = "byline-settings";
+const LEGACY_STORAGE_KEY = "confidence-journal-settings";
 
 const VALID_STYLES = new Set<CoachingStyle>(
   COACHING_STYLE_OPTIONS.map((option) => option.key)
@@ -24,7 +25,15 @@ function coerceCoachingStyle(value: unknown): CoachingStyle {
 }
 
 export function readSettings(): UserSettings {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  let raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) {
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy) {
+      localStorage.setItem(STORAGE_KEY, legacy);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      raw = legacy;
+    }
+  }
   if (!raw) return DEFAULT_USER_SETTINGS;
   let parsed: unknown;
   try {

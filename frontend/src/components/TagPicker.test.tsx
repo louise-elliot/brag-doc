@@ -5,12 +5,12 @@ import { TagPicker } from "./TagPicker";
 import type { TagDef } from "@/lib/tags";
 
 const TAGS: TagDef[] = [
-  { name: "leadership", color: "#D4863C" },
-  { name: "technical", color: "#6B8AE0" },
-  { name: "collaboration", color: "#4CAF82" },
-  { name: "problem-solving", color: "#C978D6" },
-  { name: "communication", color: "#E0C46B" },
-  { name: "mentoring", color: "#E07272" },
+  { name: "leadership" },
+  { name: "technical" },
+  { name: "collaboration" },
+  { name: "problem-solving" },
+  { name: "communication" },
+  { name: "mentoring" },
 ];
 
 describe("TagPicker", () => {
@@ -44,20 +44,15 @@ describe("TagPicker", () => {
     expect(onChange).toHaveBeenCalledWith([]);
   });
 
-  it("visually distinguishes selected tags", () => {
+  it("marks selected tags with aria-pressed", () => {
     render(
       <TagPicker tags={TAGS} selected={["technical"]} onChange={() => {}} />
     );
-    const tag = screen.getByText("technical");
-    expect(tag.style.color).toBe("rgb(107, 138, 224)");
-  });
-
-  it("renders a user-added tag with its chosen color", () => {
-    const custom: TagDef[] = [{ name: "focus", color: "#8AB4B8" }];
-    render(
-      <TagPicker tags={custom} selected={["focus"]} onChange={() => {}} />
+    expect(screen.getByText("technical").getAttribute("aria-pressed")).toBe(
+      "true"
     );
-    const chip = screen.getByText("focus");
-    expect(chip.style.color).toBe("rgb(138, 180, 184)");
+    expect(screen.getByText("leadership").getAttribute("aria-pressed")).toBe(
+      "false"
+    );
   });
 });

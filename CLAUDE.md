@@ -1,4 +1,4 @@
-# Confidence Journal Project
+# Byline Project
 
 ## Overview
 A daily wins journal for women in tech that combats self-diminishment patterns identified in research. The app prompts users to log accomplishments, uses AI to reframe self-critical language, and generates a "brag doc" of impact-focused bullet points for performance reviews.
@@ -15,7 +15,7 @@ Women in tech/corporate roles preparing for performance reviews. The tone, promp
 
 ## Key Documentation References
 - Implementation plan: @docs/superpowers/plans/implementation-plan-summary.md
-- Frontend design guidelines: @docs/superpowers/specs/ui-design.md
+- Design guidelines: @docs/superpowers/specs/DESIGN_GUIDELINES.md
 - Architecture and technical spec: @docs/superpowers/specs/tech-spec.md
 - Coding standards: @docs/superpowers/specs/coding-standards.md
 - Test strategy: @docs/superpowers/specs/test-strategy.md

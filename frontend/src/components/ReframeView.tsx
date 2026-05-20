@@ -21,110 +21,29 @@ export function ReframeView({
   const [edited, setEdited] = useState(reframed);
 
   return (
-    <div
-      style={{
-        position: "relative",
-        background: "var(--color-surface)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-accent-border)",
-        overflow: "hidden",
-        animation: "reframeReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both",
-      }}
+    <aside
+      role="region"
+      aria-label="Reframed version"
+      className="bg-[var(--color-primary-50)] border-l-[3px] border-l-[var(--color-primary-500)] rounded-md p-5 mt-4"
+      style={{ animation: "reframeReveal var(--transition-slow) both" }}
     >
-      <div
-        style={{
-          height: "2px",
-          background:
-            "linear-gradient(to right, var(--color-accent), transparent)",
-        }}
-      />
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "16px 24px 0",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "10px",
-            fontWeight: 600,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--color-accent)",
-          }}
-        >
-          AI Reframe
-        </span>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "10px",
-            color: "var(--color-text-tertiary)",
-            letterSpacing: "0.05em",
-          }}
-        >
-          side-by-side
-        </span>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr auto 1fr",
-          gap: "0",
-          padding: "20px 24px",
-        }}
-      >
-        <div style={{ paddingRight: "20px" }}>
-          <p
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--color-text-tertiary)",
-              marginBottom: "10px",
-            }}
-          >
+      <div className="grid grid-cols-2 gap-6">
+        <div>
+          <p className="font-body text-xs font-semibold uppercase tracking-widest text-[var(--color-neutral-500)] mb-2">
             Your version
           </p>
           <p
-            style={{
-              fontSize: "14px",
-              color: "var(--color-text-tertiary)",
-              lineHeight: 1.6,
-            }}
+            className="font-body text-sm text-[var(--color-neutral-500)]"
+            style={{ lineHeight: 1.75 }}
           >
             {original}
           </p>
         </div>
 
-        <div
-          style={{
-            width: "1px",
-            background:
-              "linear-gradient(to bottom, var(--color-accent-border), var(--color-border-subtle))",
-          }}
-        />
-
-        <div style={{ paddingLeft: "20px" }}>
+        <div>
           <label
             htmlFor="reframe-edit"
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--color-accent)",
-              marginBottom: "10px",
-              display: "block",
-            }}
+            className="font-body text-xs font-semibold uppercase tracking-widest text-[var(--color-primary-700)] mb-2 block"
           >
             Reframed
           </label>
@@ -133,91 +52,37 @@ export function ReframeView({
             value={edited}
             onChange={(e) => setEdited(e.target.value)}
             rows={4}
-            style={{
-              width: "100%",
-              background: "transparent",
-              border: "1px dashed var(--color-accent-border)",
-              borderRadius: "var(--radius-sm)",
-              padding: "8px 10px",
-              fontFamily: "var(--font-body)",
-              fontSize: "14px",
-              color: "var(--color-text-primary)",
-              lineHeight: 1.6,
-              resize: "vertical",
-              outline: "none",
-            }}
+            className="w-full bg-transparent border border-dashed border-[var(--color-primary-300)] rounded-sm px-[10px] py-2 font-body text-sm text-[var(--color-neutral-700)] resize-y outline-none focus:border-[var(--color-primary-500)] focus:ring-1 focus:ring-[var(--color-primary-100)]"
+            style={{ lineHeight: 1.75 }}
           />
         </div>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          padding: "0 24px 20px",
-        }}
-      >
+      <div className="flex gap-3 mt-4">
         <button
+          type="button"
           onClick={() => onAccept(edited)}
-          style={{
-            padding: "8px 20px",
-            background: "var(--color-accent)",
-            color: "var(--color-base)",
-            fontFamily: "var(--font-body)",
-            fontSize: "13px",
-            fontWeight: 600,
-            borderRadius: "var(--radius-sm)",
-            border: "none",
-            cursor: "pointer",
-            transition: "background 0.15s",
-          }}
+          className="font-body text-sm font-semibold bg-[var(--color-primary-500)] text-white rounded-md px-6 py-3 hover:bg-[var(--color-primary-600)] transition-colors cursor-pointer"
         >
           Accept
         </button>
         <button
+          type="button"
           onClick={onDismiss}
-          style={{
-            padding: "8px 20px",
-            background: "var(--color-surface-raised)",
-            color: "var(--color-text-secondary)",
-            fontFamily: "var(--font-body)",
-            fontSize: "13px",
-            fontWeight: 500,
-            borderRadius: "var(--radius-sm)",
-            border: "1px solid var(--color-border)",
-            cursor: "pointer",
-            transition: "background 0.15s",
-          }}
+          className="font-body text-sm font-medium text-[var(--color-neutral-600)] rounded-md px-4 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
         >
           Dismiss
         </button>
       </div>
 
       {coachNotes && coachNotes.length > 0 && (
-        <div
-          style={{
-            padding: "16px 24px 20px",
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            borderTop: "1px solid var(--color-border-subtle)",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--color-text-tertiary)",
-            }}
-          >
+        <div className="flex items-center gap-3 mt-4 pt-4 border-t border-[var(--color-neutral-200)]">
+          <span className="font-body text-xs font-semibold uppercase tracking-widest text-[var(--color-neutral-500)]">
             What the coach noticed
           </span>
           <CoachNotePills notes={coachNotes} />
         </div>
       )}
-    </div>
+    </aside>
   );
 }

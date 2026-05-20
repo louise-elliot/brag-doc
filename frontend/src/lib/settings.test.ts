@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { readSettings, writeSettings, serializeContext } from "./settings";
 import { DEFAULT_USER_SETTINGS } from "./types";
 
-const KEY = "confidence-journal-settings";
+const KEY = "byline-settings";
 
 describe("settings data layer", () => {
   beforeEach(() => {

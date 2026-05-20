@@ -38,7 +38,8 @@ def build_system_prompt(
 
 def _format_entries(entries: list[dict]) -> str:
     return "\n".join(
-        f"[{e['date']}] [{', '.join(e['tags'])}] {e['original']}" for e in entries
+        f"[{e['date']}] [{', '.join(e['tags'])}] {e.get('reframed') or e['original']}"
+        for e in entries
     )
 
 

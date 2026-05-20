@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Entry } from "@/lib/types";
-import { tagColorFor, type TagDef } from "@/lib/tags";
+import type { TagDef } from "@/lib/tags";
 import { TagPicker } from "./TagPicker";
 import { CoachPanel } from "./CoachPanel";
 import { CoachNotePills } from "./CoachNotePills";
@@ -12,7 +12,7 @@ interface EntryListProps {
   tags: TagDef[];
   onEditEntry: (
     id: string,
-    updates: { original?: string; tags?: string[] }
+    updates: { original?: string; reframed?: string; tags?: string[] }
   ) => void;
   onDeleteEntry: (id: string) => void;
   onCoachAccept: (entryId: string, reframed: string, notes: string[]) => void;
@@ -35,9 +35,14 @@ export function EntryList({
 
   if (entries.length === 0) {
     return (
-      <p style={{ color: "var(--color-text-tertiary)", fontSize: "14px" }}>
-        No entries yet
-      </p>
+      <div className="text-center py-16">
+        <p className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-2">
+          No wins yet
+        </p>
+        <p className="font-body text-base text-[var(--color-neutral-500)]">
+          They&apos;ll be here when you&apos;re ready.
+        </p>
+      </div>
     );
   }
 
@@ -51,53 +56,21 @@ export function EntryList({
   }
 
   return (
-    <div style={{ position: "relative" }}>
-      {entries.map((entry, index) => {
-        const isFirst = index === 0;
-        const isLast = index === entries.length - 1;
+    <div className="flex flex-col gap-6">
+      {entries.map((entry) => {
         const isEditing = activeRow?.id === entry.id && activeRow.mode === "edit";
         const isDeleting =
           activeRow?.id === entry.id && activeRow.mode === "delete";
 
         return (
-          <div
+          <article
             key={entry.id}
-            style={{
-              position: "relative",
-              paddingLeft: "28px",
-              paddingBottom: isLast ? "0" : "24px",
-            }}
+            className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+            style={{ transition: "var(--transition-base)" }}
           >
-            {!isLast && (
-              <div
-                style={{
-                  position: "absolute",
-                  left: "3px",
-                  top: "10px",
-                  bottom: "0",
-                  width: "1px",
-                  background: "var(--color-border-subtle)",
-                }}
-              />
-            )}
-            <div
-              style={{
-                position: "absolute",
-                left: "0",
-                top: "6px",
-                width: "7px",
-                height: "7px",
-                borderRadius: "50%",
-                background: isFirst
-                  ? "var(--color-accent)"
-                  : "var(--color-text-tertiary)",
-              }}
-            />
-
             <EntryRowHeader
               date={entry.date}
               tags={entry.tags}
-              tagDefs={tags}
               showActions={!isEditing && !isDeleting}
               onEdit={() => setActiveRow({ id: entry.id, mode: "edit" })}
               onDelete={() => setActiveRow({ id: entry.id, mode: "delete" })}
@@ -105,11 +78,15 @@ export function EntryList({
 
             {isEditing ? (
               <EditEntryForm
-                initialText={entry.original}
+                initialText={entry.reframed ?? entry.original}
                 initialTags={entry.tags}
                 availableTags={tags}
                 onSave={(data) => {
-                  onEditEntry(entry.id, data);
+                  const textKey = entry.reframed !== null ? "reframed" : "original";
+                  onEditEntry(entry.id, {
+                    [textKey]: data.original,
+                    tags: data.tags,
+                  });
                   setActiveRow(null);
                 }}
                 onCancel={() => setActiveRow(null)}
@@ -127,31 +104,15 @@ export function EntryList({
                 <EntryRowBody
                   entry={entry}
                   expanded={expanded.has(entry.id)}
-                  onToggleReframed={() => toggleExpanded(entry.id)}
+                  onToggleOriginal={() => toggleExpanded(entry.id)}
                 />
-                {entry.coachNotes && entry.coachNotes.length > 0 && (
-                  <div style={{ marginTop: "8px" }}>
-                    <CoachNotePills notes={entry.coachNotes} />
-                  </div>
-                )}
                 {entry.coachNotes === null && coachOpenId !== entry.id && (
                   <button
                     type="button"
                     onClick={() => setCoachOpenId(entry.id)}
-                    style={{
-                      marginTop: "10px",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      color: "var(--color-accent)",
-                      background: "none",
-                      border: "1px solid var(--color-accent-border)",
-                      borderRadius: "var(--radius-sm)",
-                      padding: "6px 12px",
-                      cursor: "pointer",
-                      letterSpacing: "0.03em",
-                    }}
+                    className="font-body text-sm font-medium text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)] hover:bg-[var(--color-primary-50)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
                   >
-                    Talk it through with the coach
+                    Coach me
                   </button>
                 )}
                 {coachOpenId === entry.id && (
@@ -175,7 +136,7 @@ export function EntryList({
                 )}
               </>
             )}
-          </div>
+          </article>
         );
       })}
     </div>
@@ -185,7 +146,6 @@ export function EntryList({
 interface EntryRowHeaderProps {
   date: string;
   tags: string[];
-  tagDefs: TagDef[];
   showActions: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -194,72 +154,30 @@ interface EntryRowHeaderProps {
 function EntryRowHeader({
   date,
   tags,
-  tagDefs,
   showActions,
   onEdit,
   onDelete,
 }: EntryRowHeaderProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "8px",
-        gap: "12px",
-      }}
-    >
-      <span
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "11px",
-          color: "var(--color-text-tertiary)",
-          flexShrink: 0,
-        }}
+    <header className="flex items-baseline justify-between gap-4 mb-3">
+      <time
+        dateTime={date}
+        className="font-display text-lg font-medium text-[var(--color-neutral-800)]"
       >
         {date}
-      </span>
-      <div
-        style={{
-          display: "flex",
-          gap: "6px",
-          alignItems: "center",
-          marginLeft: "auto",
-        }}
-      >
-        {tags.map((tag) => {
-          const tagColors = tagColorFor(tagDefs, tag);
-          return (
-            <span
-              key={tag}
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                fontWeight: 500,
-                padding: "2px 8px",
-                borderRadius: "var(--radius-sm)",
-                background: tagColors
-                  ? tagColors.bg
-                  : "var(--color-surface)",
-                color: tagColors
-                  ? tagColors.color
-                  : "var(--color-text-tertiary)",
-                border: tagColors
-                  ? `1px solid ${tagColors.border}`
-                  : "1px solid var(--color-border)",
-              }}
-            >
-              {tag}
-            </span>
-          );
-        })}
+      </time>
+      <div className="flex flex-wrap gap-2 items-center justify-end">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="font-body text-xs font-medium px-3 py-1 rounded-full bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)]"
+          >
+            {tag}
+          </span>
+        ))}
         {showActions && (
-          <div style={{ display: "flex", gap: "2px", marginLeft: "6px" }}>
-            <IconButton
-              ariaLabel="Edit entry"
-              onClick={onEdit}
-              hoverColor="var(--color-accent)"
-            >
+          <div className="flex gap-0.5 ml-1.5">
+            <IconButton ariaLabel="Edit entry" onClick={onEdit}>
               <svg
                 width="13"
                 height="13"
@@ -275,11 +193,7 @@ function EntryRowHeader({
                 <path d="M10 3l3 3L5.5 13.5 2 14l.5-3.5L10 3z" />
               </svg>
             </IconButton>
-            <IconButton
-              ariaLabel="Delete entry"
-              onClick={onDelete}
-              hoverColor="var(--color-danger)"
-            >
+            <IconButton ariaLabel="Delete entry" onClick={onDelete} danger>
               <svg
                 width="13"
                 height="13"
@@ -299,45 +213,28 @@ function EntryRowHeader({
           </div>
         )}
       </div>
-    </div>
+    </header>
   );
 }
 
 interface IconButtonProps {
   ariaLabel: string;
   onClick: () => void;
-  hoverColor: string;
+  danger?: boolean;
   children: React.ReactNode;
 }
 
-function IconButton({
-  ariaLabel,
-  onClick,
-  hoverColor,
-  children,
-}: IconButtonProps) {
+function IconButton({ ariaLabel, onClick, danger, children }: IconButtonProps) {
   return (
     <button
       type="button"
       aria-label={ariaLabel}
       onClick={onClick}
-      style={{
-        background: "none",
-        border: "none",
-        padding: "4px",
-        cursor: "pointer",
-        color: "var(--color-text-tertiary)",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        transition: "color 0.15s",
-      }}
-      onMouseOver={(e) => {
-        e.currentTarget.style.color = hoverColor;
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.color = "var(--color-text-tertiary)";
-      }}
+      className={`p-1 rounded inline-flex items-center justify-center transition-colors cursor-pointer ${
+        danger
+          ? "text-[var(--color-neutral-400)] hover:text-[var(--color-error-500)] hover:bg-[var(--color-error-50)]"
+          : "text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-100)]"
+      }`}
     >
       {children}
     </button>
@@ -347,59 +244,57 @@ function IconButton({
 interface EntryRowBodyProps {
   entry: Entry;
   expanded: boolean;
-  onToggleReframed: () => void;
+  onToggleOriginal: () => void;
 }
 
 function EntryRowBody({
   entry,
   expanded,
-  onToggleReframed,
+  onToggleOriginal,
 }: EntryRowBodyProps) {
-  return (
-    <div>
+  if (!entry.reframed) {
+    return (
       <p
-        style={{
-          fontSize: "14px",
-          color: "var(--color-text-secondary)",
-          lineHeight: 1.6,
-        }}
+        className="font-body text-base text-[var(--color-neutral-700)]"
+        style={{ lineHeight: 1.75 }}
       >
         {entry.original}
       </p>
-      {entry.reframed && (
-        <>
-          <button
-            onClick={onToggleReframed}
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-              color: "var(--color-accent)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "0",
-              marginTop: "8px",
-              letterSpacing: "0.03em",
-            }}
+    );
+  }
+
+  return (
+    <div>
+      <p
+        className="font-body text-base text-[var(--color-neutral-700)]"
+        style={{ lineHeight: 1.75 }}
+      >
+        {entry.reframed}
+      </p>
+      <button
+        type="button"
+        onClick={onToggleOriginal}
+        className="font-body text-sm font-medium text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-100)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
+      >
+        {expanded ? "Hide original" : "Show original"}
+      </button>
+      {expanded && (
+        <div
+          className="border-l-2 border-[var(--color-neutral-300)] pl-3 mt-2"
+          style={{ animation: "fadeIn 0.25s ease both" }}
+        >
+          <p
+            className="font-body text-base text-[var(--color-neutral-600)]"
+            style={{ lineHeight: 1.75 }}
           >
-            {expanded ? "Hide reframed" : "Show reframed"}
-          </button>
-          {expanded && (
-            <p
-              style={{
-                color: "var(--color-text-primary)",
-                borderLeft: "2px solid var(--color-accent)",
-                paddingLeft: "12px",
-                marginTop: "8px",
-                fontSize: "14px",
-                lineHeight: 1.6,
-                animation: "fadeIn 0.25s ease both",
-              }}
-            >
-              {entry.reframed}
-            </p>
+            {entry.original}
+          </p>
+          {entry.coachNotes && entry.coachNotes.length > 0 && (
+            <div className="mt-3">
+              <CoachNotePills notes={entry.coachNotes} />
+            </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
@@ -434,67 +329,34 @@ function EditEntryForm({
     <div
       role="group"
       aria-label="Edit entry"
-      style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+      className="flex flex-col gap-3"
     >
       <textarea
         aria-label="Edit entry text"
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={4}
-        style={{
-          width: "100%",
-          background: "var(--color-surface)",
-          border: "1px solid var(--color-border)",
-          borderRadius: "var(--radius-md)",
-          padding: "12px",
-          fontFamily: "var(--font-body)",
-          fontSize: "14px",
-          color: "var(--color-text-primary)",
-          minHeight: "100px",
-          resize: "vertical",
-          outline: "none",
-        }}
+        className="w-full font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none resize-y min-h-[100px] placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
+        style={{ lineHeight: 1.6 }}
       />
       <TagPicker tags={availableTags} selected={tags} onChange={setTags} />
-      <div style={{ display: "flex", gap: "10px" }}>
+      <div className="flex gap-2.5">
         <button
           type="button"
           onClick={handleSave}
           disabled={!canSave}
-          style={{
-            padding: "8px 20px",
-            background: canSave
-              ? "var(--color-accent)"
-              : "var(--color-surface-raised)",
-            color: canSave
-              ? "var(--color-base)"
-              : "var(--color-text-tertiary)",
-            fontFamily: "var(--font-body)",
-            fontSize: "13px",
-            fontWeight: 600,
-            borderRadius: "var(--radius-sm)",
-            border: "none",
-            cursor: canSave ? "pointer" : "not-allowed",
-            transition: "all 0.15s",
-          }}
+          className={`font-body text-sm font-semibold rounded-md px-6 py-3 transition-colors ${
+            canSave
+              ? "bg-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] cursor-pointer"
+              : "bg-[var(--color-neutral-100)] text-[var(--color-neutral-400)] cursor-not-allowed"
+          }`}
         >
           Save
         </button>
         <button
           type="button"
           onClick={onCancel}
-          style={{
-            padding: "8px 20px",
-            background: "var(--color-surface-raised)",
-            color: "var(--color-text-secondary)",
-            fontFamily: "var(--font-body)",
-            fontSize: "13px",
-            fontWeight: 500,
-            borderRadius: "var(--radius-sm)",
-            border: "1px solid var(--color-border)",
-            cursor: "pointer",
-            transition: "background 0.15s",
-          }}
+          className="font-body text-sm font-medium text-[var(--color-neutral-700)] border border-[var(--color-neutral-300)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
         >
           Cancel
         </button>
@@ -511,57 +373,24 @@ interface DeleteConfirmProps {
 function DeleteConfirm({ onConfirm, onCancel }: DeleteConfirmProps) {
   return (
     <div
-      style={{
-        background: "var(--color-danger-muted)",
-        borderRadius: "var(--radius-md)",
-        border: "1px solid rgba(207,68,68,0.25)",
-        padding: "16px",
-        animation: "fadeIn 0.2s ease both",
-      }}
+      className="bg-[var(--color-error-50)] rounded-lg border border-[var(--color-error-500)]/25 p-4"
+      style={{ animation: "fadeIn 0.2s ease both" }}
     >
-      <p
-        style={{
-          fontSize: "13px",
-          color: "var(--color-danger)",
-          marginBottom: "12px",
-        }}
-      >
+      <p className="font-body text-sm text-[var(--color-error-500)] mb-3">
         Delete this entry? It can&apos;t be undone.
       </p>
-      <div style={{ display: "flex", gap: "10px" }}>
+      <div className="flex gap-2.5">
         <button
           type="button"
           onClick={onConfirm}
-          style={{
-            padding: "6px 16px",
-            background: "var(--color-danger)",
-            color: "#fff",
-            fontFamily: "var(--font-body)",
-            fontSize: "13px",
-            fontWeight: 600,
-            borderRadius: "var(--radius-sm)",
-            border: "none",
-            cursor: "pointer",
-            transition: "background 0.15s",
-          }}
+          className="font-body text-sm font-semibold bg-[var(--color-error-500)] text-white rounded-md px-4 py-1.5 hover:opacity-90 transition-opacity cursor-pointer"
         >
           Yes, delete
         </button>
         <button
           type="button"
           onClick={onCancel}
-          style={{
-            padding: "6px 16px",
-            background: "var(--color-surface-raised)",
-            color: "var(--color-text-secondary)",
-            fontFamily: "var(--font-body)",
-            fontSize: "13px",
-            fontWeight: 500,
-            borderRadius: "var(--radius-sm)",
-            border: "1px solid var(--color-border)",
-            cursor: "pointer",
-            transition: "background 0.15s",
-          }}
+          className="font-body text-sm font-medium text-[var(--color-neutral-700)] border border-[var(--color-neutral-300)] rounded-md px-4 py-1.5 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
         >
           Cancel
         </button>
