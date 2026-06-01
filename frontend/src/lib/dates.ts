@@ -9,12 +9,6 @@ export function todayLocal(): string {
   return formatLocal(new Date());
 }
 
-export function localDateFromOffset(daysAgo: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
-  return formatLocal(d);
-}
-
 export type Timeframe =
   | "last-month"
   | "last-quarter"

@@ -86,7 +86,6 @@ describe("BragDoc — generate payload", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    localStorage.clear();
     vi.restoreAllMocks();
     fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -316,7 +315,6 @@ describe("BragDoc — user_context forwarding", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    localStorage.clear();
     fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ bullets: [] }),

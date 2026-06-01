@@ -41,8 +41,8 @@ export function CoachPanel({
   const [messages, setMessages] = useState<ApiMessage[]>([]);
   const [phase, setPhase] = useState<Phase>({ kind: "loading-turn" });
   const [reply, setReply] = useState("");
-  const [animatingIndex, setAnimatingIndex] = useState<number | null>(null);
   const fetchedFirstRef = useRef(false);
+  const lastMessageIndex = messages.length - 1;
 
   function settingsFields() {
     const settings = readSettings();
@@ -66,7 +66,6 @@ export function CoachPanel({
         ...history,
         { role: "coach", text: result.text, notes: result.notes },
       ]);
-      setAnimatingIndex(history.length);
       setPhase({ kind: "chatting" });
     } catch {
       setPhase({ kind: "error-turn" });
@@ -150,7 +149,7 @@ export function CoachPanel({
             role={m.role}
             text={m.text}
             notes={m.notes}
-            animate={i === animatingIndex && m.role === "coach"}
+            animate={i === lastMessageIndex && m.role === "coach"}
           />
         ))}
 

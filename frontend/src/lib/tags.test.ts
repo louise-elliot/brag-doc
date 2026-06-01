@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   getTags,
   saveTags,
@@ -6,10 +6,6 @@ import {
 } from "./tags";
 
 describe("tags", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   describe("getTags", () => {
     it("seeds the default 6 tags on first read", () => {
       const tags = getTags();

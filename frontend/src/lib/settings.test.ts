@@ -1,14 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { readSettings, writeSettings, serializeContext } from "./settings";
 import { DEFAULT_USER_SETTINGS } from "./types";
 
 const KEY = "byline-settings";
 
 describe("settings data layer", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("returns defaults when localStorage key is missing", () => {
     expect(readSettings()).toEqual(DEFAULT_USER_SETTINGS);
   });

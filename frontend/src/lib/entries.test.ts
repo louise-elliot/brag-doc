@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   getEntries,
   addEntry,
@@ -24,10 +24,6 @@ function makeEntry(overrides: Partial<Entry> = {}): Omit<Entry, "id" | "createdA
 }
 
 describe("entries data layer", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("returns empty array when no entries exist", () => {
     expect(getEntries()).toEqual([]);
   });
@@ -117,10 +113,6 @@ describe("getEntries same-day ordering", () => {
 });
 
 describe("renameTagOnEntries", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("rewrites the old tag name to the new one on every matching entry", () => {
     addEntry(makeEntry({ tags: ["leadership", "technical"] }));
     addEntry(makeEntry({ tags: ["leadership"] }));
@@ -141,10 +133,6 @@ describe("renameTagOnEntries", () => {
 });
 
 describe("deleteEntry", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("removes the matching entry", () => {
     const a = addEntry(makeEntry({ original: "a" }));
     addEntry(makeEntry({ original: "b" }));
@@ -162,10 +150,6 @@ describe("deleteEntry", () => {
 });
 
 describe("editEntry", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("nullifies reframed when the original text changes", () => {
     const entry = addEntry(
       makeEntry({ original: "first pass", reframed: "reframed version" })
@@ -204,10 +188,6 @@ describe("editEntry", () => {
 });
 
 describe("coachNotes handling", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("normalises a missing coachNotes field to null when reading", () => {
     const legacy = [
       {

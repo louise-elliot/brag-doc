@@ -1,3 +1,4 @@
+import { readWithLegacyMigration } from "./localStorage";
 import {
   COACHING_STYLE_OPTIONS,
   DEFAULT_USER_SETTINGS,
@@ -25,15 +26,7 @@ function coerceCoachingStyle(value: unknown): CoachingStyle {
 }
 
 export function readSettings(): UserSettings {
-  let raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacy) {
-      localStorage.setItem(STORAGE_KEY, legacy);
-      localStorage.removeItem(LEGACY_STORAGE_KEY);
-      raw = legacy;
-    }
-  }
+  const raw = readWithLegacyMigration(STORAGE_KEY, LEGACY_STORAGE_KEY);
   if (!raw) return DEFAULT_USER_SETTINGS;
   let parsed: unknown;
   try {

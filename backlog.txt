@@ -1,4 +1,43 @@
-Guardrails 
-Auth and rate limiting for the Python LLM service
-Request logging, observability, and cost tracking for the LLM service
-Hosting and deployment configuration for the Python LLM service
+# Byline Backlog
+
+## Production foundations (must-do before opening to users)
+
+- Auth — email magic-link via Clerk / Supabase Auth / Auth.js. Session management. Account deletion endpoint.
+- Server-side storage — migrate from localStorage to backend DB (Postgres on Supabase / Neon / Railway). Schema for entries, tags, settings. Per-user isolation. Migration script for existing local data when a user signs in for the first time.
+- Deployment
+  - Frontend: Vercel.
+  - Backend: pick one of Fly.io / Railway / Render / Cloud Run for the FastAPI service.
+  - Secrets management for ANTHROPIC_API_KEY and DB credentials.
+  - Domain + SSL.
+  - Preview environments wired to PRs.
+- Privacy + legal — privacy policy, terms of service, cookie policy. Explicit "data is sent to Anthropic when you use the coach" disclosure surfaced in-app, not only in legal docs.
+- Error tracking — Sentry on frontend and backend.
+- Rate limiting (LLM service) — per-user daily/monthly token caps, per-IP burst limit on anonymous endpoints, 429 handling on frontend with a clear "you've hit today's limit" message.
+- Cost tracking — log token usage per request (input + output, per user, per endpoint, per model). Daily cost dashboard for admin. Hard budget cap that disables LLM endpoints on overage.
+- BYOK option (hybrid model) — Settings UI for users to paste their own Anthropic key. Server-side encrypted-at-rest storage. Per-request key resolution (use user's key if set, else operator's key). Graceful error UX when a user's key fails. Privacy-policy update covering this case. This is a relief valve for power users, not the primary model.
+- Auth on the LLM service — backend endpoints require a session token from the frontend (or signed request from the Next.js API route). No raw exposure of the FastAPI service to the public.
+- Responsible AI guardrails
+  - Confirm Anthropic data retention / training opt-out terms; document in privacy policy.
+  - Input validation: max entry length, prompt-injection-resistant prompt construction.
+  - Output safety: rely on Anthropic defaults, add a server-side filter on coach outputs if/when needed.
+  - User-reportable: a "this response wasn't helpful" link on coach turns and reframes, logged to backend.
+- Observability — structured logs on the FastAPI service (request ID, user ID, endpoint, latency, token usage). Forward to a log destination (Logtail / Axiom / similar).
+
+## Important early follow-ups (first few weeks after launch)
+
+- Data export — let users download their journal as JSON or PDF.
+- Data deletion — account-deletion flow that hard-deletes entries, settings, and coach conversation history.
+- Onboarding — first-run experience explaining the app, the coach, and the privacy model. 2-3 screens.
+- Analytics — privacy-respecting (Plausible / Fathom). Track signup, first entry, first reframe, brag doc generation.
+- Support channel — support@byline.app mailbox at minimum; later a help docs site.
+- Status page — simple page that the LLM-service health check posts to.
+- Mobile responsive QA — full audit and fixes; mobile is likely the bulk of usage.
+- Accessibility audit — WCAG AA pass, keyboard nav, screen reader testing.
+
+## Later / when there's signal
+
+- Pricing & plans — free tier with token cap, paid tier with higher limits. Stripe integration.
+- Email notifications — weekly reminder to log a win; review-season prompt.
+- Multi-device sync — falls out of server-side storage but worth UX'ing well.
+- i18n — UK English / US English variations at minimum.
+- Public marketing site at the apex domain, app at app.byline.app.

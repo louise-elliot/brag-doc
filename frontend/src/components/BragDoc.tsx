@@ -381,7 +381,7 @@ function TagChip({ name, selected, onClick }: TagChipProps) {
       onClick={onClick}
       aria-pressed={selected}
       className={[
-        "font-body text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors border inline-flex items-center gap-1.5",
+        "font-body text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors border inline-flex items-center gap-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary-500)]",
         selected
           ? "bg-[var(--color-primary-500)] border-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] hover:border-[var(--color-primary-600)]"
           : "bg-white border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-400)]",

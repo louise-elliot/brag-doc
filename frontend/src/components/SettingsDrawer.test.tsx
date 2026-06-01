@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SettingsDrawer } from "./SettingsDrawer";
@@ -42,10 +42,6 @@ function renderDrawer(open: boolean, overrides: Partial<Parameters<typeof Settin
 }
 
 describe("SettingsDrawer", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("renders nothing when closed", () => {
     renderDrawer(false);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

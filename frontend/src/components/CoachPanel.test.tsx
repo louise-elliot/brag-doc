@@ -15,7 +15,6 @@ const baseEntry = {
 describe("CoachPanel — chatting phase", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    localStorage.clear();
   });
 
   it("fetches the first coach turn on mount and renders it", async () => {
@@ -122,7 +121,6 @@ describe("CoachPanel — chatting phase", () => {
 describe("CoachPanel — reframing phase", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    localStorage.clear();
   });
 
   it("calls coachReframe with the full conversation when Reframe it now is clicked", async () => {
@@ -270,7 +268,6 @@ describe("CoachPanel — reframing phase", () => {
 describe("CoachPanel — settings forwarding", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    localStorage.clear();
   });
 
   it("sends the user's coaching_style and serialized user_context on the first turn", async () => {

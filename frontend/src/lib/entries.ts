@@ -1,18 +1,11 @@
+import { readWithLegacyMigration } from "./localStorage";
 import type { Entry } from "./types";
 
 const STORAGE_KEY = "byline-entries";
 const LEGACY_STORAGE_KEY = "confidence-journal-entries";
 
 function readEntries(): Entry[] {
-  let raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacy) {
-      localStorage.setItem(STORAGE_KEY, legacy);
-      localStorage.removeItem(LEGACY_STORAGE_KEY);
-      raw = legacy;
-    }
-  }
+  const raw = readWithLegacyMigration(STORAGE_KEY, LEGACY_STORAGE_KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);

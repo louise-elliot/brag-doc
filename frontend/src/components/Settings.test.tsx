@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CategoriesCard, CoachingStyleCard, ContextCard, DataCard } from "./Settings";
@@ -244,10 +244,6 @@ describe("Settings — Categories card", () => {
 });
 
 describe("Settings — Coaching Style card", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("renders all four coaching styles with labels", () => {
     render(<CoachingStyleCard />);
     expect(screen.getByText("The Trusted Mentor")).toBeInTheDocument();
@@ -282,10 +278,6 @@ describe("Settings — Coaching Style card", () => {
 });
 
 describe("Settings — Your Context card", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("renders the headline input and notes textarea", () => {
     render(<ContextCard />);
     expect(

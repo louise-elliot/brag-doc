@@ -1,3 +1,5 @@
+import { readWithLegacyMigration } from "./localStorage";
+
 export interface TagDef {
   name: string;
 }
@@ -15,15 +17,7 @@ const STORAGE_KEY = "byline:tags";
 const LEGACY_STORAGE_KEY = "confidence-journal:tags";
 
 function read(): TagDef[] | null {
-  let raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacy) {
-      localStorage.setItem(STORAGE_KEY, legacy);
-      localStorage.removeItem(LEGACY_STORAGE_KEY);
-      raw = legacy;
-    }
-  }
+  const raw = readWithLegacyMigration(STORAGE_KEY, LEGACY_STORAGE_KEY);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
