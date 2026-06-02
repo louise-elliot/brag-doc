@@ -10,9 +10,9 @@ vi.mock("./CoachPanel", () => ({
 }));
 
 const TAGS: TagDef[] = [
-  { name: "leadership", color: "#D4863C" },
-  { name: "technical", color: "#6B8AE0" },
-  { name: "mentoring", color: "#E07272" },
+  { name: "leadership" },
+  { name: "technical" },
+  { name: "mentoring" },
 ];
 
 const entries: Entry[] = [
@@ -239,7 +239,7 @@ const renderCoachList = (items: Entry[]) =>
   render(
     <EntryList
       entries={items}
-      tags={[{ name: "technical", color: "#6B8AE0" }]}
+      tags={[{ name: "technical" }]}
       onEditEntry={vi.fn()}
       onDeleteEntry={vi.fn()}
       onCoachAccept={vi.fn()}

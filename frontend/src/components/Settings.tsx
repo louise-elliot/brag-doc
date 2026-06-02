@@ -8,6 +8,8 @@ import {
   type CoachingStyle,
 } from "@/lib/types";
 import { readSettings, writeSettings } from "@/lib/settings";
+import { getCurrentUser, signOutCurrentUser } from "@/lib/auth";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export interface CategoriesCardProps {
   tags: TagDef[];
@@ -190,7 +192,7 @@ export function DataCard({
           onClick={onConfirm}
           className="font-body text-sm font-semibold bg-[var(--color-error-50)] text-[var(--color-error-500)] rounded-md px-6 py-3 hover:bg-[var(--color-error-500)] hover:text-white transition-colors cursor-pointer"
         >
-          Clear all data
+          Clear all entries
         </button>
       ) : (
         <div
@@ -198,7 +200,7 @@ export function DataCard({
           style={{ animation: "fadeIn 0.2s ease both" }}
         >
           <p className="font-body text-base text-[var(--color-error-500)] mb-4">
-            This will permanently delete all your journal entries.
+            This deletes all your entries. Your account and settings will be kept.
           </p>
           <div className="flex gap-3">
             <button
@@ -227,10 +229,20 @@ export function ContextCard() {
   const [notes, setNotes] = useState(DEFAULT_USER_SETTINGS.contextNotes);
 
   useEffect(() => {
-    const stored = readSettings();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe load from localStorage
-    setHeadline(stored.contextHeadline);
-    setNotes(stored.contextNotes);
+    let cancelled = false;
+    readSettings().then(
+      (stored) => {
+        if (cancelled) return;
+        setHeadline(stored.contextHeadline);
+        setNotes(stored.contextNotes);
+      },
+      () => {
+        /* fall back to defaults */
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -279,7 +291,7 @@ export function ContextCard() {
             value={headline}
             placeholder="Senior Software Engineer in financial services"
             onChange={(e) => setHeadline(e.target.value)}
-            onBlur={(e) => writeSettings({ contextHeadline: e.currentTarget.value })}
+            onBlur={(e) => void writeSettings({ contextHeadline: e.currentTarget.value })}
             className="font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
           />
         </label>
@@ -293,7 +305,7 @@ export function ContextCard() {
             placeholder="e.g. what are your career aspirations?"
             rows={5}
             onChange={(e) => setNotes(e.target.value)}
-            onBlur={(e) => writeSettings({ contextNotes: e.currentTarget.value })}
+            onBlur={(e) => void writeSettings({ contextNotes: e.currentTarget.value })}
             className="font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none min-h-[120px] resize-y placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-100)]"
             style={{ lineHeight: 1.6 }}
           />
@@ -309,13 +321,23 @@ export function CoachingStyleCard() {
   );
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe load from localStorage
-    setStyle(readSettings().coachingStyle);
+    let cancelled = false;
+    readSettings().then(
+      (stored) => {
+        if (!cancelled) setStyle(stored.coachingStyle);
+      },
+      () => {
+        /* fall back to defaults */
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function pick(next: CoachingStyle) {
     setStyle(next);
-    writeSettings({ coachingStyle: next });
+    void writeSettings({ coachingStyle: next });
   }
 
   return (
@@ -369,6 +391,144 @@ export function CoachingStyleCard() {
             </button>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+export function AccountCard() {
+  const [email, setEmail] = useState<string | null>(null);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getCurrentUser().then(
+      (u) => {
+        if (!cancelled) setEmail(u?.email ?? null);
+      },
+      () => {
+        /* ignore */
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleSignOut() {
+    await signOutCurrentUser();
+    window.location.href = "/sign-in";
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    setDeleteError(null);
+    const client = getSupabaseBrowserClient();
+    const { error } = await client.functions.invoke("delete-account");
+    if (error) {
+      setDeleteError(error.message);
+      setDeleting(false);
+      return;
+    }
+    await client.auth.signOut();
+    window.location.href = "/sign-in?deleted=1";
+  }
+
+  const deleteDisabled = !email || confirmEmail !== email || deleting;
+
+  return (
+    <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
+      <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
+        Account
+      </h3>
+      {email && (
+        <p
+          className="font-body text-base text-[var(--color-neutral-600)] mb-6"
+          style={{ lineHeight: 1.6 }}
+        >
+          {email}
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={handleSignOut}
+        className="font-body text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
+      >
+        Sign out
+      </button>
+
+      <div className="border-t border-[var(--color-neutral-200)] pt-6 mt-8">
+        <h4 className="font-display text-lg font-semibold text-[var(--color-error-500)] mb-3">
+          Danger zone
+        </h4>
+        <button
+          type="button"
+          onClick={() => setShowDeleteAccount(true)}
+          className="font-body text-sm font-semibold bg-transparent border border-[var(--color-error-500)] text-[var(--color-error-500)] rounded-md px-6 py-3 hover:bg-[var(--color-error-50)] transition-colors cursor-pointer"
+        >
+          Delete account
+        </button>
+        {showDeleteAccount && (
+          <div
+            role="dialog"
+            aria-label="Confirm delete account"
+            className="mt-4 bg-[var(--color-error-50)] border border-[var(--color-error-500)] rounded-md p-5"
+            style={{ animation: "fadeIn 0.2s ease both" }}
+          >
+            <p className="font-body text-base text-[var(--color-error-500)] mb-4">
+              This permanently deletes your entries, settings, and account. Type
+              your email to confirm.
+            </p>
+            <label className="flex flex-col gap-2 mb-4">
+              <span className="font-body text-sm font-medium text-[var(--color-neutral-700)]">
+                Type your email
+              </span>
+              <input
+                type="email"
+                value={confirmEmail}
+                onChange={(e) => setConfirmEmail(e.target.value)}
+                className="font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-error-500)] focus:ring-2 focus:ring-[var(--color-error-50)]"
+              />
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleteDisabled}
+                className={[
+                  "font-body text-sm font-semibold rounded-md px-6 py-3 transition-opacity",
+                  deleteDisabled
+                    ? "bg-[var(--color-error-500)] text-white opacity-50 cursor-not-allowed"
+                    : "bg-[var(--color-error-500)] text-white hover:opacity-90 cursor-pointer",
+                ].join(" ")}
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteAccount(false);
+                  setConfirmEmail("");
+                  setDeleteError(null);
+                }}
+                className="font-body text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+            {deleteError && (
+              <p
+                role="alert"
+                className="font-body text-sm text-[var(--color-error-500)] mt-3"
+              >
+                {deleteError}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

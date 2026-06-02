@@ -1,24 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "./App";
 
 vi.mock("@/lib/entries", () => ({
-  getEntries: vi.fn().mockReturnValue([]),
-  addEntry: vi.fn().mockReturnValue({
-    id: "1",
-    date: "2026-04-01",
-    prompt: "What impact?",
-    original: "Test entry",
-    reframed: null,
-    tags: [],
-    createdAt: "2026-04-01T18:00:00Z",
-  }),
-  updateEntry: vi.fn(),
-  deleteAllEntries: vi.fn(),
-  deleteEntry: vi.fn(),
-  editEntry: vi.fn(),
-  renameTagOnEntries: vi.fn(),
+  getEntries: vi.fn(() => Promise.resolve([])),
+  addEntry: vi.fn(() =>
+    Promise.resolve({
+      id: "1",
+      date: "2026-04-01",
+      prompt: "What impact?",
+      original: "Test entry",
+      reframed: null,
+      tags: [],
+      createdAt: "2026-04-01T18:00:00Z",
+    })
+  ),
+  updateEntry: vi.fn(() => Promise.resolve()),
+  deleteAllEntries: vi.fn(() => Promise.resolve()),
+  deleteEntry: vi.fn(() => Promise.resolve()),
+  editEntry: vi.fn(() => Promise.resolve()),
+  renameTagOnEntries: vi.fn(() => Promise.resolve()),
+}));
+
+vi.mock("@/lib/migration", () => ({
+  runFirstSignInMigration: vi.fn(() => Promise.resolve("skipped-returning-user")),
 }));
 
 vi.mock("@/lib/prompts", () => ({
@@ -30,11 +36,10 @@ vi.mock("@/lib/tags", async () => {
   const actual = await vi.importActual<typeof import("@/lib/tags")>("@/lib/tags");
   return {
     ...actual,
-    getTags: vi.fn().mockReturnValue([
-      { name: "leadership" },
-      { name: "technical" },
-    ]),
-    saveTags: vi.fn(),
+    getTags: vi.fn(() =>
+      Promise.resolve([{ name: "leadership" }, { name: "technical" }])
+    ),
+    saveTags: vi.fn(() => Promise.resolve()),
   };
 });
 
@@ -43,11 +48,13 @@ describe("App", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders Journal tab by default", () => {
+  it("renders Journal tab by default", async () => {
     render(<App />);
-    expect(
-      screen.getByText("What impact did you make today?")
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByText("What impact did you make today?")
+      ).toBeInTheDocument()
+    );
   });
 
   it("switches to Brag Doc tab", async () => {
@@ -109,16 +116,18 @@ describe("App", () => {
     global.fetch = fetchSpy;
 
     render(<App />);
-    const textarea = screen.getByPlaceholderText("Write about your win...");
+    const textarea = await screen.findByPlaceholderText("Write about your win...");
     await userEvent.type(textarea, "I helped with the release");
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(addEntry).toHaveBeenCalledWith(
-      expect.objectContaining({
-        original: "I helped with the release",
-        coachNotes: null,
-        reframed: null,
-      })
+    await waitFor(() =>
+      expect(addEntry).toHaveBeenCalledWith(
+        expect.objectContaining({
+          original: "I helped with the release",
+          coachNotes: null,
+          reframed: null,
+        })
+      )
     );
     expect(fetchSpy).not.toHaveBeenCalled();
   });

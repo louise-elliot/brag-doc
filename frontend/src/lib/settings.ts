@@ -1,56 +1,49 @@
-import { readWithLegacyMigration } from "./localStorage";
 import {
-  COACHING_STYLE_OPTIONS,
   DEFAULT_USER_SETTINGS,
   type CoachingStyle,
   type UserContext,
   type UserSettings,
 } from "./types";
+import { getSupabaseBrowserClient } from "./supabase/client";
 
-const STORAGE_KEY = "byline-settings";
-const LEGACY_STORAGE_KEY = "confidence-journal-settings";
-
-const VALID_STYLES = new Set<CoachingStyle>(
-  COACHING_STYLE_OPTIONS.map((option) => option.key)
-);
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+interface SettingsRow {
+  user_id: string;
+  coaching_style: CoachingStyle;
+  custom_tags: string[];
+  user_context: { headline: string; notes: string } | null;
 }
 
-function coerceCoachingStyle(value: unknown): CoachingStyle {
-  if (typeof value === "string" && VALID_STYLES.has(value as CoachingStyle)) {
-    return value as CoachingStyle;
-  }
-  return DEFAULT_USER_SETTINGS.coachingStyle;
+async function getUserId(): Promise<string> {
+  const client = getSupabaseBrowserClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) throw new Error("not signed in");
+  return user.id;
 }
 
-export function readSettings(): UserSettings {
-  const raw = readWithLegacyMigration(STORAGE_KEY, LEGACY_STORAGE_KEY);
-  if (!raw) return DEFAULT_USER_SETTINGS;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return DEFAULT_USER_SETTINGS;
-  }
-  if (!isPlainObject(parsed)) return DEFAULT_USER_SETTINGS;
+function rowToSettings(row: SettingsRow): UserSettings {
   return {
-    coachingStyle: coerceCoachingStyle(parsed.coachingStyle),
-    contextHeadline:
-      typeof parsed.contextHeadline === "string"
-        ? parsed.contextHeadline
-        : DEFAULT_USER_SETTINGS.contextHeadline,
-    contextNotes:
-      typeof parsed.contextNotes === "string"
-        ? parsed.contextNotes
-        : DEFAULT_USER_SETTINGS.contextNotes,
+    coachingStyle: row.coaching_style,
+    contextHeadline: row.user_context?.headline ?? "",
+    contextNotes: row.user_context?.notes ?? "",
   };
 }
 
-export function writeSettings(partial: Partial<UserSettings>): void {
-  const next: UserSettings = { ...readSettings(), ...partial };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+export async function readSettings(): Promise<UserSettings> {
+  const client = getSupabaseBrowserClient();
+  const userId = await getUserId();
+  const { data, error } = await client
+    .from("settings")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+  if (error) {
+    // PGRST116 = no rows; treat as defaults
+    if ((error as { code?: string }).code === "PGRST116") {
+      return DEFAULT_USER_SETTINGS;
+    }
+    throw error;
+  }
+  return rowToSettings(data as SettingsRow);
 }
 
 export function serializeContext(settings: UserSettings): UserContext | null {
@@ -64,4 +57,22 @@ export function serializeContext(settings: UserSettings): UserContext | null {
     headline: settings.contextHeadline,
     notes: settings.contextNotes,
   };
+}
+
+export async function writeSettings(partial: Partial<UserSettings>): Promise<void> {
+  const client = getSupabaseBrowserClient();
+  const userId = await getUserId();
+  const current = await readSettings();
+  const next: UserSettings = { ...current, ...partial };
+  const payload = {
+    user_id: userId,
+    coaching_style: next.coachingStyle,
+    user_context: {
+      headline: next.contextHeadline,
+      notes: next.contextNotes,
+    },
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await client.from("settings").upsert(payload, { onConflict: "user_id" });
+  if (error) throw error;
 }

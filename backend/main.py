@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import Literal
 
+from auth import get_current_user, UserClaims
 from brag_doc import GroupBy, generate_brag_doc
 from coach import Message, UserContext, coach_reframe, coach_turn
 
@@ -79,8 +80,10 @@ def health():
 @app.post("/generate-brag-doc")
 def brag_doc_route(
     body: BragDocRequest,
+    user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
 ):
+    logger.info("brag doc request", extra={"user_id": user.user_id})
     try:
         result = generate_brag_doc(
             entries=[e.model_dump() for e in body.entries],
@@ -100,8 +103,10 @@ def brag_doc_route(
 @app.post("/coach/turn", response_model=CoachTurnResponse)
 def coach_turn_route(
     body: CoachTurnRequest,
+    user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
 ):
+    logger.info("coach turn request", extra={"user_id": user.user_id})
     try:
         result = coach_turn(
             entry_text=body.entry_text,
@@ -123,8 +128,10 @@ def coach_turn_route(
 @app.post("/coach/reframe", response_model=CoachReframeResponse)
 def coach_reframe_route(
     body: CoachReframeRequest,
+    user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
 ):
+    logger.info("coach reframe request", extra={"user_id": user.user_id})
     try:
         result = coach_reframe(
             entry_text=body.entry_text,

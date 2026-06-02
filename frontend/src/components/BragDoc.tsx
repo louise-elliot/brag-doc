@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Entry } from "@/lib/types";
+import type { Entry, UserSettings } from "@/lib/types";
+import { DEFAULT_USER_SETTINGS } from "@/lib/types";
 import { computeDateRange, type Timeframe } from "@/lib/dates";
 import type { TagDef } from "@/lib/tags";
 import { readSettings, serializeContext } from "@/lib/settings";
@@ -67,6 +68,22 @@ export function BragDoc({ entries, tags }: BragDocProps) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
+
+  useEffect(() => {
+    let cancelled = false;
+    readSettings().then(
+      (s) => {
+        if (!cancelled) setSettings(s);
+      },
+      () => {
+        /* fall back to defaults */
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading) {
@@ -119,7 +136,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
           entries: filtered,
           groupBy,
           ...(trimmedPrompt && { userPrompt: trimmedPrompt }),
-          user_context: serializeContext(readSettings()),
+          user_context: serializeContext(settings),
         }),
       });
 

@@ -3,6 +3,25 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CoachPanel } from "./CoachPanel";
 import * as coachApi from "@/lib/coachApi";
+import type { UserSettings } from "@/lib/types";
+import { DEFAULT_USER_SETTINGS } from "@/lib/types";
+
+let mockSettings: UserSettings = { ...DEFAULT_USER_SETTINGS };
+
+vi.mock("@/lib/settings", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/settings")>(
+    "@/lib/settings"
+  );
+  return {
+    ...actual,
+    readSettings: vi.fn(() => Promise.resolve(mockSettings)),
+    writeSettings: vi.fn((partial: Partial<UserSettings>) => {
+      mockSettings = { ...mockSettings, ...partial };
+      return Promise.resolve();
+    }),
+  };
+});
+
 import { writeSettings } from "@/lib/settings";
 
 const baseEntry = {
@@ -15,6 +34,7 @@ const baseEntry = {
 describe("CoachPanel — chatting phase", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockSettings = { ...DEFAULT_USER_SETTINGS };
   });
 
   it("fetches the first coach turn on mount and renders it", async () => {
@@ -121,6 +141,7 @@ describe("CoachPanel — chatting phase", () => {
 describe("CoachPanel — reframing phase", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockSettings = { ...DEFAULT_USER_SETTINGS };
   });
 
   it("calls coachReframe with the full conversation when Reframe it now is clicked", async () => {
@@ -268,10 +289,11 @@ describe("CoachPanel — reframing phase", () => {
 describe("CoachPanel — settings forwarding", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockSettings = { ...DEFAULT_USER_SETTINGS };
   });
 
   it("sends the user's coaching_style and serialized user_context on the first turn", async () => {
-    writeSettings({
+    await writeSettings({
       coachingStyle: "hype-woman",
       contextHeadline: "Senior PM",
       contextNotes: "Pre-promo to director",
@@ -300,7 +322,7 @@ describe("CoachPanel — settings forwarding", () => {
   });
 
   it("sends user_context: null when both context fields are blank", async () => {
-    writeSettings({
+    await writeSettings({
       coachingStyle: "trusted-mentor",
       contextHeadline: "",
       contextNotes: "",
@@ -329,7 +351,7 @@ describe("CoachPanel — settings forwarding", () => {
   });
 
   it("forwards coaching_style and user_context on the reframe call", async () => {
-    writeSettings({
+    await writeSettings({
       coachingStyle: "bold-coach",
       contextHeadline: "Staff IC",
       contextNotes: "",

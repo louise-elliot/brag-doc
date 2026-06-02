@@ -1,4 +1,4 @@
-import { readWithLegacyMigration } from "./localStorage";
+import { getSupabaseBrowserClient } from "./supabase/client";
 
 export interface TagDef {
   name: string;
@@ -13,36 +13,28 @@ const DEFAULT_TAGS: TagDef[] = [
   { name: "mentoring" },
 ];
 
-const STORAGE_KEY = "byline:tags";
-const LEGACY_STORAGE_KEY = "confidence-journal:tags";
+async function getUserId(): Promise<string> {
+  const client = getSupabaseBrowserClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) throw new Error("not signed in");
+  return user.id;
+}
 
-function read(): TagDef[] | null {
-  const raw = readWithLegacyMigration(STORAGE_KEY, LEGACY_STORAGE_KEY);
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return null;
-    return (parsed as Array<{ name: string }>).map((t) => ({ name: t.name }));
-  } catch {
-    return null;
+export async function getTags(): Promise<TagDef[]> {
+  const client = getSupabaseBrowserClient();
+  const userId = await getUserId();
+  const { data, error } = await client
+    .from("settings")
+    .select("custom_tags")
+    .eq("user_id", userId)
+    .single();
+  if (error) {
+    if ((error as { code?: string }).code === "PGRST116") return DEFAULT_TAGS;
+    throw error;
   }
-}
-
-function write(tags: TagDef[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tags));
-}
-
-export function getTags(): TagDef[] {
-  const stored = read();
-  if (stored === null) {
-    write(DEFAULT_TAGS);
-    return [...DEFAULT_TAGS];
-  }
-  return stored;
-}
-
-export function saveTags(tags: TagDef[]): void {
-  write(tags);
+  const custom = (data as { custom_tags: string[] }).custom_tags;
+  if (!custom || custom.length === 0) return DEFAULT_TAGS;
+  return custom.map((name) => ({ name }));
 }
 
 export function isDuplicateName(
@@ -55,4 +47,18 @@ export function isDuplicateName(
   return tags.some(
     (t) => t.name !== excludeName && t.name.toLowerCase() === normalized
   );
+}
+
+export async function saveTags(tags: TagDef[]): Promise<void> {
+  const client = getSupabaseBrowserClient();
+  const userId = await getUserId();
+  const { error } = await client.from("settings").upsert(
+    {
+      user_id: userId,
+      custom_tags: tags.map((t) => t.name),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" }
+  );
+  if (error) throw error;
 }

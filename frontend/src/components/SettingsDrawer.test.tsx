@@ -1,29 +1,59 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SettingsDrawer } from "./SettingsDrawer";
 import type { TagDef } from "@/lib/tags";
+import { signOutCurrentUser } from "@/lib/auth";
 
-vi.mock("@/lib/settings", () => ({
-  readSettings: vi.fn().mockReturnValue({
-    coachingStyle: "trusted-mentor",
-    contextHeadline: "",
-    contextNotes: "",
-  }),
-  writeSettings: vi.fn(),
+vi.mock("@/lib/auth", () => ({
+  signOutCurrentUser: vi.fn(() => Promise.resolve()),
+  getCurrentUser: vi.fn(() =>
+    Promise.resolve({ id: "u1", email: "user@example.com" })
+  ),
 }));
+
+const supabaseFunctionsInvoke = vi.fn();
+const supabaseAuthSignOut = vi.fn(() => Promise.resolve());
+vi.mock("@/lib/supabase/client", () => ({
+  getSupabaseBrowserClient: () => ({
+    functions: { invoke: supabaseFunctionsInvoke },
+    auth: {
+      signOut: supabaseAuthSignOut,
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: { id: "u1", email: "user@example.com" } },
+      }),
+    },
+  }),
+}));
+
+vi.mock("@/lib/settings", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/settings")>(
+    "@/lib/settings"
+  );
+  return {
+    ...actual,
+    readSettings: vi.fn(() =>
+      Promise.resolve({
+        coachingStyle: "trusted-mentor",
+        contextHeadline: "",
+        contextNotes: "",
+      })
+    ),
+    writeSettings: vi.fn(() => Promise.resolve()),
+  };
+});
 
 vi.mock("@/lib/tags", async () => {
   const actual = await vi.importActual<typeof import("@/lib/tags")>("@/lib/tags");
   return {
     ...actual,
-    getTags: vi.fn().mockReturnValue([]),
-    saveTags: vi.fn(),
+    getTags: vi.fn(() => Promise.resolve([])),
+    saveTags: vi.fn(() => Promise.resolve()),
   };
 });
 
 const DEFAULT_TAGS: TagDef[] = [
-  { name: "leadership", color: "#D4863C" },
+  { name: "leadership" },
 ];
 
 function renderDrawer(open: boolean, overrides: Partial<Parameters<typeof SettingsDrawer>[0]> = {}) {
@@ -92,7 +122,85 @@ describe("SettingsDrawer", () => {
   it("clicking Data tab shows CategoriesCard and DataCard content", async () => {
     renderDrawer(true);
     await userEvent.click(screen.getByRole("tab", { name: "Data" }));
-    expect(screen.getByRole("button", { name: "Clear all data" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Clear all entries" })).toBeInTheDocument();
     expect(screen.getByLabelText("New category name")).toBeInTheDocument();
+  });
+
+  it("shows the signed-in email and signs out on click", async () => {
+    renderDrawer(true);
+    expect(await screen.findByText("user@example.com")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /sign out/i }));
+    await waitFor(() => expect(signOutCurrentUser).toHaveBeenCalled());
+  });
+});
+
+describe("SettingsDrawer — Delete account", () => {
+  beforeEach(() => {
+    supabaseFunctionsInvoke.mockReset();
+    supabaseAuthSignOut.mockClear();
+  });
+
+  it("requires typing email to enable Delete account button", async () => {
+    renderDrawer(true);
+    // Wait for AccountCard to load the email
+    await screen.findByText("user@example.com");
+    fireEvent.click(
+      await screen.findByRole("button", { name: /delete account/i })
+    );
+    const confirmInput = await screen.findByLabelText(/type your email/i);
+    const confirmBtn = screen.getByRole("button", { name: /^delete$/i });
+    expect(confirmBtn).toBeDisabled();
+    fireEvent.change(confirmInput, { target: { value: "user@example.com" } });
+    expect(confirmBtn).not.toBeDisabled();
+  });
+
+  it("invokes delete-account function and redirects", async () => {
+    supabaseFunctionsInvoke.mockResolvedValueOnce({
+      data: { ok: true },
+      error: null,
+    });
+    const originalLocation = window.location;
+    delete (window as { location?: Location }).location;
+    (window as unknown as { location: { href: string } }).location = {
+      href: "",
+    };
+
+    renderDrawer(true);
+    await screen.findByText("user@example.com");
+    fireEvent.click(
+      await screen.findByRole("button", { name: /delete account/i })
+    );
+    fireEvent.change(await screen.findByLabelText(/type your email/i), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    await waitFor(() =>
+      expect(supabaseFunctionsInvoke).toHaveBeenCalledWith("delete-account")
+    );
+    await waitFor(() => expect(supabaseAuthSignOut).toHaveBeenCalled());
+    await waitFor(() => expect(window.location.href).toContain("/sign-in"));
+
+    (window as unknown as { location: Location }).location = originalLocation;
+  });
+
+  it("surfaces an inline error when the function returns an error", async () => {
+    supabaseFunctionsInvoke.mockResolvedValueOnce({
+      data: null,
+      error: { message: "Something went wrong" },
+    });
+
+    renderDrawer(true);
+    await screen.findByText("user@example.com");
+    fireEvent.click(
+      await screen.findByRole("button", { name: /delete account/i })
+    );
+    fireEvent.change(await screen.findByLabelText(/type your email/i), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Something went wrong"
+    );
+    expect(supabaseAuthSignOut).not.toHaveBeenCalled();
   });
 });

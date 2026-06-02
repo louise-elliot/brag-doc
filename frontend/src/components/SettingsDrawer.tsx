@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  AccountCard,
   ContextCard,
   CoachingStyleCard,
   CategoriesCard,
@@ -104,27 +105,30 @@ export function SettingsDrawer({
           })}
         </nav>
         <div className="flex-1 overflow-y-auto px-8 py-8">
-          {section === "you" && <ContextCard />}
-          {section === "coach" && <CoachingStyleCard />}
-          {section === "data" && (
-            <div className="flex flex-col gap-8">
-              <CategoriesCard
-                tags={tags}
-                onAddTag={onAddTag}
-                onDeleteTag={onDeleteTag}
-                onRenameTag={onRenameTag}
-              />
-              <DataCard
-                confirming={confirming}
-                onConfirm={() => setConfirming(true)}
-                onCancel={() => setConfirming(false)}
-                onClearData={() => {
-                  onClearData();
-                  setConfirming(false);
-                }}
-              />
-            </div>
-          )}
+          <div className="flex flex-col gap-8">
+            {section === "you" && <ContextCard />}
+            {section === "coach" && <CoachingStyleCard />}
+            {section === "data" && (
+              <>
+                <CategoriesCard
+                  tags={tags}
+                  onAddTag={onAddTag}
+                  onDeleteTag={onDeleteTag}
+                  onRenameTag={onRenameTag}
+                />
+                <DataCard
+                  confirming={confirming}
+                  onConfirm={() => setConfirming(true)}
+                  onCancel={() => setConfirming(false)}
+                  onClearData={() => {
+                    onClearData();
+                    setConfirming(false);
+                  }}
+                />
+              </>
+            )}
+            <AccountCard />
+          </div>
         </div>
       </aside>
     </div>

@@ -1,110 +1,139 @@
-import { readWithLegacyMigration } from "./localStorage";
 import type { Entry } from "./types";
+import { getSupabaseBrowserClient } from "./supabase/client";
 
-const STORAGE_KEY = "byline-entries";
-const LEGACY_STORAGE_KEY = "confidence-journal-entries";
-
-function readEntries(): Entry[] {
-  const raw = readWithLegacyMigration(STORAGE_KEY, LEGACY_STORAGE_KEY);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map((e) => ({
-      ...e,
-      coachNotes: e.coachNotes ?? null,
-    }));
-  } catch {
-    return [];
-  }
+interface EntryRow {
+  id: string;
+  date: string;
+  prompt: string;
+  original: string;
+  reframed: string | null;
+  tags: string[];
+  coach_notes: string[] | null;
+  created_at: string;
 }
 
-function writeEntries(entries: Entry[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-}
-
-export function getEntries(): Entry[] {
-  return readEntries().sort((a, b) => {
-    const byDate =
-      new Date(b.date).getTime() - new Date(a.date).getTime();
-    if (byDate !== 0) return byDate;
-    return (
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  });
-}
-
-export function addEntry(
-  data: Omit<Entry, "id" | "createdAt">
-): Entry {
-  const entry: Entry = {
-    ...data,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
+function rowToEntry(row: EntryRow): Entry {
+  return {
+    id: row.id,
+    date: row.date,
+    prompt: row.prompt,
+    original: row.original,
+    reframed: row.reframed,
+    tags: row.tags,
+    coachNotes: row.coach_notes,
+    createdAt: row.created_at,
   };
-  const entries = readEntries();
-  entries.push(entry);
-  writeEntries(entries);
-  return entry;
 }
 
-export function updateEntry(
+export async function getEntries(): Promise<Entry[]> {
+  const client = getSupabaseBrowserClient();
+  const { data, error } = await client
+    .from("entries")
+    .select("*")
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as EntryRow[]).map(rowToEntry);
+}
+
+export async function addEntry(
+  data: Omit<Entry, "id" | "createdAt">
+): Promise<Entry> {
+  const client = getSupabaseBrowserClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) throw new Error("not signed in");
+  const payload = {
+    user_id: user.id,
+    date: data.date,
+    prompt: data.prompt,
+    original: data.original,
+    reframed: data.reframed,
+    tags: data.tags,
+    coach_notes: data.coachNotes,
+  };
+  const { data: row, error } = await client
+    .from("entries")
+    .insert(payload)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return rowToEntry(row as EntryRow);
+}
+
+export async function updateEntry(
   id: string,
   updates: Partial<Pick<Entry, "original" | "reframed" | "tags" | "coachNotes">>
-): void {
-  const entries = readEntries();
-  const index = entries.findIndex((e) => e.id === id);
-  if (index !== -1) {
-    entries[index] = { ...entries[index], ...updates };
-    writeEntries(entries);
+): Promise<void> {
+  const client = getSupabaseBrowserClient();
+  const payload: Record<string, unknown> = {};
+  if (updates.original !== undefined) payload.original = updates.original;
+  if (updates.reframed !== undefined) payload.reframed = updates.reframed;
+  if (updates.tags !== undefined) payload.tags = updates.tags;
+  if (updates.coachNotes !== undefined) payload.coach_notes = updates.coachNotes;
+  const { error } = await client.from("entries").update(payload).eq("id", id);
+  if (error) throw error;
+}
+
+export async function editEntry(
+  id: string,
+  updates: { original?: string; reframed?: string; tags?: string[] }
+): Promise<void> {
+  const client = getSupabaseBrowserClient();
+  // Fetch current to detect "original changed" and clear reframed in that case
+  const { data: current, error: fetchErr } = await client
+    .from("entries").select("original").eq("id", id).single();
+  if (fetchErr) throw fetchErr;
+  const originalChanged =
+    updates.original !== undefined && updates.original !== (current as { original: string }).original;
+  const payload: Record<string, unknown> = {};
+  if (updates.original !== undefined) payload.original = updates.original;
+  if (updates.reframed !== undefined) payload.reframed = updates.reframed;
+  if (updates.tags !== undefined) payload.tags = updates.tags;
+  if (originalChanged && updates.reframed === undefined) payload.reframed = null;
+  const { error } = await client.from("entries").update(payload).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteEntry(id: string): Promise<void> {
+  const client = getSupabaseBrowserClient();
+  const { error } = await client.from("entries").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteAllEntries(): Promise<void> {
+  const client = getSupabaseBrowserClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) throw new Error("not signed in");
+  const { error } = await client.from("entries").delete().eq("user_id", user.id);
+  if (error) throw error;
+}
+
+export async function renameTagOnEntries(oldName: string, newName: string): Promise<void> {
+  const client = getSupabaseBrowserClient();
+  const { data, error: selErr } = await client
+    .from("entries")
+    .select("id, tags")
+    .contains("tags", [oldName]);
+  if (selErr) throw selErr;
+  for (const row of (data as { id: string; tags: string[] }[])) {
+    const next = row.tags.map((t) => (t === oldName ? newName : t));
+    const { error } = await client.from("entries").update({ tags: next }).eq("id", row.id);
+    if (error) throw error;
   }
 }
 
-export function deleteAllEntries(): void {
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(LEGACY_STORAGE_KEY);
-}
-
-export function deleteEntry(id: string): void {
-  const entries = readEntries();
-  const next = entries.filter((e) => e.id !== id);
-  if (next.length !== entries.length) writeEntries(next);
-}
-
-export function editEntry(
-  id: string,
-  updates: { original?: string; reframed?: string; tags?: string[] }
-): void {
-  const entries = readEntries();
-  const index = entries.findIndex((e) => e.id === id);
-  if (index === -1) return;
-  const current = entries[index];
-  const originalChanged =
-    updates.original !== undefined && updates.original !== current.original;
-  entries[index] = {
-    ...current,
-    ...(updates.original !== undefined && { original: updates.original }),
-    ...(updates.reframed !== undefined && { reframed: updates.reframed }),
-    ...(updates.tags !== undefined && { tags: updates.tags }),
-    ...(originalChanged && updates.reframed === undefined && { reframed: null }),
-  };
-  writeEntries(entries);
-}
-
-export function renameTagOnEntries(oldName: string, newName: string): void {
-  const entries = readEntries();
-  let changed = false;
-  const updated = entries.map((e) => {
-    if (!e.tags.includes(oldName)) return e;
-    changed = true;
-    return { ...e, tags: e.tags.map((t) => (t === oldName ? newName : t)) };
-  });
-  if (changed) writeEntries(updated);
-}
-
-export function getEntriesByDateRange(
+export async function getEntriesByDateRange(
   start: string,
   end: string
-): Entry[] {
-  return getEntries().filter((e) => e.date >= start && e.date <= end);
+): Promise<Entry[]> {
+  const client = getSupabaseBrowserClient();
+  const { data, error } = await client
+    .from("entries")
+    .select("*")
+    .gte("date", start)
+    .lte("date", end)
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as EntryRow[]).map(rowToEntry);
 }

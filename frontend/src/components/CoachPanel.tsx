@@ -9,6 +9,7 @@ import {
   type CoachMessage as ApiMessage,
 } from "@/lib/coachApi";
 import { readSettings, serializeContext } from "@/lib/settings";
+import { DEFAULT_USER_SETTINGS, type UserSettings } from "@/lib/types";
 
 export interface CoachPanelEntry {
   id: string;
@@ -41,18 +42,18 @@ export function CoachPanel({
   const [messages, setMessages] = useState<ApiMessage[]>([]);
   const [phase, setPhase] = useState<Phase>({ kind: "loading-turn" });
   const [reply, setReply] = useState("");
+  const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
   const fetchedFirstRef = useRef(false);
   const lastMessageIndex = messages.length - 1;
 
-  function settingsFields() {
-    const settings = readSettings();
+  function settingsFields(current: UserSettings) {
     return {
-      coaching_style: settings.coachingStyle,
-      user_context: serializeContext(settings),
+      coaching_style: current.coachingStyle,
+      user_context: serializeContext(current),
     };
   }
 
-  async function fetchTurn(history: ApiMessage[]) {
+  async function fetchTurn(history: ApiMessage[], current: UserSettings) {
     setPhase({ kind: "loading-turn" });
     try {
       const result = await coachTurn({
@@ -60,7 +61,7 @@ export function CoachPanel({
         prompt: entry.prompt,
         tags: entry.tags,
         conversation: history,
-        ...settingsFields(),
+        ...settingsFields(current),
       });
       setMessages([
         ...history,
@@ -80,7 +81,7 @@ export function CoachPanel({
         prompt: entry.prompt,
         tags: entry.tags,
         conversation: messages,
-        ...settingsFields(),
+        ...settingsFields(settings),
       });
       setPhase({
         kind: "reframing",
@@ -95,7 +96,16 @@ export function CoachPanel({
   useEffect(() => {
     if (fetchedFirstRef.current) return;
     fetchedFirstRef.current = true;
-    void fetchTurn([]);
+    (async () => {
+      let loaded = DEFAULT_USER_SETTINGS;
+      try {
+        loaded = await readSettings();
+      } catch {
+        /* fall back to defaults */
+      }
+      setSettings(loaded);
+      await fetchTurn([], loaded);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -105,11 +115,11 @@ export function CoachPanel({
     const next: ApiMessage[] = [...messages, { role: "user", text: trimmed }];
     setMessages(next);
     setReply("");
-    void fetchTurn(next);
+    void fetchTurn(next, settings);
   }
 
   function handleRetryTurn() {
-    void fetchTurn(messages);
+    void fetchTurn(messages, settings);
   }
 
   function handleRetryReframe() {

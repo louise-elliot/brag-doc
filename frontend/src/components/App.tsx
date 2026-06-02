@@ -18,6 +18,7 @@ import {
 import { getPromptForDate, getRandomPromptExcluding } from "@/lib/prompts";
 import { getTags, saveTags, type TagDef } from "@/lib/tags";
 import { todayLocal } from "@/lib/dates";
+import { runFirstSignInMigration } from "@/lib/migration";
 import type { Entry } from "@/lib/types";
 
 type Tab = "journal" | "bragdoc";
@@ -42,44 +43,50 @@ export function App() {
 
   const [tags, setTags] = useState<TagDef[]>([]);
 
-  const refreshEntries = useCallback(() => {
-    setEntries(getEntries());
-  }, []);
-
-  const refreshTags = useCallback(() => {
-    setTags(getTags());
+  const refreshEntries = useCallback(async () => {
+    const es = await getEntries();
+    setEntries(es);
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe load from localStorage
-    refreshEntries();
-    refreshTags();
-  }, [refreshEntries, refreshTags]);
+    let cancelled = false;
+    (async () => {
+      await runFirstSignInMigration();
+      if (cancelled) return;
+      const [es, ts] = await Promise.all([getEntries(), getTags()]);
+      if (cancelled) return;
+      setEntries(es);
+      setTags(ts);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  function handleAddTag(name: string) {
+  async function handleAddTag(name: string) {
     const next = [...tags, { name }];
-    saveTags(next);
+    await saveTags(next);
     setTags(next);
   }
 
-  function handleDeleteTag(name: string) {
+  async function handleDeleteTag(name: string) {
     const next = tags.filter((t) => t.name !== name);
-    saveTags(next);
+    await saveTags(next);
     setTags(next);
   }
 
-  function handleRenameTag(oldName: string, newName: string) {
+  async function handleRenameTag(oldName: string, newName: string) {
     const next = tags.map((t) =>
       t.name === oldName ? { ...t, name: newName } : t
     );
-    saveTags(next);
-    renameTagOnEntries(oldName, newName);
+    await saveTags(next);
+    await renameTagOnEntries(oldName, newName);
     setTags(next);
-    refreshEntries();
+    await refreshEntries();
   }
 
-  function handleSave(data: { original: string; tags: string[] }) {
-    addEntry({
+  async function handleSave(data: { original: string; tags: string[] }) {
+    await addEntry({
       date: today,
       prompt,
       original: data.original,
@@ -87,35 +94,39 @@ export function App() {
       tags: data.tags,
       coachNotes: null,
     });
-    refreshEntries();
+    await refreshEntries();
   }
 
-  function handleCoachAccept(id: string, reframed: string, notes: string[]) {
-    updateEntry(id, { reframed, coachNotes: notes });
-    refreshEntries();
+  async function handleCoachAccept(
+    id: string,
+    reframed: string,
+    notes: string[]
+  ) {
+    await updateEntry(id, { reframed, coachNotes: notes });
+    await refreshEntries();
   }
 
-  function handleCoachDismiss(id: string) {
-    updateEntry(id, { coachNotes: [] });
-    refreshEntries();
+  async function handleCoachDismiss(id: string) {
+    await updateEntry(id, { coachNotes: [] });
+    await refreshEntries();
   }
 
-  function handleEditEntry(
+  async function handleEditEntry(
     id: string,
     updates: { original?: string; reframed?: string; tags?: string[] }
   ) {
-    editEntry(id, updates);
-    refreshEntries();
+    await editEntry(id, updates);
+    await refreshEntries();
   }
 
-  function handleDeleteEntry(id: string) {
-    deleteEntry(id);
-    refreshEntries();
+  async function handleDeleteEntry(id: string) {
+    await deleteEntry(id);
+    await refreshEntries();
   }
 
-  function handleClearData() {
-    deleteAllEntries();
-    refreshEntries();
+  async function handleClearData() {
+    await deleteAllEntries();
+    await refreshEntries();
   }
 
   return (
