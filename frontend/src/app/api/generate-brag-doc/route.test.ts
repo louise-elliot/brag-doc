@@ -1,20 +1,40 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+
 import { POST } from "./route";
+
+vi.mock("@/lib/supabase/server", () => ({
+  getSupabaseServerClient: vi.fn(),
+}));
 
 const ORIGINAL_FETCH = global.fetch;
 
+function mockSession(accessToken: string | null) {
+  vi.mocked(getSupabaseServerClient).mockResolvedValue({
+    auth: {
+      getSession: vi.fn().mockResolvedValue({
+        data: {
+          session: accessToken ? { access_token: accessToken } : null,
+        },
+      }),
+    },
+  } as unknown as Awaited<ReturnType<typeof getSupabaseServerClient>>);
+}
+
 beforeEach(() => {
   vi.stubEnv("PYTHON_SERVICE_URL", "http://test-python:8000");
+  mockSession("test-token");
 });
 
 afterEach(() => {
   global.fetch = ORIGINAL_FETCH;
   vi.unstubAllEnvs();
+  vi.clearAllMocks();
 });
 
 describe("POST /api/generate-brag-doc (proxy)", () => {
-  it("forwards the request body to the Python /generate-brag-doc endpoint", async () => {
+  it("forwards the request body to the Python /generate-brag-doc endpoint with Authorization header", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -54,9 +74,26 @@ describe("POST /api/generate-brag-doc (proxy)", () => {
     expect(url).toBe("http://test-python:8000/generate-brag-doc");
     expect(init.method).toBe("POST");
     expect(init.body).toBe(JSON.stringify(requestBody));
+    expect(init.headers.Authorization).toBe("Bearer test-token");
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.bullets[0].tag).toBe("leadership");
+  });
+
+  it("returns 401 when no session", async () => {
+    mockSession(null);
+    const fetchMock = vi.fn();
+    global.fetch = fetchMock;
+
+    const request = new Request("http://localhost/api/generate-brag-doc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entries: [] }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(401);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("passes through non-2xx status codes from Python", async () => {

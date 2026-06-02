@@ -1,12 +1,10 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/auth";
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ signedInPage: page }) => {
   await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
 });
 
-test("add a new category and use it on a journal entry", async ({ page }) => {
+test("add a new category and use it on a journal entry", async ({ signedInPage: page }) => {
   await page.getByRole("button", { name: "Open settings" }).click();
   await page.getByRole("tab", { name: "Data" }).click();
   await page.getByLabel("New category name").fill("focus");
@@ -27,7 +25,7 @@ test("add a new category and use it on a journal entry", async ({ page }) => {
 });
 
 test("deleting a category removes it from the picker but leaves past entries tagged", async ({
-  page,
+  signedInPage: page,
 }) => {
   // Save an entry tagged 'leadership'
   await page
@@ -56,7 +54,7 @@ test("deleting a category removes it from the picker but leaves past entries tag
 });
 
 test("renaming a category rewrites the tag on past entries", async ({
-  page,
+  signedInPage: page,
 }) => {
   await page
     .locator('textarea[placeholder="Write about your win..."]')

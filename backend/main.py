@@ -4,9 +4,10 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Literal
 
+from auth import get_current_user, UserClaims
 from brag_doc import GroupBy, generate_brag_doc
 from coach import Message, UserContext, coach_reframe, coach_turn
 
@@ -26,28 +27,28 @@ CoachingStyle = Literal[
 
 
 class Entry(BaseModel):
-    id: str
-    date: str
-    prompt: str
-    original: str
-    reframed: str | None = None
-    tags: list[str]
-    createdAt: str
-    coachNotes: list[str] | None = None
+    id: str = Field(max_length=100)
+    date: str = Field(max_length=30)
+    prompt: str = Field(max_length=500)
+    original: str = Field(max_length=10_000)
+    reframed: str | None = Field(default=None, max_length=10_000)
+    tags: list[str] = Field(max_length=50)
+    createdAt: str = Field(max_length=50)
+    coachNotes: list[str] | None = Field(default=None, max_length=50)
 
 
 class BragDocRequest(BaseModel):
-    entries: list[Entry]
+    entries: list[Entry] = Field(max_length=1_000)
     groupBy: GroupBy = "tag"
-    userPrompt: str | None = None
+    userPrompt: str | None = Field(default=None, max_length=2_000)
     user_context: UserContext | None = None
 
 
 class CoachTurnRequest(BaseModel):
-    entry_text: str
-    prompt: str
-    tags: list[str]
-    conversation: list[Message]
+    entry_text: str = Field(max_length=10_000)
+    prompt: str = Field(max_length=500)
+    tags: list[str] = Field(max_length=50)
+    conversation: list[Message] = Field(max_length=50)
     user_context: UserContext | None = None
     coaching_style: CoachingStyle = "trusted-mentor"
 
@@ -58,10 +59,10 @@ class CoachTurnResponse(BaseModel):
 
 
 class CoachReframeRequest(BaseModel):
-    entry_text: str
-    prompt: str
-    tags: list[str]
-    conversation: list[Message]
+    entry_text: str = Field(max_length=10_000)
+    prompt: str = Field(max_length=500)
+    tags: list[str] = Field(max_length=50)
+    conversation: list[Message] = Field(max_length=50)
     user_context: UserContext | None = None
     coaching_style: CoachingStyle = "trusted-mentor"
 
@@ -79,8 +80,10 @@ def health():
 @app.post("/generate-brag-doc")
 def brag_doc_route(
     body: BragDocRequest,
+    user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
 ):
+    logger.info("brag doc request", extra={"user_id": user.user_id})
     try:
         result = generate_brag_doc(
             entries=[e.model_dump() for e in body.entries],
@@ -100,8 +103,10 @@ def brag_doc_route(
 @app.post("/coach/turn", response_model=CoachTurnResponse)
 def coach_turn_route(
     body: CoachTurnRequest,
+    user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
 ):
+    logger.info("coach turn request", extra={"user_id": user.user_id})
     try:
         result = coach_turn(
             entry_text=body.entry_text,
@@ -123,8 +128,10 @@ def coach_turn_route(
 @app.post("/coach/reframe", response_model=CoachReframeResponse)
 def coach_reframe_route(
     body: CoachReframeRequest,
+    user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
 ):
+    logger.info("coach reframe request", extra={"user_id": user.user_id})
     try:
         result = coach_reframe(
             entry_text=body.entry_text,

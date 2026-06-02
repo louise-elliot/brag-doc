@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/auth";
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ signedInPage: page }) => {
   let turnCalls = 0;
   await page.route("**/api/coach/turn", async (route) => {
     turnCalls += 1;
@@ -28,12 +28,10 @@ test.beforeEach(async ({ page }) => {
     })
   );
   await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
 });
 
 test("user can talk through an entry with the coach and accept the reframe", async ({
-  page,
+  signedInPage: page,
 }) => {
   await page.fill(
     'textarea[placeholder="Write about your win..."]',
@@ -70,6 +68,8 @@ test("user can talk through an entry with the coach and accept the reframe", asy
 
   await page.click('button:has-text("Accept")');
 
+  // Notes live behind the "Show original" toggle on each entry card.
+  await page.click('button:has-text("Show original")');
   await expect(page.locator("text=minimising-language").first()).toBeVisible();
   await expect(
     page.locator('button:has-text("Coach me")')
@@ -77,7 +77,7 @@ test("user can talk through an entry with the coach and accept the reframe", asy
 });
 
 test("dismissing the reframe retires the button but keeps the entry untouched", async ({
-  page,
+  signedInPage: page,
 }) => {
   await page.fill(
     'textarea[placeholder="Write about your win..."]',
@@ -103,7 +103,7 @@ test("dismissing the reframe retires the button but keeps the entry untouched", 
 });
 
 test("closing the coach mid-conversation keeps the button available", async ({
-  page,
+  signedInPage: page,
 }) => {
   await page.fill(
     'textarea[placeholder="Write about your win..."]',

@@ -1,9 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/auth";
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ signedInPage: page }) => {
   await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
 });
 
 async function createEntry(
@@ -26,7 +24,7 @@ function timelineEntry(page: import("@playwright/test").Page, text: string) {
 }
 
 test("editing an entry's text updates it in the timeline", async ({
-  page,
+  signedInPage: page,
 }) => {
   await createEntry(page, "Led the standup today");
 
@@ -41,7 +39,7 @@ test("editing an entry's text updates it in the timeline", async ({
 });
 
 test("editing only the tags preserves the entry text", async ({
-  page,
+  signedInPage: page,
 }) => {
   await createEntry(page, "Led the release");
 
@@ -58,7 +56,7 @@ test("editing only the tags preserves the entry text", async ({
 });
 
 test("deleting an entry removes it and stays gone after reload", async ({
-  page,
+  signedInPage: page,
 }) => {
   await createEntry(page, "Entry to delete");
 

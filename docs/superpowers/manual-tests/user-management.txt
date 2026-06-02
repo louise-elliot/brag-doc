@@ -1,0 +1,69 @@
+  2. Daily flow as a signed-in user
+
+  1. Write a new entry → save → confirm it shows in the list.
+  2. Open the coach panel → have a back-and-forth → accept the reframe → confirm it persists.
+  3. Reload the page → still signed in, all entries still there (now from Postgres).
+  4. Switch to Brag Doc tab → generate → confirm output renders.
+
+  3. Settings flow
+
+  1. Open Settings drawer → confirm your email shows in the Account section.
+  2. Change coaching style → reload → confirm it stuck.
+  3. Edit a custom tag → reload → confirm it stuck.
+  4. Click "Clear all entries" → confirm entries are gone but settings + email + coaching style remain.
+
+  4. Sign-out / sign-back-in
+
+  1. Settings → Sign out → expect redirect to /sign-in.
+  2. Try to visit / directly → expect redirect back to /sign-in.
+  3. Sign back in with the same email → expect same data still there (server-canonical).
+
+  5. Multi-device behaviour
+
+  1. On a second browser (or incognito + private), sign in with the same email.
+  2. Add an entry on device 1, reload device 2 — expect it to appear on device 2.
+  3. If device 2 had stale localStorage from a pre-auth session, expect it to be silently cleared on first load (no duplicate entries).
+
+  6. Account deletion (do this LAST — it nukes your account)
+
+  1. Settings → Delete account → modal appears.
+  2. Try to click "Delete" without typing your email → button is disabled.
+  3. Type your email → button enables → click Delete.
+  4. Expect redirect to /sign-in?deleted=1.
+  5. Sign back in with the same email → expect a fresh, empty journal (no leftover data).
+  6. Check the Supabase dashboard → confirm no rows for the deleted user in entries or settings, and no auth user.
+
+  7. Edge cases worth poking
+
+  - Bad magic link (click it after it's already been used, or wait 1+ hour for expiry) → expect to land back on /sign-in?error=auth-callback rather
+
+  4. Sign-out / sign-back-in
+
+  1. Settings → Sign out → expect redirect to /sign-in.
+  2. Try to visit / directly → expect redirect back to /sign-in.
+  3. Sign back in with the same email → expect same data still there (server-canonical).
+
+  5. Multi-device behaviour
+
+  1. On a second browser (or incognito + private), sign in with the same email.
+  2. Add an entry on device 1, reload device 2 — expect it to appear on device 2.
+  3. If device 2 had stale localStorage from a pre-auth session, expect it to be silently cleared on first load (no duplicate entries).
+
+  6. Account deletion (do this LAST — it nukes your account)
+
+  1. Settings → Delete account → modal appears.
+  2. Try to click "Delete" without typing your email → button is disabled.
+  3. Type your email → button enables → click Delete.
+  4. Expect redirect to /sign-in?deleted=1.
+  5. Sign back in with the same email → expect a fresh, empty journal (no leftover data).
+  6. Check the Supabase dashboard → confirm no rows for the deleted user in entries or settings, and no auth user.
+
+  7. Edge cases worth poking
+
+  - Bad magic link (click it after it's already been used, or wait 1+ hour for expiry) → expect to land back on /sign-in?error=auth-callback rather
+  than a crash.
+  - No internet during save → entry should fail visibly rather than silently disappear (we don't have offline support).
+  - Browser back button after sign-in → should not log you out or break.
+  - Open the app in two tabs simultaneously → both should work; saves from tab 1 require a refresh in tab 2 to see (we don't have realtime sync yet).
+
+  If anything in 1, 5, or 6 fails, that's a release blocker. The rest is nice-to-pass.

@@ -31,7 +31,7 @@ SAMPLE_REFRAME_BODY = {
 
 
 class TestCoachTurnEndpoint:
-    def test_returns_text_and_notes(self, mock_client, http_client):
+    def test_returns_text_and_notes(self, mock_client, http_client, authed_user):
         _mock_text_response(
             mock_client,
             json.dumps(
@@ -50,7 +50,7 @@ class TestCoachTurnEndpoint:
         assert data["notes"] == ["minimising-language", "vague-language"]
 
     def test_passes_entry_prompt_tags_and_conversation_to_model(
-        self, mock_client, http_client
+        self, mock_client, http_client, authed_user
     ):
         _mock_text_response(
             mock_client, json.dumps({"text": "ok", "notes": []})
@@ -77,7 +77,7 @@ class TestCoachTurnEndpoint:
         assert "Coach: Who used it?" in user_content
         assert "User: The platform team" in user_content
 
-    def test_strips_markdown_code_fences(self, mock_client, http_client):
+    def test_strips_markdown_code_fences(self, mock_client, http_client, authed_user):
         _mock_text_response(
             mock_client,
             '```json\n{"text": "ok", "notes": ["minimising-language"]}\n```',
@@ -88,12 +88,12 @@ class TestCoachTurnEndpoint:
         assert response.status_code == 200
         assert response.json()["notes"] == ["minimising-language"]
 
-    def test_returns_422_when_required_fields_missing(self, mock_client, http_client):
+    def test_returns_422_when_required_fields_missing(self, mock_client, http_client, authed_user):
         response = http_client.post("/coach/turn", json={"entry_text": "x"})
         assert response.status_code == 422
 
     def test_returns_500_with_generic_message_when_anthropic_throws(
-        self, mock_client, http_client
+        self, mock_client, http_client, authed_user
     ):
         mock_client.messages.create.side_effect = Exception("LEAKED_KEY_XYZ")
 
@@ -105,7 +105,7 @@ class TestCoachTurnEndpoint:
 
 
 class TestCoachReframeEndpoint:
-    def test_returns_reframed_and_notes(self, mock_client, http_client):
+    def test_returns_reframed_and_notes(self, mock_client, http_client, authed_user):
         _mock_text_response(
             mock_client,
             json.dumps(
@@ -123,7 +123,7 @@ class TestCoachReframeEndpoint:
         assert "40 platform engineers" in data["reframed"]
         assert data["notes"] == ["minimising-language", "vague-language"]
 
-    def test_passes_full_conversation_to_model(self, mock_client, http_client):
+    def test_passes_full_conversation_to_model(self, mock_client, http_client, authed_user):
         _mock_text_response(
             mock_client, json.dumps({"reframed": "ok", "notes": []})
         )
@@ -136,7 +136,7 @@ class TestCoachReframeEndpoint:
         assert "Coach: Who used it?" in user_content
         assert "User: The platform team — about 40 engineers" in user_content
 
-    def test_strips_markdown_code_fences(self, mock_client, http_client):
+    def test_strips_markdown_code_fences(self, mock_client, http_client, authed_user):
         _mock_text_response(
             mock_client,
             '```json\n{"reframed": "ok", "notes": []}\n```',
@@ -147,12 +147,12 @@ class TestCoachReframeEndpoint:
         assert response.status_code == 200
         assert response.json()["reframed"] == "ok"
 
-    def test_returns_422_when_required_fields_missing(self, mock_client, http_client):
+    def test_returns_422_when_required_fields_missing(self, mock_client, http_client, authed_user):
         response = http_client.post("/coach/reframe", json={"entry_text": "x"})
         assert response.status_code == 422
 
     def test_returns_500_with_generic_message_when_anthropic_throws(
-        self, mock_client, http_client
+        self, mock_client, http_client, authed_user
     ):
         mock_client.messages.create.side_effect = Exception("LEAKED_KEY_ABC")
 
@@ -162,7 +162,7 @@ class TestCoachReframeEndpoint:
         assert response.json() == {"error": "Coach reframe failed"}
         assert "LEAKED_KEY_ABC" not in response.text
 
-    def test_uses_reframe_system_prompt(self, mock_client, http_client):
+    def test_uses_reframe_system_prompt(self, mock_client, http_client, authed_user):
         _mock_text_response(
             mock_client, json.dumps({"reframed": "ok", "notes": []})
         )
@@ -214,7 +214,7 @@ class TestBuildCoachSystemPrompt:
 
 class TestCoachTurnEndpointPersonalisation:
     def test_uses_the_requested_style_fragment_in_the_system_prompt(
-        self, mock_client, http_client
+        self, mock_client, http_client, authed_user
     ):
         _mock_text_response(
             mock_client, json.dumps({"text": "ok", "notes": []})
@@ -227,7 +227,7 @@ class TestCoachTurnEndpointPersonalisation:
         assert COACH_STYLE_FRAGMENTS["direct-challenger"] in system
 
     def test_includes_user_context_block_when_provided(
-        self, mock_client, http_client
+        self, mock_client, http_client, authed_user
     ):
         _mock_text_response(
             mock_client, json.dumps({"text": "ok", "notes": []})
@@ -246,7 +246,7 @@ class TestCoachTurnEndpointPersonalisation:
         assert "Staff PM" in system
         assert "promo case to director" in system
 
-    def test_rejects_unknown_coaching_style(self, mock_client, http_client):
+    def test_rejects_unknown_coaching_style(self, mock_client, http_client, authed_user):
         body = {**SAMPLE_TURN_BODY, "coaching_style": "drill-sergeant"}
         response = http_client.post("/coach/turn", json=body)
         assert response.status_code == 422

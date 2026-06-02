@@ -1,4 +1,5 @@
 import "@testing-library/jest-dom/vitest";
+import { beforeEach } from "vitest";
 
 // localStorage polyfill - jsdom doesn't properly initialize localStorage methods
 if (typeof globalThis !== "undefined") {
@@ -29,3 +30,7 @@ if (typeof globalThis !== "undefined") {
     writable: false,
   });
 }
+
+beforeEach(() => {
+  localStorage.clear();
+});

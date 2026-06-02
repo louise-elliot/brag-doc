@@ -1,13 +1,36 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CategoriesCard, CoachingStyleCard, ContextCard, DataCard } from "./Settings";
 import type { TagDef } from "@/lib/tags";
+import type { UserSettings } from "@/lib/types";
+import { DEFAULT_USER_SETTINGS } from "@/lib/types";
+
+let mockSettings: UserSettings = { ...DEFAULT_USER_SETTINGS };
+
+vi.mock("@/lib/settings", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/settings")>(
+    "@/lib/settings"
+  );
+  return {
+    ...actual,
+    readSettings: vi.fn(() => Promise.resolve(mockSettings)),
+    writeSettings: vi.fn((partial: Partial<UserSettings>) => {
+      mockSettings = { ...mockSettings, ...partial };
+      return Promise.resolve();
+    }),
+  };
+});
+
 import { readSettings } from "@/lib/settings";
 
+beforeEach(() => {
+  mockSettings = { ...DEFAULT_USER_SETTINGS };
+});
+
 const DEFAULT_TAGS: TagDef[] = [
-  { name: "leadership", color: "#D4863C" },
-  { name: "technical", color: "#6B8AE0" },
+  { name: "leadership" },
+  { name: "technical" },
 ];
 
 describe("Settings — Data Management card", () => {
@@ -21,7 +44,7 @@ describe("Settings — Data Management card", () => {
       />
     );
     expect(
-      screen.getByRole("button", { name: "Clear all data" })
+      screen.getByRole("button", { name: "Clear all entries" })
     ).toBeInTheDocument();
   });
 
@@ -35,7 +58,9 @@ describe("Settings — Data Management card", () => {
       />
     );
     expect(
-      screen.getByText("This will permanently delete all your journal entries.")
+      screen.getByText(
+        "This deletes all your entries. Your account and settings will be kept."
+      )
     ).toBeInTheDocument();
   });
 
@@ -51,7 +76,7 @@ describe("Settings — Data Management card", () => {
       />
     );
     await userEvent.click(
-      screen.getByRole("button", { name: "Clear all data" })
+      screen.getByRole("button", { name: "Clear all entries" })
     );
     expect(onConfirm).toHaveBeenCalled();
 
@@ -244,10 +269,6 @@ describe("Settings — Categories card", () => {
 });
 
 describe("Settings — Coaching Style card", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("renders all four coaching styles with labels", () => {
     render(<CoachingStyleCard />);
     expect(screen.getByText("The Trusted Mentor")).toBeInTheDocument();
@@ -267,25 +288,22 @@ describe("Settings — Coaching Style card", () => {
     await userEvent.click(
       screen.getByRole("radio", { name: /the hype woman/i })
     );
-    expect(readSettings().coachingStyle).toBe("hype-woman");
+    await waitFor(async () => {
+      expect((await readSettings()).coachingStyle).toBe("hype-woman");
+    });
   });
 
-  it("hydrates the selected style from localStorage on mount", () => {
-    localStorage.setItem(
-      "byline-settings",
-      JSON.stringify({ coachingStyle: "bold-coach" })
-    );
+  it("hydrates the selected style from stored settings on mount", async () => {
+    mockSettings = { ...DEFAULT_USER_SETTINGS, coachingStyle: "bold-coach" };
     render(<CoachingStyleCard />);
-    const radio = screen.getByRole("radio", { name: /the bold coach/i });
-    expect(radio).toHaveAttribute("aria-checked", "true");
+    await waitFor(() => {
+      const radio = screen.getByRole("radio", { name: /the bold coach/i });
+      expect(radio).toHaveAttribute("aria-checked", "true");
+    });
   });
 });
 
 describe("Settings — Your Context card", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("renders the headline input and notes textarea", () => {
     render(<ContextCard />);
     expect(
@@ -301,7 +319,11 @@ describe("Settings — Your Context card", () => {
     const headline = screen.getByRole("textbox", { name: /job title/i });
     await userEvent.type(headline, "Senior backend engineer");
     headline.blur();
-    expect(readSettings().contextHeadline).toBe("Senior backend engineer");
+    await waitFor(async () => {
+      expect((await readSettings()).contextHeadline).toBe(
+        "Senior backend engineer"
+      );
+    });
   });
 
   it("persists the notes textarea on blur", async () => {
@@ -311,21 +333,23 @@ describe("Settings — Your Context card", () => {
     });
     await userEvent.type(notes, "Working towards staff");
     notes.blur();
-    expect(readSettings().contextNotes).toBe("Working towards staff");
+    await waitFor(async () => {
+      expect((await readSettings()).contextNotes).toBe("Working towards staff");
+    });
   });
 
-  it("hydrates both fields from localStorage on mount", () => {
-    localStorage.setItem(
-      "byline-settings",
-      JSON.stringify({
-        contextHeadline: "Stored headline",
-        contextNotes: "Stored notes",
-      })
-    );
+  it("hydrates both fields from stored settings on mount", async () => {
+    mockSettings = {
+      ...DEFAULT_USER_SETTINGS,
+      contextHeadline: "Stored headline",
+      contextNotes: "Stored notes",
+    };
     render(<ContextCard />);
-    expect(screen.getByRole("textbox", { name: /job title/i })).toHaveValue(
-      "Stored headline"
-    );
+    await waitFor(() => {
+      expect(screen.getByRole("textbox", { name: /job title/i })).toHaveValue(
+        "Stored headline"
+      );
+    });
     expect(
       screen.getByRole("textbox", { name: /what else do you want your coach to know/i })
     ).toHaveValue("Stored notes");

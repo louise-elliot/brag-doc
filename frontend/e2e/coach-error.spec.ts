@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/auth";
 
-test("coach turn failure renders inline error with retry", async ({ page }) => {
+test("coach turn failure renders inline error with retry", async ({ signedInPage: page }) => {
   let firstCall = true;
   await page.route("**/api/coach/turn", async (route) => {
     if (firstCall) {
@@ -20,8 +20,6 @@ test("coach turn failure renders inline error with retry", async ({ page }) => {
   });
 
   await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
 
   await page.fill(
     'textarea[placeholder="Write about your win..."]',

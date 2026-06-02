@@ -2,13 +2,31 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BragDoc } from "./BragDoc";
-import type { Entry } from "@/lib/types";
+import type { Entry, UserSettings } from "@/lib/types";
+import { DEFAULT_USER_SETTINGS } from "@/lib/types";
 import type { TagDef } from "@/lib/tags";
+
+let mockSettings: UserSettings = { ...DEFAULT_USER_SETTINGS };
+
+vi.mock("@/lib/settings", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/settings")>(
+    "@/lib/settings"
+  );
+  return {
+    ...actual,
+    readSettings: vi.fn(() => Promise.resolve(mockSettings)),
+    writeSettings: vi.fn((partial: Partial<UserSettings>) => {
+      mockSettings = { ...mockSettings, ...partial };
+      return Promise.resolve();
+    }),
+  };
+});
+
 import { writeSettings } from "@/lib/settings";
 
 const TAGS: TagDef[] = [
-  { name: "leadership", color: "#D4863C" },
-  { name: "technical", color: "#6B8AE0" },
+  { name: "leadership" },
+  { name: "technical" },
 ];
 
 const entries: Entry[] = [
@@ -86,7 +104,6 @@ describe("BragDoc — generate payload", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    localStorage.clear();
     vi.restoreAllMocks();
     fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -316,7 +333,7 @@ describe("BragDoc — user_context forwarding", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    localStorage.clear();
+    mockSettings = { ...DEFAULT_USER_SETTINGS };
     fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ bullets: [] }),
@@ -325,11 +342,15 @@ describe("BragDoc — user_context forwarding", () => {
   });
 
   it("sends serialized user_context with the generate request", async () => {
-    writeSettings({
+    await writeSettings({
       contextHeadline: "Staff engineer",
       contextNotes: "Promo case to principal",
     });
     renderBragDoc();
+    // Wait for settings to load into state
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Generate" })).toBeEnabled()
+    );
     await userEvent.click(screen.getByRole("button", { name: "Generate" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);

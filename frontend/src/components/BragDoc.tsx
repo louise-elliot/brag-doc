@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Entry } from "@/lib/types";
+import type { Entry, UserSettings } from "@/lib/types";
+import { DEFAULT_USER_SETTINGS } from "@/lib/types";
 import { computeDateRange, type Timeframe } from "@/lib/dates";
 import type { TagDef } from "@/lib/tags";
 import { readSettings, serializeContext } from "@/lib/settings";
@@ -67,6 +68,22 @@ export function BragDoc({ entries, tags }: BragDocProps) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
+
+  useEffect(() => {
+    let cancelled = false;
+    readSettings().then(
+      (s) => {
+        if (!cancelled) setSettings(s);
+      },
+      () => {
+        /* fall back to defaults */
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading) {
@@ -119,7 +136,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
           entries: filtered,
           groupBy,
           ...(trimmedPrompt && { userPrompt: trimmedPrompt }),
-          user_context: serializeContext(readSettings()),
+          user_context: serializeContext(settings),
         }),
       });
 
@@ -381,7 +398,7 @@ function TagChip({ name, selected, onClick }: TagChipProps) {
       onClick={onClick}
       aria-pressed={selected}
       className={[
-        "font-body text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors border inline-flex items-center gap-1.5",
+        "font-body text-xs font-medium px-3 py-1 rounded-full cursor-pointer transition-colors border inline-flex items-center gap-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary-500)]",
         selected
           ? "bg-[var(--color-primary-500)] border-[var(--color-primary-500)] text-white hover:bg-[var(--color-primary-600)] hover:border-[var(--color-primary-600)]"
           : "bg-white border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-400)]",

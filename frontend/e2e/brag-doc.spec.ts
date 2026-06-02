@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/auth";
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ signedInPage: page }) => {
   await page.route("**/api/generate-brag-doc", (route) =>
     route.fulfill({
       status: 200,
@@ -11,16 +11,14 @@ test.beforeEach(async ({ page }) => {
     })
   );
   await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
 });
 
-test("shows empty state on Brag Doc tab with no entries", async ({ page }) => {
+test("shows empty state on Brag Doc tab with no entries", async ({ signedInPage: page }) => {
   await page.click('button[role="tab"]:has-text("Brag Doc")');
   await expect(page.locator("text=Add some journal entries first")).toBeVisible();
 });
 
-test("generate button appears when entries exist", async ({ page }) => {
+test("generate button appears when entries exist", async ({ signedInPage: page }) => {
   await page.fill('textarea[placeholder="Write about your win..."]', "Built the API");
   await page.click("text=technical");
   await page.click('button:has-text("Save")');
@@ -30,7 +28,7 @@ test("generate button appears when entries exist", async ({ page }) => {
 });
 
 test("settings card shows all four controls with sensible defaults", async ({
-  page,
+  signedInPage: page,
 }) => {
   await page.fill(
     'textarea[placeholder="Write about your win..."]',
@@ -54,7 +52,7 @@ test("settings card shows all four controls with sensible defaults", async ({
 });
 
 test("deselecting every tag chip disables Generate with helper text", async ({
-  page,
+  signedInPage: page,
 }) => {
   await page.fill(
     'textarea[placeholder="Write about your win..."]',
@@ -83,7 +81,7 @@ test("deselecting every tag chip disables Generate with helper text", async ({
 });
 
 test("chronological output renders without group headings", async ({
-  page,
+  signedInPage: page,
 }) => {
   await page.unroute("**/api/generate-brag-doc");
   await page.route("**/api/generate-brag-doc", (route) =>

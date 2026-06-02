@@ -1,29 +1,20 @@
-import json
-import re
 from typing import Literal
 
 from anthropic import Anthropic
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from prompts import COACH_REFRAME_SYSTEM_PROMPT, COACH_TURN_SYSTEM_PROMPT, COACH_STYLE_FRAGMENTS
-
-MODEL = "claude-haiku-4-5-20251001"
+from utils import MODEL, parse_model_json
 
 
 class Message(BaseModel):
     role: Literal["coach", "user"]
-    text: str
-    notes: list[str] = []
+    text: str = Field(max_length=10_000)
+    notes: list[str] = Field(default_factory=list, max_length=50)
 
 class UserContext(BaseModel):
-    headline: str
-    notes: str
-
-
-def _strip_code_fences(text: str) -> str:
-    text = re.sub(r"^```(?:json)?\s*\n?", "", text, count=1)
-    text = re.sub(r"\n?```\s*$", "", text, count=1)
-    return text
+    headline: str = Field(max_length=500)
+    notes: str = Field(max_length=5_000)
 
 
 def _format_user_content(
@@ -37,19 +28,23 @@ def _format_user_content(
         f"Entry tags: {', '.join(tags) if tags else '(none)'}\n"
         f"Original entry:\n{entry_text}"
     )
-    if not conversation:
-        return header
-    lines = [header, "", "Conversation so far:"]
-    for msg in conversation:
-        speaker = "Coach" if msg.role == "coach" else "User"
-        lines.append(f"{speaker}: {msg.text}")
-    return "\n".join(lines)
+    if conversation:
+        lines = [header, "", "Conversation so far:"]
+        for msg in conversation:
+            speaker = "Coach" if msg.role == "coach" else "User"
+            lines.append(f"{speaker}: {msg.text}")
+        body = "\n".join(lines)
+    else:
+        body = header
+    return f"<user_content>\n{body}\n</user_content>"
 
 def _format_user_context_block(context: UserContext) -> str:
     return (
+        "<user_about>\n"
         "## About the user:\n"
         f"Headline: {context.headline.strip()}\n"
-        f"Context: {context.notes.strip()}"
+        f"Context: {context.notes.strip()}\n"
+        "</user_about>"
     )
 
 def build_coach_system_prompt(
@@ -86,7 +81,7 @@ def coach_turn(
     )
     block = message.content[0]
     raw = block.text if block.type == "text" else "{}"
-    return json.loads(_strip_code_fences(raw))
+    return parse_model_json(raw)
 
 
 def coach_reframe(
@@ -113,4 +108,4 @@ def coach_reframe(
     )
     block = message.content[0]
     raw = block.text if block.type == "text" else "{}"
-    return json.loads(_strip_code_fences(raw))
+    return parse_model_json(raw)
