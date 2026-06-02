@@ -1,0 +1,46 @@
+name: PR backend preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy preview
+        id: deploy
+        run: |
+          APP_NAME="byline-api-pr-${{ github.event.number }}"
+          flyctl apps create "$APP_NAME" --org personal || true
+          flyctl secrets set \
+            ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
+            SUPABASE_JWKS_URL="${{ secrets.SUPABASE_JWKS_URL_TEST }}" \
+            SUPABASE_JWT_AUDIENCE="authenticated" \
+            --app "$APP_NAME" --stage
+          flyctl deploy --remote-only --app "$APP_NAME"
+          echo "preview_url=https://$APP_NAME.fly.dev" >> $GITHUB_OUTPUT
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Comment preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Backend preview: ${{ steps.deploy.outputs.preview_url }}`
+            })
+
+  destroy:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed'
+    steps:
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl apps destroy "byline-api-pr-${{ github.event.number }}" --yes
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
