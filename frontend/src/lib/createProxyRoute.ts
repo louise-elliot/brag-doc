@@ -37,21 +37,8 @@ export function createProxyRoute(
         return NextResponse.json({ error: errorMessage }, { status: 502 });
       }
     } catch (error) {
-      // TEMPORARY DEBUG — surface the error in the response body
-      const message = error instanceof Error ? error.message : String(error);
-      const stack = error instanceof Error ? error.stack : undefined;
-      return NextResponse.json(
-        {
-          debug: true,
-          path: upstreamPath,
-          message,
-          stack,
-          pythonUrlSet: Boolean(process.env.PYTHON_SERVICE_URL),
-          supabaseUrlSet: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
-          supabaseAnonKeySet: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
-        },
-        { status: 500 }
-      );
+      console.error(`${upstreamPath} proxy handler failed`, error);
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
   };
 }
