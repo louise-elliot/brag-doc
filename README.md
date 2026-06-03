@@ -47,3 +47,4 @@ Serves on `http://localhost:3000`.
 | `backend/.env` | `ANTHROPIC_API_KEY` | Anthropic API key |
 | `frontend/.env.local` | `PYTHON_SERVICE_URL` | URL of the backend (defaults to `http://localhost:8000`) |
 
+
