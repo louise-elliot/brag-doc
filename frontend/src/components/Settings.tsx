@@ -396,6 +396,44 @@ export function CoachingStyleCard() {
   );
 }
 
+interface PrivacyCardProps {
+  value: boolean;
+  onChange: (value: boolean) => void;
+}
+
+export function PrivacyCard({ value, onChange }: PrivacyCardProps) {
+  return (
+    <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
+      <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
+        AI &amp; your data
+      </h3>
+      <p
+        className="font-body text-base text-[var(--color-neutral-600)] mb-6"
+        style={{ lineHeight: 1.6 }}
+      >
+        When you use Coach or generate a Brag Doc, the text of your entries is
+        sent to Anthropic, which powers the AI. Nothing is sent until you turn
+        on an AI feature.
+      </p>
+      <label className="flex items-start gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={value}
+          onChange={(e) => onChange(e.target.checked)}
+          className="mt-1"
+        />
+        <span
+          className="font-body text-base text-[var(--color-neutral-700)]"
+          style={{ lineHeight: 1.6 }}
+        >
+          I understand that using these AI features shares my entry text with
+          Anthropic. Unticking this means you&apos;ll be asked again next time.
+        </span>
+      </label>
+    </section>
+  );
+}
+
 export function AccountCard() {
   const [email, setEmail] = useState<string | null>(null);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);

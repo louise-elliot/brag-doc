@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { EntryForm } from "./EntryForm";
 import { EntryList } from "./EntryList";
 import { BragDoc } from "./BragDoc";
 import { SettingsDrawer } from "./SettingsDrawer";
 import { AboutModal } from "./AboutModal";
+import { AiConsentGate } from "./AiConsentGate";
+import { readSettings, writeSettings } from "@/lib/settings";
 import {
   getEntries,
   addEntry,
@@ -42,6 +44,9 @@ export function App() {
   }
 
   const [tags, setTags] = useState<TagDef[]>([]);
+  const [aiConsent, setAiConsent] = useState(false);
+  const [gateOpen, setGateOpen] = useState(false);
+  const pendingActionRef = useRef<(() => void) | null>(null);
 
   const refreshEntries = useCallback(async () => {
     const es = await getEntries();
@@ -62,6 +67,51 @@ export function App() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    readSettings().then(
+      (s) => {
+        if (!cancelled) setAiConsent(s.aiConsent);
+      },
+      () => {
+        /* not signed in / no row yet — stay false */
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleAiConsentChange(next: boolean) {
+    setAiConsent(next);
+    await writeSettings({ aiConsent: next });
+  }
+
+  const requireAiConsent = useCallback(
+    (run: () => void) => {
+      if (aiConsent) {
+        run();
+        return;
+      }
+      pendingActionRef.current = run;
+      setGateOpen(true);
+    },
+    [aiConsent]
+  );
+
+  async function handleGateAccept() {
+    await handleAiConsentChange(true);
+    setGateOpen(false);
+    const run = pendingActionRef.current;
+    pendingActionRef.current = null;
+    run?.();
+  }
+
+  function handleGateCancel() {
+    pendingActionRef.current = null;
+    setGateOpen(false);
+  }
 
   async function handleAddTag(name: string) {
     const next = [...tags, { name }];
@@ -235,6 +285,7 @@ export function App() {
                   onDeleteEntry={handleDeleteEntry}
                   onCoachAccept={handleCoachAccept}
                   onCoachDismiss={handleCoachDismiss}
+                  onRequireConsent={requireAiConsent}
                 />
               </div>
             </div>
@@ -247,7 +298,7 @@ export function App() {
               aria-labelledby="tab-bragdoc"
               className="animate-in animate-delay-2"
             >
-              <BragDoc entries={entries} tags={tags} />
+              <BragDoc entries={entries} tags={tags} onRequireConsent={requireAiConsent} />
             </div>
           )}
 
@@ -261,8 +312,15 @@ export function App() {
         onDeleteTag={handleDeleteTag}
         onRenameTag={handleRenameTag}
         onClearData={handleClearData}
+        aiConsent={aiConsent}
+        onAiConsentChange={handleAiConsentChange}
       />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <AiConsentGate
+        open={gateOpen}
+        onAccept={handleGateAccept}
+        onCancel={handleGateCancel}
+      />
     </div>
   );
 }

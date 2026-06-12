@@ -11,6 +11,7 @@ interface SettingsRow {
   coaching_style: CoachingStyle;
   custom_tags: string[];
   user_context: { headline: string; notes: string } | null;
+  ai_consent: boolean;
 }
 
 async function getUserId(): Promise<string> {
@@ -25,6 +26,7 @@ function rowToSettings(row: SettingsRow): UserSettings {
     coachingStyle: row.coaching_style,
     contextHeadline: row.user_context?.headline ?? "",
     contextNotes: row.user_context?.notes ?? "",
+    aiConsent: row.ai_consent ?? false,
   };
 }
 
@@ -71,6 +73,7 @@ export async function writeSettings(partial: Partial<UserSettings>): Promise<voi
       headline: next.contextHeadline,
       notes: next.contextNotes,
     },
+    ai_consent: next.aiConsent,
     updated_at: new Date().toISOString(),
   };
   const { error } = await client.from("settings").upsert(payload, { onConflict: "user_id" });

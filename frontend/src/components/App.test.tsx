@@ -1,26 +1,35 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "./App";
+import { DEFAULT_USER_SETTINGS } from "@/lib/types";
+
+const MOCK_ENTRY = {
+  id: "entry-1",
+  date: "2026-04-01",
+  prompt: "What impact?",
+  original: "Test entry",
+  reframed: null,
+  tags: [],
+  createdAt: "2026-04-01T18:00:00Z",
+  coachNotes: null,
+};
 
 vi.mock("@/lib/entries", () => ({
   getEntries: vi.fn(() => Promise.resolve([])),
-  addEntry: vi.fn(() =>
-    Promise.resolve({
-      id: "1",
-      date: "2026-04-01",
-      prompt: "What impact?",
-      original: "Test entry",
-      reframed: null,
-      tags: [],
-      createdAt: "2026-04-01T18:00:00Z",
-    })
-  ),
+  addEntry: vi.fn(() => Promise.resolve(MOCK_ENTRY)),
   updateEntry: vi.fn(() => Promise.resolve()),
   deleteAllEntries: vi.fn(() => Promise.resolve()),
   deleteEntry: vi.fn(() => Promise.resolve()),
   editEntry: vi.fn(() => Promise.resolve()),
   renameTagOnEntries: vi.fn(() => Promise.resolve()),
+}));
+
+vi.mock("@/lib/settings", () => ({
+  readSettings: vi.fn(() =>
+    Promise.resolve({ ...DEFAULT_USER_SETTINGS, aiConsent: false })
+  ),
+  writeSettings: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock("@/lib/migration", () => ({
@@ -130,5 +139,17 @@ describe("App", () => {
       )
     );
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("shows the consent gate when Coach me is clicked without prior consent", async () => {
+    const { getEntries } = await import("@/lib/entries");
+    vi.mocked(getEntries).mockResolvedValue([MOCK_ENTRY]);
+
+    render(<App />);
+    const coachButton = (await screen.findAllByRole("button", { name: "Coach me" }))[0];
+    fireEvent.click(coachButton);
+    expect(
+      await screen.findByRole("button", { name: /i understand, continue/i })
+    ).toBeInTheDocument();
   });
 });

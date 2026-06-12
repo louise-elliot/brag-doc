@@ -10,6 +10,7 @@ import { readSettings, serializeContext } from "@/lib/settings";
 interface BragDocProps {
   entries: Entry[];
   tags: TagDef[];
+  onRequireConsent: (run: () => void) => void;
 }
 
 type GroupBy = "tag" | "month" | "chronological";
@@ -56,7 +57,7 @@ function filterEntries(
     });
 }
 
-export function BragDoc({ entries, tags }: BragDocProps) {
+export function BragDoc({ entries, tags, onRequireConsent }: BragDocProps) {
   const [timeframe, setTimeframe] = useState<Timeframe>("all");
   const [groupBy, setGroupBy] = useState<GroupBy>("tag");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(
@@ -244,7 +245,7 @@ export function BragDoc({ entries, tags }: BragDocProps) {
       <div className="flex gap-3 items-center">
         <button
           type="button"
-          onClick={generate}
+          onClick={() => onRequireConsent(() => void generate())}
           disabled={generateDisabled}
           className="font-body text-sm font-semibold bg-[var(--color-primary-500)] text-white rounded-md px-6 py-3 hover:bg-[var(--color-primary-600)] disabled:bg-[var(--color-neutral-200)] disabled:text-[var(--color-neutral-400)] disabled:cursor-not-allowed transition-colors cursor-pointer"
         >

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { CategoriesCard, CoachingStyleCard, ContextCard, DataCard } from "./Settings";
+import { CategoriesCard, CoachingStyleCard, ContextCard, DataCard, PrivacyCard } from "./Settings";
 import type { TagDef } from "@/lib/tags";
 import type { UserSettings } from "@/lib/types";
 import { DEFAULT_USER_SETTINGS } from "@/lib/types";
@@ -353,5 +353,24 @@ describe("Settings — Your Context card", () => {
     expect(
       screen.getByRole("textbox", { name: /what else do you want your coach to know/i })
     ).toHaveValue("Stored notes");
+  });
+});
+
+describe("PrivacyCard", () => {
+  it("renders the disclosure about sending data to Anthropic", () => {
+    render(<PrivacyCard value={false} onChange={vi.fn()} />);
+    expect(screen.getByText(/sent to Anthropic/i)).toBeInTheDocument();
+  });
+
+  it("reflects the current value in the checkbox", () => {
+    render(<PrivacyCard value={true} onChange={vi.fn()} />);
+    expect(screen.getByRole("checkbox")).toBeChecked();
+  });
+
+  it("calls onChange with the new value when toggled", () => {
+    const onChange = vi.fn();
+    render(<PrivacyCard value={false} onChange={onChange} />);
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(onChange).toHaveBeenCalledWith(true);
   });
 });

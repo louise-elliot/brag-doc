@@ -31,6 +31,7 @@ describe("settings", () => {
         coaching_style: "hype-woman",
         custom_tags: [],
         user_context: { headline: "Eng manager", notes: "team of 6" },
+        ai_consent: false,
       },
       error: null,
     }));
@@ -40,6 +41,7 @@ describe("settings", () => {
       coachingStyle: "hype-woman",
       contextHeadline: "Eng manager",
       contextNotes: "team of 6",
+      aiConsent: false,
     });
   });
 
@@ -55,7 +57,46 @@ describe("settings", () => {
       coachingStyle: "trusted-mentor",
       contextHeadline: "",
       contextNotes: "",
+      aiConsent: false,
     });
+  });
+
+  it("readSettings maps ai_consent into aiConsent", async () => {
+    client.auth.getUser.mockResolvedValueOnce({ data: { user: { id: "u1" } } });
+    client.single.mockReturnValueOnce(Promise.resolve({
+      data: {
+        user_id: "u1",
+        coaching_style: "trusted-mentor",
+        custom_tags: [],
+        user_context: null,
+        ai_consent: true,
+      },
+      error: null,
+    }));
+    const { readSettings } = await import("./settings");
+    const result = await readSettings();
+    expect(result.aiConsent).toBe(true);
+  });
+
+  it("writeSettings includes ai_consent in the upserted payload", async () => {
+    client.auth.getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    client.single.mockReturnValueOnce(Promise.resolve({
+      data: {
+        user_id: "u1",
+        coaching_style: "trusted-mentor",
+        custom_tags: [],
+        user_context: null,
+        ai_consent: false,
+      },
+      error: null,
+    }));
+    client.upsert.mockReturnValueOnce(Promise.resolve({ error: null }));
+    const { writeSettings } = await import("./settings");
+    await writeSettings({ aiConsent: true });
+    expect(client.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ ai_consent: true }),
+      { onConflict: "user_id" }
+    );
   });
 
   it("writeSettings upserts the row for the current user", async () => {
