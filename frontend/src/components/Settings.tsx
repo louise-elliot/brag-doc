@@ -63,7 +63,7 @@ export function CategoriesCard({
         className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
-        Add, rename or delete the tags that can be applied to journal entries.
+        Add, rename or delete the tags that can be applied to daily wins.
       </p>
 
       {tags.length === 0 ? (
@@ -159,31 +159,32 @@ export function CategoriesCard({
   );
 }
 
-export interface DataCardProps {
+export interface ManageDataCardProps {
   confirming: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   onClearData: () => void;
 }
 
-export function DataCard({
+export function ManageDataCard({
   confirming,
   onConfirm,
   onCancel,
   onClearData,
-}: DataCardProps) {
+}: ManageDataCardProps) {
   return (
     <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
       <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
-        Journal Entries
+        Manage Data
       </h3>
       <p
         className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
-        Your journal entries are stored locally in this browser. Text is only
-        sent to Anthropic if you discuss an entry with the coach or generate a
-        summary document.
+        Delete all your daily win entries.{" "}
+        <span className="font-medium text-[var(--color-error-500)]">
+          Caution: this can&apos;t be undone!
+        </span>
       </p>
 
       {!confirming ? (
@@ -192,7 +193,7 @@ export function DataCard({
           onClick={onConfirm}
           className="font-body text-sm font-semibold bg-[var(--color-error-50)] text-[var(--color-error-500)] rounded-md px-6 py-3 hover:bg-[var(--color-error-500)] hover:text-white transition-colors cursor-pointer"
         >
-          Clear all entries
+          Delete all entries
         </button>
       ) : (
         <div
@@ -405,15 +406,15 @@ export function PrivacyCard({ value, onChange }: PrivacyCardProps) {
   return (
     <section className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-8">
       <h3 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)] mb-3">
-        AI &amp; your data
+        Consent
       </h3>
       <p
         className="font-body text-base text-[var(--color-neutral-600)] mb-6"
         style={{ lineHeight: 1.6 }}
       >
-        When you use Coach or generate a Brag Doc, the text of your entries is
-        sent to Anthropic, which powers the AI. Nothing is sent until you turn
-        on an AI feature.
+        Coach and Brag Doc features are powered by AI.
+        <br />
+        To use these features, please accept the acknowledgement below.
       </p>
       <label className="flex items-start gap-3 cursor-pointer">
         <input
@@ -426,8 +427,8 @@ export function PrivacyCard({ value, onChange }: PrivacyCardProps) {
           className="font-body text-base text-[var(--color-neutral-700)]"
           style={{ lineHeight: 1.6 }}
         >
-          I understand that using these AI features shares my entry text with
-          Anthropic. Unticking this means you&apos;ll be asked again next time.
+          I understand that to use the Coach and Brag Doc features, my daily
+          wins entries will be sent to Anthropic.
         </span>
       </label>
     </section>

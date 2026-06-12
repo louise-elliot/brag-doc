@@ -122,27 +122,48 @@ describe("SettingsDrawer", () => {
     expect(screen.getByRole("radiogroup", { name: /coach persona/i })).toBeInTheDocument();
   });
 
-  it("clicking Data tab shows CategoriesCard and DataCard content", async () => {
+  it("clicking Daily Wins tab shows CategoriesCard content", async () => {
     renderDrawer(true);
-    await userEvent.click(screen.getByRole("tab", { name: "Data" }));
-    expect(screen.getByRole("button", { name: "Clear all entries" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "Daily Wins" }));
     expect(screen.getByLabelText("New category name")).toBeInTheDocument();
+    // The delete-entries control lives on the Data & Privacy tab now
+    expect(
+      screen.queryByRole("button", { name: "Delete all entries" })
+    ).not.toBeInTheDocument();
   });
 
-  it("shows the signed-in email and signs out on click", async () => {
+  it("shows the signed-in email and signs out from the Account tab", async () => {
     renderDrawer(true);
+    fireEvent.click(screen.getByRole("tab", { name: "Account" }));
     expect(await screen.findByText("user@example.com")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /sign out/i }));
     await waitFor(() => expect(signOutCurrentUser).toHaveBeenCalled());
   });
 
-  it("shows the Privacy tab and toggling consent calls onAiConsentChange", () => {
+  it("does not show account actions on other tabs", () => {
+    renderDrawer(true);
+    expect(
+      screen.queryByRole("button", { name: /sign out/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("Data & Privacy tab shows the consent acknowledgement and toggling calls onAiConsentChange", () => {
     const onAiConsentChange = vi.fn();
     const { props } = renderDrawer(true, { onAiConsentChange });
-    fireEvent.click(screen.getByRole("tab", { name: "Privacy" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Data & Privacy" }));
     expect(screen.getByText(/sent to Anthropic/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("checkbox"));
     expect(props.onAiConsentChange).toHaveBeenCalledWith(true);
+  });
+
+  it("Data & Privacy tab deletes all entries after confirmation", async () => {
+    const { props } = renderDrawer(true);
+    fireEvent.click(screen.getByRole("tab", { name: "Data & Privacy" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete all entries" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Yes, delete everything" })
+    );
+    expect(props.onClearData).toHaveBeenCalled();
   });
 });
 
@@ -154,6 +175,7 @@ describe("SettingsDrawer — Delete account", () => {
 
   it("requires typing email to enable Delete account button", async () => {
     renderDrawer(true);
+    fireEvent.click(screen.getByRole("tab", { name: "Account" }));
     // Wait for AccountCard to load the email
     await screen.findByText("user@example.com");
     fireEvent.click(
@@ -178,6 +200,7 @@ describe("SettingsDrawer — Delete account", () => {
     };
 
     renderDrawer(true);
+    fireEvent.click(screen.getByRole("tab", { name: "Account" }));
     await screen.findByText("user@example.com");
     fireEvent.click(
       await screen.findByRole("button", { name: /delete account/i })
@@ -202,6 +225,7 @@ describe("SettingsDrawer — Delete account", () => {
     });
 
     renderDrawer(true);
+    fireEvent.click(screen.getByRole("tab", { name: "Account" }));
     await screen.findByText("user@example.com");
     fireEvent.click(
       await screen.findByRole("button", { name: /delete account/i })

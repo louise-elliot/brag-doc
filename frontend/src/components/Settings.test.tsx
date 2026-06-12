@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { CategoriesCard, CoachingStyleCard, ContextCard, DataCard, PrivacyCard } from "./Settings";
+import { CategoriesCard, CoachingStyleCard, ContextCard, ManageDataCard, PrivacyCard } from "./Settings";
 import type { TagDef } from "@/lib/tags";
 import type { UserSettings } from "@/lib/types";
 import { DEFAULT_USER_SETTINGS } from "@/lib/types";
@@ -36,7 +36,7 @@ const DEFAULT_TAGS: TagDef[] = [
 describe("Settings — Data Management card", () => {
   it("shows clear data button", () => {
     render(
-      <DataCard
+      <ManageDataCard
         confirming={false}
         onConfirm={vi.fn()}
         onCancel={vi.fn()}
@@ -44,13 +44,13 @@ describe("Settings — Data Management card", () => {
       />
     );
     expect(
-      screen.getByRole("button", { name: "Clear all entries" })
+      screen.getByRole("button", { name: "Delete all entries" })
     ).toBeInTheDocument();
   });
 
   it("shows confirmation dialog on click", async () => {
     render(
-      <DataCard
+      <ManageDataCard
         confirming={true}
         onConfirm={vi.fn()}
         onCancel={vi.fn()}
@@ -68,7 +68,7 @@ describe("Settings — Data Management card", () => {
     const onClearData = vi.fn();
     const onConfirm = vi.fn();
     const { rerender } = render(
-      <DataCard
+      <ManageDataCard
         confirming={false}
         onConfirm={onConfirm}
         onCancel={vi.fn()}
@@ -76,12 +76,12 @@ describe("Settings — Data Management card", () => {
       />
     );
     await userEvent.click(
-      screen.getByRole("button", { name: "Clear all entries" })
+      screen.getByRole("button", { name: "Delete all entries" })
     );
     expect(onConfirm).toHaveBeenCalled();
 
     rerender(
-      <DataCard
+      <ManageDataCard
         confirming={true}
         onConfirm={onConfirm}
         onCancel={vi.fn()}
@@ -98,7 +98,7 @@ describe("Settings — Data Management card", () => {
     const onClearData = vi.fn();
     const onCancel = vi.fn();
     render(
-      <DataCard
+      <ManageDataCard
         confirming={true}
         onConfirm={vi.fn()}
         onCancel={onCancel}

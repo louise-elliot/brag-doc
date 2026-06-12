@@ -6,12 +6,12 @@ import {
   ContextCard,
   CoachingStyleCard,
   CategoriesCard,
-  DataCard,
+  ManageDataCard,
   PrivacyCard,
 } from "./Settings";
 import type { TagDef } from "@/lib/tags";
 
-type Section = "you" | "coach" | "data" | "privacy";
+type Section = "you" | "coach" | "wins" | "privacy" | "account";
 
 interface SettingsDrawerProps {
   open: boolean;
@@ -28,8 +28,9 @@ interface SettingsDrawerProps {
 const SECTIONS: { key: Section; label: string }[] = [
   { key: "you", label: "You" },
   { key: "coach", label: "Coach" },
-  { key: "data", label: "Data" },
-  { key: "privacy", label: "Privacy" },
+  { key: "wins", label: "Daily Wins" },
+  { key: "privacy", label: "Data & Privacy" },
+  { key: "account", label: "Account" },
 ];
 
 export function SettingsDrawer({
@@ -114,15 +115,17 @@ export function SettingsDrawer({
           <div className="flex flex-col gap-8">
             {section === "you" && <ContextCard />}
             {section === "coach" && <CoachingStyleCard />}
-            {section === "data" && (
+            {section === "wins" && (
+              <CategoriesCard
+                tags={tags}
+                onAddTag={onAddTag}
+                onDeleteTag={onDeleteTag}
+                onRenameTag={onRenameTag}
+              />
+            )}
+            {section === "privacy" && (
               <>
-                <CategoriesCard
-                  tags={tags}
-                  onAddTag={onAddTag}
-                  onDeleteTag={onDeleteTag}
-                  onRenameTag={onRenameTag}
-                />
-                <DataCard
+                <ManageDataCard
                   confirming={confirming}
                   onConfirm={() => setConfirming(true)}
                   onCancel={() => setConfirming(false)}
@@ -131,12 +134,10 @@ export function SettingsDrawer({
                     setConfirming(false);
                   }}
                 />
+                <PrivacyCard value={aiConsent} onChange={onAiConsentChange} />
               </>
             )}
-            {section === "privacy" && (
-              <PrivacyCard value={aiConsent} onChange={onAiConsentChange} />
-            )}
-            <AccountCard />
+            {section === "account" && <AccountCard />}
           </div>
         </div>
       </aside>
