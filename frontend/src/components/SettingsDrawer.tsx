@@ -7,10 +7,11 @@ import {
   CoachingStyleCard,
   CategoriesCard,
   DataCard,
+  PrivacyCard,
 } from "./Settings";
 import type { TagDef } from "@/lib/tags";
 
-type Section = "you" | "coach" | "data";
+type Section = "you" | "coach" | "data" | "privacy";
 
 interface SettingsDrawerProps {
   open: boolean;
@@ -20,12 +21,15 @@ interface SettingsDrawerProps {
   onDeleteTag: (name: string) => void;
   onRenameTag: (oldName: string, newName: string) => void;
   onClearData: () => void;
+  aiConsent: boolean;
+  onAiConsentChange: (value: boolean) => void;
 }
 
 const SECTIONS: { key: Section; label: string }[] = [
   { key: "you", label: "You" },
   { key: "coach", label: "Coach" },
   { key: "data", label: "Data" },
+  { key: "privacy", label: "Privacy" },
 ];
 
 export function SettingsDrawer({
@@ -36,6 +40,8 @@ export function SettingsDrawer({
   onDeleteTag,
   onRenameTag,
   onClearData,
+  aiConsent,
+  onAiConsentChange,
 }: SettingsDrawerProps) {
   const [section, setSection] = useState<Section>("you");
   const [confirming, setConfirming] = useState(false);
@@ -126,6 +132,9 @@ export function SettingsDrawer({
                   }}
                 />
               </>
+            )}
+            {section === "privacy" && (
+              <PrivacyCard value={aiConsent} onChange={onAiConsentChange} />
             )}
             <AccountCard />
           </div>

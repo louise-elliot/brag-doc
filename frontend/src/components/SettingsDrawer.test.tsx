@@ -37,6 +37,7 @@ vi.mock("@/lib/settings", async () => {
         coachingStyle: "trusted-mentor",
         contextHeadline: "",
         contextNotes: "",
+        aiConsent: false,
       })
     ),
     writeSettings: vi.fn(() => Promise.resolve()),
@@ -65,6 +66,8 @@ function renderDrawer(open: boolean, overrides: Partial<Parameters<typeof Settin
     onDeleteTag: vi.fn(),
     onRenameTag: vi.fn(),
     onClearData: vi.fn(),
+    aiConsent: false,
+    onAiConsentChange: vi.fn(),
     ...overrides,
   };
   const result = render(<SettingsDrawer {...props} />);
@@ -131,6 +134,15 @@ describe("SettingsDrawer", () => {
     expect(await screen.findByText("user@example.com")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /sign out/i }));
     await waitFor(() => expect(signOutCurrentUser).toHaveBeenCalled());
+  });
+
+  it("shows the Privacy tab and toggling consent calls onAiConsentChange", () => {
+    const onAiConsentChange = vi.fn();
+    const { props } = renderDrawer(true, { onAiConsentChange });
+    fireEvent.click(screen.getByRole("tab", { name: "Privacy" }));
+    expect(screen.getByText(/sent to Anthropic/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(props.onAiConsentChange).toHaveBeenCalledWith(true);
   });
 });
 

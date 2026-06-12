@@ -24,6 +24,7 @@ export interface UserSettings {
   coachingStyle: CoachingStyle;
   contextHeadline: string;
   contextNotes: string;
+  aiConsent: boolean;
 }
 
 export interface CoachingStyleOption {
@@ -64,4 +65,5 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   coachingStyle: "trusted-mentor",
   contextHeadline: "",
   contextNotes: "",
+  aiConsent: false,
 };

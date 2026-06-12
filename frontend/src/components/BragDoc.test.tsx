@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BragDoc } from "./BragDoc";
 import type { Entry, UserSettings } from "@/lib/types";
@@ -46,6 +46,7 @@ function renderBragDoc(overrides: Partial<Parameters<typeof BragDoc>[0]> = {}) {
   const props = {
     entries,
     tags: TAGS,
+    onRequireConsent: (run: () => void) => run(),
     ...overrides,
   };
   render(<BragDoc {...props} />);
@@ -97,6 +98,17 @@ describe("BragDoc — controls", () => {
     expect(
       screen.getByText("Add some journal entries first")
     ).toBeInTheDocument();
+  });
+});
+
+describe("BragDoc — consent guard", () => {
+  it("routes Generate through onRequireConsent instead of fetching directly", () => {
+    const onRequireConsent = vi.fn();
+    const fetchSpy = vi.spyOn(global, "fetch");
+    renderBragDoc({ onRequireConsent });
+    fireEvent.click(screen.getByRole("button", { name: "Generate" }));
+    expect(onRequireConsent).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
 

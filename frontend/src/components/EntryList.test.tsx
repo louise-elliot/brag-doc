@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EntryList } from "./EntryList";
 import type { Entry } from "@/lib/types";
@@ -46,6 +46,7 @@ function renderList(overrides: Partial<Parameters<typeof EntryList>[0]> = {}) {
     onDeleteEntry: vi.fn(),
     onCoachAccept: vi.fn(),
     onCoachDismiss: vi.fn(),
+    onRequireConsent: (run: () => void) => run(),
     ...overrides,
   };
   render(<EntryList {...props} />);
@@ -244,6 +245,7 @@ const renderCoachList = (items: Entry[]) =>
       onDeleteEntry={vi.fn()}
       onCoachAccept={vi.fn()}
       onCoachDismiss={vi.fn()}
+      onRequireConsent={(run) => run()}
     />
   );
 
@@ -306,5 +308,17 @@ describe("EntryList — coach affordance", () => {
     await userEvent.click(buttons[1]);
 
     expect(screen.getAllByTestId("mock-coach-panel")).toHaveLength(1);
+  });
+
+  it("routes Coach me through onRequireConsent and does not open the panel until it runs", () => {
+    const onRequireConsent = vi.fn();
+    renderList({ onRequireConsent });
+    fireEvent.click(screen.getAllByRole("button", { name: "Coach me" })[0]);
+    expect(onRequireConsent).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("mock-coach-panel")).not.toBeInTheDocument();
+    act(() => {
+      onRequireConsent.mock.calls[0][0]();
+    });
+    expect(screen.getByTestId("mock-coach-panel")).toBeInTheDocument();
   });
 });
