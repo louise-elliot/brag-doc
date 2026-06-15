@@ -294,6 +294,34 @@ class TestCoachInputNeutralization:
         assert "Staff PM" in system
 
 
+class TestCoachStructuredOutput:
+    def test_turn_requests_json_schema_with_text_and_notes(
+        self, mock_client, http_client, authed_user
+    ):
+        _mock_text_response(mock_client, json.dumps({"text": "ok", "notes": []}))
+
+        http_client.post("/coach/turn", json=SAMPLE_TURN_BODY)
+
+        fmt = mock_client.messages.create.call_args.kwargs["output_config"]["format"]
+        assert fmt["type"] == "json_schema"
+        schema = fmt["schema"]
+        assert schema["additionalProperties"] is False
+        assert set(schema["properties"]) == {"text", "notes"}
+
+    def test_reframe_requests_json_schema_with_reframed_and_notes(
+        self, mock_client, http_client, authed_user
+    ):
+        _mock_text_response(mock_client, json.dumps({"reframed": "ok", "notes": []}))
+
+        http_client.post("/coach/reframe", json=SAMPLE_REFRAME_BODY)
+
+        fmt = mock_client.messages.create.call_args.kwargs["output_config"]["format"]
+        assert fmt["type"] == "json_schema"
+        schema = fmt["schema"]
+        assert schema["additionalProperties"] is False
+        assert set(schema["properties"]) == {"reframed", "notes"}
+
+
 class TestCoachOutputCanary:
     def test_turn_returns_fallback_when_system_token_leaks(
         self, mock_client, http_client, authed_user, monkeypatch

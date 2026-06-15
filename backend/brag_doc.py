@@ -16,6 +16,28 @@ from utils import (
 
 GroupBy = Literal["tag", "month", "chronological"]
 
+# Constrains the model to return exactly the brag-doc shape, so the response is
+# always valid JSON we can parse (no trailing prose or commentary to trip up json.loads).
+BRAG_DOC_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "bullets": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "tag": {"type": "string"},
+                    "points": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["tag", "points"],
+                "additionalProperties": False,
+            },
+        }
+    },
+    "required": ["bullets"],
+    "additionalProperties": False,
+}
+
 
 def build_system_prompt(
     group_by: GroupBy,
@@ -70,6 +92,7 @@ def generate_brag_doc(
         max_tokens=2048,
         system=system,
         messages=[{"role": "user", "content": _format_entries(entries)}],
+        output_config={"format": {"type": "json_schema", "schema": BRAG_DOC_SCHEMA}},
     )
     block = message.content[0]
     raw = block.text if block.type == "text" else "{}"
