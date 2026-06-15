@@ -101,11 +101,20 @@ export function App() {
   );
 
   async function handleGateAccept() {
-    await handleAiConsentChange(true);
+    // Close the gate and run the pending action first, so persisting consent
+    // can never block the user. If the write fails (e.g. transient backend
+    // error), they still get their AI action this session; consent just isn't
+    // saved, so the gate reappears next time.
+    setAiConsent(true);
     setGateOpen(false);
     const run = pendingActionRef.current;
     pendingActionRef.current = null;
     run?.();
+    try {
+      await writeSettings({ aiConsent: true });
+    } catch (e) {
+      console.error("Failed to persist AI consent", e);
+    }
   }
 
   function handleGateCancel() {

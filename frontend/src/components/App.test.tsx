@@ -30,6 +30,12 @@ vi.mock("@/lib/settings", () => ({
     Promise.resolve({ ...DEFAULT_USER_SETTINGS, aiConsent: false })
   ),
   writeSettings: vi.fn(() => Promise.resolve()),
+  serializeContext: vi.fn(() => null),
+}));
+
+vi.mock("@/lib/coachApi", () => ({
+  coachTurn: vi.fn(() => Promise.resolve({ text: "What did you ship?", notes: [] })),
+  coachReframe: vi.fn(() => Promise.resolve({ reframed: "", notes: [] })),
 }));
 
 vi.mock("@/lib/migration", () => ({
@@ -151,5 +157,44 @@ describe("App", () => {
     expect(
       await screen.findByRole("button", { name: /i understand, continue/i })
     ).toBeInTheDocument();
+  });
+
+  it("closes the gate and runs the pending action even when consent persistence fails", async () => {
+    const { getEntries } = await import("@/lib/entries");
+    vi.mocked(getEntries).mockResolvedValue([MOCK_ENTRY]);
+
+    const { writeSettings } = await import("@/lib/settings");
+    vi.mocked(writeSettings).mockRejectedValue(
+      new Error("PGRST204: Could not find the 'ai_consent' column")
+    );
+
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render(<App />);
+    const coachButton = (await screen.findAllByRole("button", { name: "Coach me" }))[0];
+    fireEvent.click(coachButton);
+
+    const acceptButton = await screen.findByRole("button", {
+      name: /i understand, continue/i,
+    });
+    fireEvent.click(acceptButton);
+
+    // The pending action runs despite the persistence failure: the coach panel opens.
+    expect(
+      await screen.findByText("Your Coaching Conversation")
+    ).toBeInTheDocument();
+
+    // The gate closes rather than hanging open.
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: /i understand, continue/i })
+      ).not.toBeInTheDocument()
+    );
+
+    // Consent persistence is still attempted, and its failure is surfaced, not swallowed.
+    expect(writeSettings).toHaveBeenCalledWith({ aiConsent: true });
+    await waitFor(() => expect(errorSpy).toHaveBeenCalled());
+
+    errorSpy.mockRestore();
   });
 });
