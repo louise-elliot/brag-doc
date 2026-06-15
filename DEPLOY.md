@@ -35,6 +35,23 @@ fly secrets set ANTHROPIC_API_KEY='sk-ant-new-key' --app byline-api-staging
 fly secrets set SUPABASE_JWKS_URL='https://<new-ref>.supabase.co/auth/v1/.well-known/jwks.json' --app byline-api
 ```
 
+### Configure rate-limiting secrets
+
+The backend enforces per-user daily AI request caps, backed by a Postgres counter it reaches via PostgREST using the service-role key. Set these on each backend app:
+
+```bash
+fly secrets set SUPABASE_URL='https://<ref>.supabase.co' SUPABASE_SERVICE_ROLE_KEY='<service-role-key>' --app byline-api
+fly secrets set SUPABASE_URL='https://<ref>.supabase.co' SUPABASE_SERVICE_ROLE_KEY='<service-role-key>' --app byline-api-staging
+```
+
+Find the service-role key in the Supabase dashboard → Project Settings → API. If these are unset the backend fails open (requests are allowed). Optional per-endpoint daily caps override the defaults (coach turn 30, reframe 3, brag doc 2):
+
+```bash
+fly secrets set RATE_LIMIT_COACH_TURN='30' RATE_LIMIT_COACH_REFRAME='3' RATE_LIMIT_BRAG_DOC='2' --app byline-api
+```
+
+Requires migration `0005_usage_counters` applied to the target Supabase project (see "Apply a new DB migration to prod").
+
 ## Logs
 
 - **Backend prod:** `fly logs --app byline-api`
