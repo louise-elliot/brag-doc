@@ -1,25 +1,22 @@
 # Byline Backlog
 
 ## Features
-- If you dismiss Coach, the option disappears. It should reappear if there is no reframed version saved. 
+- If you dismiss Coach, the option disappears. It should reappear if there is no reframed version saved.
+- Rework the AI consent pop-up
+- Sign out icon 
+
+## Bugs
+- 'I understand, continue' button does not work
+
 
 ## Production foundations (must-do before opening to users)
-To Do:
-- Privacy + legal — privacy policy, terms of service, cookie policy. Explicit "data is sent to Anthropic when you use the coach" disclosure surfaced in-app, not only in legal docs.
 - Error tracking — Sentry on frontend and backend.
+- Onboarding process
 - Rate limiting (LLM service) — per-user daily/monthly token caps, per-IP burst limit on anonymous endpoints, 429 handling on frontend with a clear "you've hit today's limit" message.
 - Cost tracking — log token usage per request (input + output, per user, per endpoint, per model). Daily cost dashboard for admin. Hard budget cap that disables LLM endpoints on overage.
 - Observability — structured logs on the FastAPI service (request ID, user ID, endpoint, latency, token usage). Forward to a log destination (Logtail / Axiom / similar).
+- Crisis / self-harm handling — detect when a user's entry signals distress or self-harm and respond with care (surface support resources rather than coaching normally). Needs its own design: detect-and-respond vs always-surface resources, jurisdiction-specific resources, tone, inline-coach vs separate UI treatment, false-positive handling, liability/wording. Distinct from the injection guardrails (which protect the system; this protects the user).
 
-  Done: 
-- Auth — email magic-link via Clerk / Supabase Auth / Auth.js. Session management. Account deletion endpoint.
-- Server-side storage — migrate from localStorage to backend DB (Postgres on Supabase / Neon / Railway). Schema for entries, tags, settings. Per-user isolation. Migration script for existing local data when a user signs in for the first time.
-- Deployment
-  - Frontend: Vercel.
-  - Backend: pick one of Fly.io / Railway / Render / Cloud Run for the FastAPI service.
-  - Secrets management for ANTHROPIC_API_KEY and DB credentials.
-  - Domain + SSL.
-  - Preview environments wired to PRs.
 
 ## Important early follow-ups (first few weeks after launch)
 
