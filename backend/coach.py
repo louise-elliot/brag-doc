@@ -15,6 +15,29 @@ from utils import (
 )
 
 
+# Constrain the model to the exact coach response shapes, so output is always
+# valid JSON we can parse (no trailing prose or commentary to break json.loads).
+COACH_TURN_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "text": {"type": "string"},
+        "notes": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["text", "notes"],
+    "additionalProperties": False,
+}
+
+COACH_REFRAME_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "reframed": {"type": "string"},
+        "notes": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["reframed", "notes"],
+    "additionalProperties": False,
+}
+
+
 class Message(BaseModel):
     role: Literal["coach", "user"]
     text: str = Field(max_length=10_000)
@@ -89,6 +112,7 @@ def coach_turn(
                 "content": _format_user_content(entry_text, prompt, tags, conversation),
             }
         ],
+        output_config={"format": {"type": "json_schema", "schema": COACH_TURN_SCHEMA}},
     )
     block = message.content[0]
     raw = block.text if block.type == "text" else "{}"
@@ -120,6 +144,7 @@ def coach_reframe(
                 "content": _format_user_content(entry_text, prompt, tags, conversation),
             }
         ],
+        output_config={"format": {"type": "json_schema", "schema": COACH_REFRAME_SCHEMA}},
     )
     block = message.content[0]
     raw = block.text if block.type == "text" else "{}"

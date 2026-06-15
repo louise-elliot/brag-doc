@@ -270,3 +270,20 @@ class TestBragDocResponseShape:
 
         assert response.status_code == 200
         assert response.json() == {"bullets": [{"tag": "x", "points": ["y"]}]}
+
+
+class TestBragDocStructuredOutput:
+    def test_requests_json_schema_constraining_the_response(
+        self, mock_client, http_client, authed_user
+    ):
+        _mock_text_response(mock_client, '{"bullets": []}')
+        _post(http_client, {"entries": []})
+
+        fmt = mock_client.messages.create.call_args.kwargs["output_config"]["format"]
+        assert fmt["type"] == "json_schema"
+        schema = fmt["schema"]
+        assert schema["additionalProperties"] is False
+        assert "bullets" in schema["properties"]
+        item = schema["properties"]["bullets"]["items"]
+        assert set(item["properties"]) == {"tag", "points"}
+        assert item["additionalProperties"] is False
