@@ -2,20 +2,24 @@
 
 ## Features
 - If you dismiss Coach, the option disappears. It should reappear if there is no reframed version saved. 
-- Log out button / settings updates  
+
+## Minor Cosmetics 
+- "Why Byline exists" to "Why Byline?"
+- Replace reference to women with people / women & gender minorities 
+- Data & Privacy tab > Manage Data > use yellow warning box and change text to "This action can't be undone"
+- Account > remove Danger zone, have Delete account button next to Sign out button. Ensure action is confirmed
+- Sign out icon
 
 ## Production foundations (must-do before opening to users)
 To Do:
 - Error tracking — Sentry on frontend and backend.
 - Onboarding process
-- Rate limiting (LLM service) — per-user daily/monthly token caps, per-IP burst limit on anonymous endpoints, 429 handling on frontend with a clear "you've hit today's limit" message.
-- Guardrails 
 - Cost tracking — log token usage per request (input + output, per user, per endpoint, per model). Daily cost dashboard for admin. Hard budget cap that disables LLM endpoints on overage.
 - Observability — structured logs on the FastAPI service (request ID, user ID, endpoint, latency, token usage). Forward to a log destination (Logtail / Axiom / similar).
-- Crisis / self-harm handling — detect when a user's entry signals distress or self-harm and respond with care (surface support resources rather than coaching normally). Needs its own design: detect-and-respond vs always-surface resources, jurisdiction-specific resources, tone, inline-coach vs separate UI treatment, false-positive handling, liability/wording. Distinct from the injection guardrails (which protect the system; this protects the user).
 
 ## Important early follow-ups (first few weeks after launch)
 
+- Rate limiting: increment on success, not on attempt — the daily counter currently increments before the route runs, so a request that passes the cap but then fails downstream (Anthropic error / output-guardrail trip) still burns quota. Notable given the low caps (reframe 3/day, brag doc 2/day). Move the increment to after a successful response, or refund on failure.
 - Data export — let users download their journal as JSON or PDF.
 - Data deletion — account-deletion flow that hard-deletes entries, settings, and coach conversation history.
 - Onboarding — first-run experience explaining the app, the coach, and the privacy model. 2-3 screens.
