@@ -66,6 +66,7 @@ function renderDrawer(open: boolean, overrides: Partial<Parameters<typeof Settin
     onDeleteTag: vi.fn(),
     onRenameTag: vi.fn(),
     onClearData: vi.fn(),
+    onReplayWelcome: vi.fn(),
     aiConsent: false,
     onAiConsentChange: vi.fn(),
     ...overrides,
@@ -138,6 +139,16 @@ describe("SettingsDrawer", () => {
     expect(await screen.findByText("user@example.com")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /sign out/i }));
     await waitFor(() => expect(signOutCurrentUser).toHaveBeenCalled());
+  });
+
+  it("Replay welcome tour button calls onReplayWelcome", async () => {
+    const onReplayWelcome = vi.fn();
+    renderDrawer(true, { onReplayWelcome });
+    await userEvent.click(screen.getByRole("tab", { name: "Account" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Replay welcome tour" })
+    );
+    expect(onReplayWelcome).toHaveBeenCalled();
   });
 
   it("does not show account actions on other tabs", () => {

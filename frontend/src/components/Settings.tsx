@@ -456,7 +456,11 @@ export function PrivacyCard({ value, onChange }: PrivacyCardProps) {
   );
 }
 
-export function AccountCard() {
+export function AccountCard({
+  onReplayWelcome,
+}: {
+  onReplayWelcome: () => void;
+}) {
   const [email, setEmail] = useState<string | null>(null);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [confirmEmail, setConfirmEmail] = useState("");
@@ -526,6 +530,13 @@ export function AccountCard() {
           className="font-body text-sm font-semibold bg-transparent border border-[var(--color-error-500)] text-[var(--color-error-500)] rounded-md px-6 py-3 hover:bg-[var(--color-error-50)] transition-colors cursor-pointer"
         >
           Delete account
+        </button>
+        <button
+          type="button"
+          onClick={onReplayWelcome}
+          className="font-body text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
+        >
+          Replay welcome tour
         </button>
       </div>
       {showDeleteAccount && (

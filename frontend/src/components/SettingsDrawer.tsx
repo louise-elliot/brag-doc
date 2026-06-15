@@ -21,6 +21,7 @@ interface SettingsDrawerProps {
   onDeleteTag: (name: string) => void;
   onRenameTag: (oldName: string, newName: string) => void;
   onClearData: () => void;
+  onReplayWelcome: () => void;
   aiConsent: boolean;
   onAiConsentChange: (value: boolean) => void;
 }
@@ -41,6 +42,7 @@ export function SettingsDrawer({
   onDeleteTag,
   onRenameTag,
   onClearData,
+  onReplayWelcome,
   aiConsent,
   onAiConsentChange,
 }: SettingsDrawerProps) {
@@ -137,7 +139,9 @@ export function SettingsDrawer({
                 <PrivacyCard value={aiConsent} onChange={onAiConsentChange} />
               </>
             )}
-            {section === "account" && <AccountCard />}
+            {section === "account" && (
+              <AccountCard onReplayWelcome={onReplayWelcome} />
+            )}
           </div>
         </div>
       </aside>
