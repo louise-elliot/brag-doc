@@ -36,12 +36,22 @@ export interface CoachReframeResponse {
   notes: string[];
 }
 
+export class RateLimitError extends Error {
+  constructor() {
+    super("rate limited");
+    this.name = "RateLimitError";
+  }
+}
+
 async function postJson<TReq, TRes>(url: string, body: TReq): Promise<TRes> {
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  if (response.status === 429) {
+    throw new RateLimitError();
+  }
   if (!response.ok) {
     throw new Error(`${url} failed with status ${response.status}`);
   }

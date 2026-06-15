@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { coachTurn, coachReframe, type CoachMessage } from "./coachApi";
+import { coachTurn, coachReframe, RateLimitError, type CoachMessage } from "./coachApi";
 
 const sampleArgs = {
   entry_text: "Led the rollout",
@@ -100,5 +100,27 @@ describe("coachApi", () => {
     );
 
     await expect(coachReframe(sampleArgs)).rejects.toThrow();
+  });
+
+  it("coachTurn throws RateLimitError on 429", async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ detail: { error: "rate_limited" } }),
+        { status: 429 }
+      )
+    );
+
+    await expect(coachTurn(sampleArgs)).rejects.toBeInstanceOf(RateLimitError);
+  });
+
+  it("coachReframe throws RateLimitError on 429", async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ detail: { error: "rate_limited" } }),
+        { status: 429 }
+      )
+    );
+
+    await expect(coachReframe(sampleArgs)).rejects.toBeInstanceOf(RateLimitError);
   });
 });
