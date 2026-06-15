@@ -1,22 +1,18 @@
 # Byline Backlog
 
 ## Features
-- If you dismiss Coach, the option disappears. It should reappear if there is no reframed version saved.
-- Rework the AI consent pop-up
-- Sign out icon 
-
-## Bugs
-- 'I understand, continue' button does not work
-
+- If you dismiss Coach, the option disappears. It should reappear if there is no reframed version saved. 
+- Log out button / settings updates  
 
 ## Production foundations (must-do before opening to users)
+To Do:
 - Error tracking — Sentry on frontend and backend.
 - Onboarding process
 - Rate limiting (LLM service) — per-user daily/monthly token caps, per-IP burst limit on anonymous endpoints, 429 handling on frontend with a clear "you've hit today's limit" message.
+- Guardrails 
 - Cost tracking — log token usage per request (input + output, per user, per endpoint, per model). Daily cost dashboard for admin. Hard budget cap that disables LLM endpoints on overage.
 - Observability — structured logs on the FastAPI service (request ID, user ID, endpoint, latency, token usage). Forward to a log destination (Logtail / Axiom / similar).
 - Crisis / self-harm handling — detect when a user's entry signals distress or self-harm and respond with care (surface support resources rather than coaching normally). Needs its own design: detect-and-respond vs always-surface resources, jurisdiction-specific resources, tone, inline-coach vs separate UI treatment, false-positive handling, liability/wording. Distinct from the injection guardrails (which protect the system; this protects the user).
-
 
 ## Important early follow-ups (first few weeks after launch)
 

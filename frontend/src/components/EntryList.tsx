@@ -17,6 +17,7 @@ interface EntryListProps {
   onDeleteEntry: (id: string) => void;
   onCoachAccept: (entryId: string, reframed: string, notes: string[]) => void;
   onCoachDismiss: (entryId: string) => void;
+  onRequireConsent: (run: () => void) => void;
 }
 
 type ActiveRow = { id: string; mode: "edit" | "delete" } | null;
@@ -28,6 +29,7 @@ export function EntryList({
   onDeleteEntry,
   onCoachAccept,
   onCoachDismiss,
+  onRequireConsent,
 }: EntryListProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeRow, setActiveRow] = useState<ActiveRow>(null);
@@ -109,7 +111,9 @@ export function EntryList({
                 {entry.coachNotes === null && coachOpenId !== entry.id && (
                   <button
                     type="button"
-                    onClick={() => setCoachOpenId(entry.id)}
+                    onClick={() =>
+                      onRequireConsent(() => setCoachOpenId(entry.id))
+                    }
                     className="font-body text-sm font-medium text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)] hover:bg-[var(--color-primary-50)] rounded-md px-3 py-2 mt-3 transition-colors cursor-pointer -ml-3"
                   >
                     Coach me
