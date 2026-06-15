@@ -61,6 +61,8 @@ vi.mock("@/lib/tags", async () => {
 describe("App", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    localStorage.clear();
+    localStorage.setItem("byline.hasSeenWelcome", "1");
   });
 
   it("renders Journal tab by default", async () => {
@@ -196,5 +198,65 @@ describe("App", () => {
     await waitFor(() => expect(errorSpy).toHaveBeenCalled());
 
     errorSpy.mockRestore();
+  });
+});
+
+describe("App welcome carousel", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    localStorage.clear();
+  });
+
+  it("auto-opens the welcome carousel when the flag is unset", async () => {
+    render(<App />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("dialog", { name: "Welcome to Byline" })
+      ).toBeInTheDocument()
+    );
+  });
+
+  it("does not auto-open when the flag is already set", async () => {
+    localStorage.setItem("byline.hasSeenWelcome", "1");
+    render(<App />);
+    await waitFor(() =>
+      expect(
+        screen.getByText("What impact did you make today?")
+      ).toBeInTheDocument()
+    );
+    expect(
+      screen.queryByRole("dialog", { name: "Welcome to Byline" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("writes the flag and closes when the user clicks Get started", async () => {
+    render(<App />);
+    await screen.findByRole("dialog", { name: "Welcome to Byline" });
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    await userEvent.click(screen.getByRole("button", { name: "Get started" }));
+    expect(localStorage.getItem("byline.hasSeenWelcome")).toBe("1");
+    expect(
+      screen.queryByRole("dialog", { name: "Welcome to Byline" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("reopens the carousel from Settings even after the flag is set", async () => {
+    localStorage.setItem("byline.hasSeenWelcome", "1");
+    render(<App />);
+    await screen.findByText("What impact did you make today?");
+    expect(
+      screen.queryByRole("dialog", { name: "Welcome to Byline" })
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Account" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Replay welcome tour" })
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: "Welcome to Byline" })
+    ).toBeInTheDocument();
   });
 });

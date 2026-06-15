@@ -6,8 +6,10 @@ import { EntryList } from "./EntryList";
 import { BragDoc } from "./BragDoc";
 import { SettingsDrawer } from "./SettingsDrawer";
 import { AboutModal } from "./AboutModal";
+import { WelcomeCarousel } from "./WelcomeCarousel";
 import { AiConsentGate } from "./AiConsentGate";
 import { readSettings, writeSettings } from "@/lib/settings";
+import { hasSeenWelcome, markWelcomeSeen } from "@/lib/welcome";
 import {
   getEntries,
   addEntry,
@@ -35,6 +37,7 @@ export function App() {
   const [tab, setTab] = useState<Tab>("journal");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [entries, setEntries] = useState<Entry[]>([]);
 
   const today = todayLocal();
@@ -88,6 +91,22 @@ export function App() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    // Defer so we don't setState synchronously inside the mount effect; the
+    // flag lives in localStorage so this only runs client-side.
+    if (!hasSeenWelcome()) queueMicrotask(() => setWelcomeOpen(true));
+  }, []);
+
+  function handleWelcomeClose() {
+    markWelcomeSeen();
+    setWelcomeOpen(false);
+  }
+
+  function handleReplayWelcome() {
+    setSettingsOpen(false);
+    setWelcomeOpen(true);
+  }
 
   async function handleAiConsentChange(next: boolean) {
     setAiConsent(next);
@@ -351,8 +370,10 @@ export function App() {
         onClearData={handleClearData}
         aiConsent={aiConsent}
         onAiConsentChange={handleAiConsentChange}
+        onReplayWelcome={handleReplayWelcome}
       />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <WelcomeCarousel open={welcomeOpen} onClose={handleWelcomeClose} />
       <AiConsentGate
         open={gateOpen}
         onAccept={handleGateAccept}
