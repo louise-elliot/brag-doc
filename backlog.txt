@@ -3,17 +3,9 @@
 ## Features
 - If you dismiss Coach, the option disappears. It should reappear if there is no reframed version saved. 
 
-## Minor Cosmetics 
-- "Why Byline exists" to "Why Byline?"
-- Replace reference to women with people / women & gender minorities 
-- Data & Privacy tab > Manage Data > use yellow warning box and change text to "This action can't be undone"
-- Account > remove Danger zone, have Delete account button next to Sign out button. Ensure action is confirmed
-- Sign out icon
-
 ## Production foundations (must-do before opening to users)
 To Do:
 - Error tracking — Sentry on frontend and backend.
-- Onboarding process
 - Cost tracking — log token usage per request (input + output, per user, per endpoint, per model). Daily cost dashboard for admin. Hard budget cap that disables LLM endpoints on overage.
 - Observability — structured logs on the FastAPI service (request ID, user ID, endpoint, latency, token usage). Forward to a log destination (Logtail / Axiom / similar).
 
