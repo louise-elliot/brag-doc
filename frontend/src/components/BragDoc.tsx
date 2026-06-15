@@ -141,6 +141,13 @@ export function BragDoc({ entries, tags, onRequireConsent }: BragDocProps) {
         }),
       });
 
+      if (response.status === 429) {
+        setError(
+          "You've hit the limit for generating brag docs today - try again tomorrow."
+        );
+        return;
+      }
+
       if (!response.ok) {
         setError("Failed to generate brag doc. Please try again.");
         return;
