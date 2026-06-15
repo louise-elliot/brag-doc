@@ -47,18 +47,18 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
         </button>
         <div className="px-10 py-12">
           <h2 className="font-display text-3xl font-semibold leading-tight text-[var(--color-neutral-800)] mb-6">
-            Why Byline exists
+            Why Byline?
           </h2>
           <div
             className="font-body text-base text-[var(--color-neutral-700)] flex flex-col gap-4"
             style={{ lineHeight: 1.7 }}
           >
             <p>
-              Byline is for women who are great at their jobs, but terrible
-              at talking about them.
+              Byline is for people who are great at their jobs, but terrible
+              at talking about it.
             </p>
             <p>
-              Research consistently shows that women undersell their
+              Research consistently shows that women and gender minorities undersell their
               abilities, experience, and impact at work — costing them
               opportunities, progression, and visibility.
             </p>

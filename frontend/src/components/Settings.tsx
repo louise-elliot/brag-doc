@@ -178,14 +178,35 @@ export function ManageDataCard({
         Manage Data
       </h3>
       <p
-        className="font-body text-base text-[var(--color-neutral-600)] mb-6"
+        className="font-body text-base text-[var(--color-neutral-600)] mb-4"
         style={{ lineHeight: 1.6 }}
       >
-        Delete all your daily win entries.{" "}
-        <span className="font-medium text-[var(--color-error-500)]">
-          Caution: this can&apos;t be undone!
-        </span>
+        Delete all your daily win entries.
       </p>
+      <div
+        role="note"
+        className="flex items-start gap-2 bg-[var(--color-warning-50)] border border-[var(--color-warning-500)]/30 rounded-md px-3 py-2 mb-6"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className="text-[var(--color-warning-500)] flex-shrink-0 mt-0.5"
+        >
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+        </svg>
+        <p className="font-body text-sm text-[var(--color-neutral-700)]">
+          This action can&apos;t be undone.
+        </p>
+      </div>
 
       {!confirming ? (
         <button
@@ -491,18 +512,14 @@ export function AccountCard() {
           {email}
         </p>
       )}
-      <button
-        type="button"
-        onClick={handleSignOut}
-        className="font-body text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
-      >
-        Sign out
-      </button>
-
-      <div className="border-t border-[var(--color-neutral-200)] pt-6 mt-8">
-        <h4 className="font-display text-lg font-semibold text-[var(--color-error-500)] mb-3">
-          Danger zone
-        </h4>
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="font-body text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
+        >
+          Sign out
+        </button>
         <button
           type="button"
           onClick={() => setShowDeleteAccount(true)}
@@ -510,65 +527,65 @@ export function AccountCard() {
         >
           Delete account
         </button>
-        {showDeleteAccount && (
-          <div
-            role="dialog"
-            aria-label="Confirm delete account"
-            className="mt-4 bg-[var(--color-error-50)] border border-[var(--color-error-500)] rounded-md p-5"
-            style={{ animation: "fadeIn 0.2s ease both" }}
-          >
-            <p className="font-body text-base text-[var(--color-error-500)] mb-4">
-              This permanently deletes your entries, settings, and account. Type
-              your email to confirm.
-            </p>
-            <label className="flex flex-col gap-2 mb-4">
-              <span className="font-body text-sm font-medium text-[var(--color-neutral-700)]">
-                Type your email
-              </span>
-              <input
-                type="email"
-                value={confirmEmail}
-                onChange={(e) => setConfirmEmail(e.target.value)}
-                className="font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-error-500)] focus:ring-2 focus:ring-[var(--color-error-50)]"
-              />
-            </label>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                disabled={deleteDisabled}
-                className={[
-                  "font-body text-sm font-semibold rounded-md px-6 py-3 transition-opacity",
-                  deleteDisabled
-                    ? "bg-[var(--color-error-500)] text-white opacity-50 cursor-not-allowed"
-                    : "bg-[var(--color-error-500)] text-white hover:opacity-90 cursor-pointer",
-                ].join(" ")}
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDeleteAccount(false);
-                  setConfirmEmail("");
-                  setDeleteError(null);
-                }}
-                className="font-body text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-            {deleteError && (
-              <p
-                role="alert"
-                className="font-body text-sm text-[var(--color-error-500)] mt-3"
-              >
-                {deleteError}
-              </p>
-            )}
-          </div>
-        )}
       </div>
+      {showDeleteAccount && (
+        <div
+          role="dialog"
+          aria-label="Confirm delete account"
+          className="mt-4 bg-[var(--color-error-50)] border border-[var(--color-error-500)] rounded-md p-5"
+          style={{ animation: "fadeIn 0.2s ease both" }}
+        >
+          <p className="font-body text-base text-[var(--color-error-500)] mb-4">
+            This permanently deletes your entries, settings, and account. Type
+            your email to confirm.
+          </p>
+          <label className="flex flex-col gap-2 mb-4">
+            <span className="font-body text-sm font-medium text-[var(--color-neutral-700)]">
+              Type your email
+            </span>
+            <input
+              type="email"
+              value={confirmEmail}
+              onChange={(e) => setConfirmEmail(e.target.value)}
+              className="font-body text-base text-[var(--color-neutral-700)] bg-white border border-[var(--color-neutral-300)] rounded-md px-4 py-3 outline-none placeholder:text-[var(--color-neutral-400)] focus:border-[var(--color-error-500)] focus:ring-2 focus:ring-[var(--color-error-50)]"
+            />
+          </label>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              disabled={deleteDisabled}
+              className={[
+                "font-body text-sm font-semibold rounded-md px-6 py-3 transition-opacity",
+                deleteDisabled
+                  ? "bg-[var(--color-error-500)] text-white opacity-50 cursor-not-allowed"
+                  : "bg-[var(--color-error-500)] text-white hover:opacity-90 cursor-pointer",
+              ].join(" ")}
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeleteAccount(false);
+                setConfirmEmail("");
+                setDeleteError(null);
+              }}
+              className="font-body text-sm font-medium bg-transparent border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] rounded-md px-6 py-3 hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+          {deleteError && (
+            <p
+              role="alert"
+              className="font-body text-sm text-[var(--color-error-500)] mt-3"
+            >
+              {deleteError}
+            </p>
+          )}
+        </div>
+      )}
     </section>
   );
 }
