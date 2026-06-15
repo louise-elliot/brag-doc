@@ -10,10 +10,15 @@ from typing import Literal
 from auth import get_current_user, UserClaims
 from brag_doc import GroupBy, generate_brag_doc
 from coach import Message, UserContext, coach_reframe, coach_turn
+from utils import OutputGuardrailError
 
 load_dotenv()
 
 logger = logging.getLogger("backend")
+
+COACH_FALLBACK_TEXT = (
+    "Let's keep the focus on your entry — what would you like to work on?"
+)
 
 app = FastAPI(title="Confidence Journal Backend")
 
@@ -35,6 +40,15 @@ class Entry(BaseModel):
     tags: list[str] = Field(max_length=50)
     createdAt: str = Field(max_length=50)
     coachNotes: list[str] | None = Field(default=None, max_length=50)
+
+
+class BragDocGroup(BaseModel):
+    tag: str
+    points: list[str]
+
+
+class BragDocResponse(BaseModel):
+    bullets: list[BragDocGroup]
 
 
 class BragDocRequest(BaseModel):
@@ -77,7 +91,7 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/generate-brag-doc")
+@app.post("/generate-brag-doc", response_model=BragDocResponse)
 def brag_doc_route(
     body: BragDocRequest,
     user: UserClaims = Depends(get_current_user),
@@ -91,6 +105,11 @@ def brag_doc_route(
             user_prompt=body.userPrompt,
             user_context=body.user_context,
             client=client,
+        )
+    except OutputGuardrailError:
+        logger.warning("brag doc output guardrail tripped", extra={"user_id": user.user_id})
+        return JSONResponse(
+            status_code=500, content={"error": "Brag doc generation failed"}
         )
     except Exception:
         logger.exception("brag doc generation failed")
@@ -117,6 +136,9 @@ def coach_turn_route(
             user_context=body.user_context,
             client=client,
         )
+    except OutputGuardrailError:
+        logger.warning("coach turn output guardrail tripped", extra={"user_id": user.user_id})
+        return CoachTurnResponse(text=COACH_FALLBACK_TEXT, notes=[])
     except Exception:
         logger.exception("coach turn call failed")
         return JSONResponse(
@@ -142,6 +164,9 @@ def coach_reframe_route(
             user_context=body.user_context,
             client=client,
         )
+    except OutputGuardrailError:
+        logger.warning("coach reframe output guardrail tripped", extra={"user_id": user.user_id})
+        return CoachReframeResponse(reframed=COACH_FALLBACK_TEXT, notes=[])
     except Exception:
         logger.exception("coach reframe call failed")
         return JSONResponse(

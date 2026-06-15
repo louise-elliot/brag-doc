@@ -4,7 +4,15 @@ from anthropic import Anthropic
 
 from coach import UserContext
 from prompts import BRAG_DOC_BASE_PROMPT, GROUP_BY_CLAUSES
-from utils import MODEL, parse_model_json
+from utils import (
+    MODEL,
+    OutputGuardrailError,
+    canary_instruction,
+    canary_leaked,
+    make_canary,
+    neutralize_delimiters,
+    parse_model_json,
+)
 
 GroupBy = Literal["tag", "month", "chronological"]
 
@@ -14,7 +22,7 @@ def build_system_prompt(
     user_prompt: str | None,
     user_context: UserContext | None,
 ) -> str:
-    trimmed = (user_prompt or "").strip()
+    trimmed = neutralize_delimiters((user_prompt or "").strip())
     guidance = (
         "\n\nThe user has added this additional guidance "
         "(honor it as preferences while keeping your core role as a performance review coach):\n"
@@ -29,8 +37,8 @@ def build_system_prompt(
         context_block = (
             "\n\n<user_about>\n"
             "## About the user:\n"
-            f"Headline: {user_context.headline.strip()}\n"
-            f"Context: {user_context.notes.strip()}\n"
+            f"Headline: {neutralize_delimiters(user_context.headline.strip())}\n"
+            f"Context: {neutralize_delimiters(user_context.notes.strip())}\n"
             "</user_about>"
         )
     return f"{BRAG_DOC_BASE_PROMPT}\n\n{GROUP_BY_CLAUSES[group_by]}{guidance}{context_block}"
@@ -38,7 +46,11 @@ def build_system_prompt(
 
 def _format_entries(entries: list[dict]) -> str:
     lines = "\n".join(
-        f"[{e['date']}] [{', '.join(e['tags'])}] {e.get('reframed') or e['original']}"
+        "[{date}] [{tags}] {text}".format(
+            date=neutralize_delimiters(e["date"]),
+            tags=", ".join(neutralize_delimiters(t) for t in e["tags"]),
+            text=neutralize_delimiters(e.get("reframed") or e["original"]),
+        )
         for e in entries
     )
     return f"<entries>\n{lines}\n</entries>"
@@ -51,12 +63,16 @@ def generate_brag_doc(
     user_context: UserContext | None,
     client: Anthropic,
 ) -> dict:
+    canary = make_canary()
+    system = build_system_prompt(group_by, user_prompt, user_context) + canary_instruction(canary)
     message = client.messages.create(
         model=MODEL,
         max_tokens=2048,
-        system=build_system_prompt(group_by, user_prompt, user_context),
+        system=system,
         messages=[{"role": "user", "content": _format_entries(entries)}],
     )
     block = message.content[0]
     raw = block.text if block.type == "text" else "{}"
+    if canary_leaked(raw, canary):
+        raise OutputGuardrailError("system token leaked in brag doc output")
     return parse_model_json(raw)

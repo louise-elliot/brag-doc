@@ -4,7 +4,15 @@ from anthropic import Anthropic
 from pydantic import BaseModel, Field
 
 from prompts import COACH_REFRAME_SYSTEM_PROMPT, COACH_TURN_SYSTEM_PROMPT, COACH_STYLE_FRAGMENTS
-from utils import MODEL, parse_model_json
+from utils import (
+    MODEL,
+    OutputGuardrailError,
+    canary_instruction,
+    canary_leaked,
+    make_canary,
+    neutralize_delimiters,
+    parse_model_json,
+)
 
 
 class Message(BaseModel):
@@ -23,16 +31,17 @@ def _format_user_content(
     tags: list[str],
     conversation: list[Message],
 ) -> str:
+    safe_tags = [neutralize_delimiters(t) for t in tags]
     header = (
-        f"Daily prompt: {prompt}\n"
-        f"Entry tags: {', '.join(tags) if tags else '(none)'}\n"
-        f"Original entry:\n{entry_text}"
+        f"Daily prompt: {neutralize_delimiters(prompt)}\n"
+        f"Entry tags: {', '.join(safe_tags) if safe_tags else '(none)'}\n"
+        f"Original entry:\n{neutralize_delimiters(entry_text)}"
     )
     if conversation:
         lines = [header, "", "Conversation so far:"]
         for msg in conversation:
             speaker = "Coach" if msg.role == "coach" else "User"
-            lines.append(f"{speaker}: {msg.text}")
+            lines.append(f"{speaker}: {neutralize_delimiters(msg.text)}")
         body = "\n".join(lines)
     else:
         body = header
@@ -42,8 +51,8 @@ def _format_user_context_block(context: UserContext) -> str:
     return (
         "<user_about>\n"
         "## About the user:\n"
-        f"Headline: {context.headline.strip()}\n"
-        f"Context: {context.notes.strip()}\n"
+        f"Headline: {neutralize_delimiters(context.headline.strip())}\n"
+        f"Context: {neutralize_delimiters(context.notes.strip())}\n"
         "</user_about>"
     )
 
@@ -66,12 +75,14 @@ def coach_turn(
     user_context: UserContext | None,
     client: Anthropic,
 ) -> dict:
+    canary = make_canary()
+    system = build_coach_system_prompt(
+        COACH_TURN_SYSTEM_PROMPT, coaching_style, user_context
+    ) + canary_instruction(canary)
     message = client.messages.create(
         model=MODEL,
         max_tokens=1024,
-        system=build_coach_system_prompt(
-            COACH_TURN_SYSTEM_PROMPT, coaching_style, user_context
-        ),
+        system=system,
         messages=[
             {
                 "role": "user",
@@ -81,6 +92,8 @@ def coach_turn(
     )
     block = message.content[0]
     raw = block.text if block.type == "text" else "{}"
+    if canary_leaked(raw, canary):
+        raise OutputGuardrailError("system token leaked in coach turn output")
     return parse_model_json(raw)
 
 
@@ -93,12 +106,14 @@ def coach_reframe(
     user_context: UserContext | None,
     client: Anthropic,
 ) -> dict:
+    canary = make_canary()
+    system = build_coach_system_prompt(
+        COACH_REFRAME_SYSTEM_PROMPT, coaching_style, user_context
+    ) + canary_instruction(canary)
     message = client.messages.create(
         model=MODEL,
         max_tokens=1024,
-        system=build_coach_system_prompt(
-            COACH_REFRAME_SYSTEM_PROMPT, coaching_style, user_context
-        ),
+        system=system,
         messages=[
             {
                 "role": "user",
@@ -108,4 +123,6 @@ def coach_reframe(
     )
     block = message.content[0]
     raw = block.text if block.type == "text" else "{}"
+    if canary_leaked(raw, canary):
+        raise OutputGuardrailError("system token leaked in coach reframe output")
     return parse_model_json(raw)
