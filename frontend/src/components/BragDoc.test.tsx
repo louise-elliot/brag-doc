@@ -297,6 +297,25 @@ describe("BragDoc — output rendering", () => {
     );
   });
 
+  it("shows the brag-doc limit message on 429", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      json: () => Promise.resolve({ detail: { error: "rate_limited" } }),
+    });
+
+    renderBragDoc();
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "You've hit the limit for generating brag docs today - try again tomorrow."
+        )
+      ).toBeInTheDocument()
+    );
+  });
+
   it("clears loading and shows an error when fetch rejects", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("network down"));
 

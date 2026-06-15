@@ -6,6 +6,7 @@ import { ReframeView } from "./ReframeView";
 import {
   coachReframe,
   coachTurn,
+  RateLimitError,
   type CoachMessage as ApiMessage,
 } from "@/lib/coachApi";
 import { readSettings, serializeContext } from "@/lib/settings";
@@ -29,9 +30,11 @@ type Phase =
   | { kind: "loading-turn" }
   | { kind: "chatting" }
   | { kind: "error-turn" }
+  | { kind: "limit-turn" }
   | { kind: "loading-reframe" }
   | { kind: "reframing"; reframed: string; notes: string[] }
-  | { kind: "error-reframe" };
+  | { kind: "error-reframe" }
+  | { kind: "limit-reframe" };
 
 export function CoachPanel({
   entry,
@@ -68,8 +71,8 @@ export function CoachPanel({
         { role: "coach", text: result.text, notes: result.notes },
       ]);
       setPhase({ kind: "chatting" });
-    } catch {
-      setPhase({ kind: "error-turn" });
+    } catch (e) {
+      setPhase({ kind: e instanceof RateLimitError ? "limit-turn" : "error-turn" });
     }
   }
 
@@ -88,8 +91,10 @@ export function CoachPanel({
         reframed: result.reframed,
         notes: result.notes,
       });
-    } catch {
-      setPhase({ kind: "error-reframe" });
+    } catch (e) {
+      setPhase({
+        kind: e instanceof RateLimitError ? "limit-reframe" : "error-reframe",
+      });
     }
   }
 
@@ -188,6 +193,14 @@ export function CoachPanel({
         {phase.kind === "error-reframe" && (
           <ErrorRow onRetry={handleRetryReframe} />
         )}
+
+        {phase.kind === "limit-turn" && (
+          <LimitRow message="You've hit the limit for messages to Coach today - try again tomorrow." />
+        )}
+
+        {phase.kind === "limit-reframe" && (
+          <LimitRow message="You've hit the limit for reframing today - try again tomorrow." />
+        )}
       </div>
 
       {phase.kind === "chatting" && (
@@ -258,6 +271,21 @@ function ErrorRow({ onRetry }: ErrorRowProps) {
       >
         Retry
       </button>
+    </div>
+  );
+}
+
+interface LimitRowProps {
+  message: string;
+}
+
+function LimitRow({ message }: LimitRowProps) {
+  return (
+    <div
+      role="alert"
+      className="font-body text-sm text-[var(--color-neutral-600)]"
+    >
+      {message}
     </div>
   );
 }

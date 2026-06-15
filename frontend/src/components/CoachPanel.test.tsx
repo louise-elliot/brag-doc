@@ -286,6 +286,67 @@ describe("CoachPanel — reframing phase", () => {
   });
 });
 
+describe("CoachPanel — rate limit", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    mockSettings = { ...DEFAULT_USER_SETTINGS };
+  });
+
+  it("shows the coach limit message when the first turn is rate limited", async () => {
+    vi.spyOn(coachApi, "coachTurn").mockRejectedValueOnce(
+      new coachApi.RateLimitError()
+    );
+
+    render(
+      <CoachPanel
+        entry={baseEntry}
+        onAccept={vi.fn()}
+        onDismiss={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "You've hit the limit for messages to Coach today - try again tomorrow."
+        )
+      ).toBeInTheDocument()
+    );
+    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
+  });
+
+  it("shows the reframe limit message when reframe is rate limited", async () => {
+    vi.spyOn(coachApi, "coachTurn").mockResolvedValueOnce({
+      text: "Who benefited?",
+      notes: [],
+    });
+    vi.spyOn(coachApi, "coachReframe").mockRejectedValueOnce(
+      new coachApi.RateLimitError()
+    );
+
+    render(
+      <CoachPanel
+        entry={baseEntry}
+        onAccept={vi.fn()}
+        onDismiss={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    const reframeBtn = await screen.findByRole("button", { name: "Reframe it now" });
+    await userEvent.click(reframeBtn);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "You've hit the limit for reframing today - try again tomorrow."
+        )
+      ).toBeInTheDocument()
+    );
+  });
+});
+
 describe("CoachPanel — settings forwarding", () => {
   beforeEach(() => {
     vi.restoreAllMocks();

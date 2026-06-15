@@ -10,6 +10,7 @@ from typing import Literal
 from auth import get_current_user, UserClaims
 from brag_doc import GroupBy, generate_brag_doc
 from coach import Message, UserContext, coach_reframe, coach_turn
+from rate_limit import enforce_rate_limit
 from utils import OutputGuardrailError
 
 load_dotenv()
@@ -96,6 +97,7 @@ def brag_doc_route(
     body: BragDocRequest,
     user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
+    _rl: None = Depends(enforce_rate_limit("brag_doc")),
 ):
     logger.info("brag doc request", extra={"user_id": user.user_id})
     try:
@@ -124,6 +126,7 @@ def coach_turn_route(
     body: CoachTurnRequest,
     user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
+    _rl: None = Depends(enforce_rate_limit("coach_turn")),
 ):
     logger.info("coach turn request", extra={"user_id": user.user_id})
     try:
@@ -152,6 +155,7 @@ def coach_reframe_route(
     body: CoachReframeRequest,
     user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
+    _rl: None = Depends(enforce_rate_limit("coach_reframe")),
 ):
     logger.info("coach reframe request", extra={"user_id": user.user_id})
     try:
