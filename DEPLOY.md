@@ -52,6 +52,15 @@ fly secrets set RATE_LIMIT_COACH_TURN='30' RATE_LIMIT_COACH_REFRAME='3' RATE_LIM
 
 Requires migration `0005_usage_counters` applied to the target Supabase project (see "Apply a new DB migration to prod").
 
+### Cost tracking / admin dashboard
+
+```bash
+fly secrets set DAILY_BUDGET_USD='5.00' ADMIN_EMAILS='you@example.com' --app byline-api
+fly secrets set DAILY_BUDGET_USD='5.00' ADMIN_EMAILS='you@example.com' --app byline-api-staging
+```
+
+`DAILY_BUDGET_USD` is the service-wide daily spend ceiling; once a day's estimated LLM cost reaches it, the AI endpoints return 503 until the next UTC day (fails open if the spend store is unreachable). `ADMIN_EMAILS` gates the `/admin` cost dashboard. Requires migration `0006_llm_usage` applied (see the migration section).
+
 ## Logs
 
 - **Backend prod:** `fly logs --app byline-api`
@@ -112,3 +121,20 @@ supabase link --project-ref idmtuzubldwrypngkikv
 - **Newline in `fly secrets set` values.** Multi-line shell paste can sneak a `\n` into a secret. Always single-line, single-quoted. Symptom: `httpx.InvalidURL: Invalid non-printable ASCII character`.
 - **Vercel env vars require a redeploy** to take effect on existing deployments. Setting an env var doesn't reapply to running instances.
 - **Supabase Auth URL Configuration must include both bare prod URL and preview wildcard.** Otherwise sign-in works locally but fails silently from preview URLs.
+
+## Log forwarding (Axiom)
+
+The backend emits structured JSON logs to stdout (one object per line: request id, user id, endpoint, latency, token usage, cost). Forwarding is done at the infra layer so the request path never depends on the log vendor.
+
+1. Create an Axiom dataset (e.g. `byline`) and an API token with ingest permission.
+2. Deploy the community fly-log-shipper, configured for the Axiom sink:
+
+```bash
+git clone https://github.com/superfly/fly-log-shipper && cd fly-log-shipper
+fly launch --no-deploy
+fly secrets set ORG=<your-fly-org> ACCESS_TOKEN=<fly-api-token> \
+  AXIOM_TOKEN=<axiom-ingest-token> AXIOM_DATASET=byline --app <shipper-app-name>
+fly deploy
+```
+
+The shipper reads the org's logs (including `byline-api`) and forwards them to Axiom. No application redeploy is needed; if Axiom is down, the API is unaffected.
