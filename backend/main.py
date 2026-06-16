@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import Literal
 
+from admin import admin_router
 from auth import get_current_user, UserClaims
 from brag_doc import GroupBy, generate_brag_doc
 from budget import enforce_budget
@@ -27,6 +28,7 @@ COACH_FALLBACK_TEXT = (
 
 app = FastAPI(title="Confidence Journal Backend")
 app.add_middleware(RequestContextMiddleware)
+app.include_router(admin_router)
 
 
 def get_anthropic_client() -> Anthropic:
