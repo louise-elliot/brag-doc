@@ -1,4 +1,5 @@
 import logging
+import time
 
 from anthropic import Anthropic
 from dotenv import load_dotenv
@@ -7,13 +8,17 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import Literal
 
+from admin import admin_router
 from auth import get_current_user, UserClaims
 from brag_doc import GroupBy, generate_brag_doc
+from budget import enforce_budget
 from coach import Message, UserContext, coach_reframe, coach_turn
 from rate_limit import enforce_rate_limit
-from utils import OutputGuardrailError
+from telemetry import RequestContextMiddleware, configure_logging, record_llm_usage
+from utils import MODEL, OutputGuardrailError
 
 load_dotenv()
+configure_logging()
 
 logger = logging.getLogger("backend")
 
@@ -22,6 +27,8 @@ COACH_FALLBACK_TEXT = (
 )
 
 app = FastAPI(title="Confidence Journal Backend")
+app.add_middleware(RequestContextMiddleware)
+app.include_router(admin_router)
 
 
 def get_anthropic_client() -> Anthropic:
@@ -98,10 +105,12 @@ def brag_doc_route(
     user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
     _rl: None = Depends(enforce_rate_limit("brag_doc")),
+    _budget: None = Depends(enforce_budget),
 ):
-    logger.info("brag doc request", extra={"user_id": user.user_id})
+    logger.info("brag doc request", extra={"endpoint": "brag_doc"})
+    start = time.perf_counter()
     try:
-        result = generate_brag_doc(
+        result, usage = generate_brag_doc(
             entries=[e.model_dump() for e in body.entries],
             group_by=body.groupBy,
             user_prompt=body.userPrompt,
@@ -109,15 +118,16 @@ def brag_doc_route(
             client=client,
         )
     except OutputGuardrailError:
-        logger.warning("brag doc output guardrail tripped", extra={"user_id": user.user_id})
-        return JSONResponse(
-            status_code=500, content={"error": "Brag doc generation failed"}
-        )
+        logger.warning("brag doc output guardrail tripped", extra={"endpoint": "brag_doc"})
+        return JSONResponse(status_code=500, content={"error": "Brag doc generation failed"})
     except Exception:
         logger.exception("brag doc generation failed")
-        return JSONResponse(
-            status_code=500, content={"error": "Brag doc generation failed"}
-        )
+        return JSONResponse(status_code=500, content={"error": "Brag doc generation failed"})
+    record_llm_usage(
+        user_id=user.user_id, endpoint="brag_doc", model=MODEL,
+        input_tokens=usage.input_tokens, output_tokens=usage.output_tokens,
+        latency_ms=int((time.perf_counter() - start) * 1000),
+    )
     return result
 
 
@@ -127,26 +137,27 @@ def coach_turn_route(
     user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
     _rl: None = Depends(enforce_rate_limit("coach_turn")),
+    _budget: None = Depends(enforce_budget),
 ):
-    logger.info("coach turn request", extra={"user_id": user.user_id})
+    logger.info("coach turn request", extra={"endpoint": "coach_turn"})
+    start = time.perf_counter()
     try:
-        result = coach_turn(
-            entry_text=body.entry_text,
-            prompt=body.prompt,
-            tags=body.tags,
-            conversation=body.conversation,
-            coaching_style=body.coaching_style,
-            user_context=body.user_context,
-            client=client,
+        result, usage = coach_turn(
+            entry_text=body.entry_text, prompt=body.prompt, tags=body.tags,
+            conversation=body.conversation, coaching_style=body.coaching_style,
+            user_context=body.user_context, client=client,
         )
     except OutputGuardrailError:
-        logger.warning("coach turn output guardrail tripped", extra={"user_id": user.user_id})
+        logger.warning("coach turn output guardrail tripped", extra={"endpoint": "coach_turn"})
         return CoachTurnResponse(text=COACH_FALLBACK_TEXT, notes=[])
     except Exception:
         logger.exception("coach turn call failed")
-        return JSONResponse(
-            status_code=500, content={"error": "Coach turn failed"}
-        )
+        return JSONResponse(status_code=500, content={"error": "Coach turn failed"})
+    record_llm_usage(
+        user_id=user.user_id, endpoint="coach_turn", model=MODEL,
+        input_tokens=usage.input_tokens, output_tokens=usage.output_tokens,
+        latency_ms=int((time.perf_counter() - start) * 1000),
+    )
     return CoachTurnResponse(text=result["text"], notes=result["notes"])
 
 
@@ -156,24 +167,25 @@ def coach_reframe_route(
     user: UserClaims = Depends(get_current_user),
     client: Anthropic = Depends(get_anthropic_client),
     _rl: None = Depends(enforce_rate_limit("coach_reframe")),
+    _budget: None = Depends(enforce_budget),
 ):
-    logger.info("coach reframe request", extra={"user_id": user.user_id})
+    logger.info("coach reframe request", extra={"endpoint": "coach_reframe"})
+    start = time.perf_counter()
     try:
-        result = coach_reframe(
-            entry_text=body.entry_text,
-            prompt=body.prompt,
-            tags=body.tags,
-            conversation=body.conversation,
-            coaching_style=body.coaching_style,
-            user_context=body.user_context,
-            client=client,
+        result, usage = coach_reframe(
+            entry_text=body.entry_text, prompt=body.prompt, tags=body.tags,
+            conversation=body.conversation, coaching_style=body.coaching_style,
+            user_context=body.user_context, client=client,
         )
     except OutputGuardrailError:
-        logger.warning("coach reframe output guardrail tripped", extra={"user_id": user.user_id})
+        logger.warning("coach reframe output guardrail tripped", extra={"endpoint": "coach_reframe"})
         return CoachReframeResponse(reframed=COACH_FALLBACK_TEXT, notes=[])
     except Exception:
         logger.exception("coach reframe call failed")
-        return JSONResponse(
-            status_code=500, content={"error": "Coach reframe failed"}
-        )
+        return JSONResponse(status_code=500, content={"error": "Coach reframe failed"})
+    record_llm_usage(
+        user_id=user.user_id, endpoint="coach_reframe", model=MODEL,
+        input_tokens=usage.input_tokens, output_tokens=usage.output_tokens,
+        latency_ms=int((time.perf_counter() - start) * 1000),
+    )
     return CoachReframeResponse(reframed=result["reframed"], notes=result["notes"])

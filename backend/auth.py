@@ -11,6 +11,8 @@ import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from telemetry import user_id_var
+
 _bearer = HTTPBearer(auto_error=False)
 
 _jwks_cache: dict[str, Any] = {}
@@ -89,4 +91,5 @@ def get_current_user(
     user_id = claims.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="invalid token")
+    user_id_var.set(user_id)
     return UserClaims(user_id=user_id, email=claims.get("email"))

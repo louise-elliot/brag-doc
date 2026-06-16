@@ -4,6 +4,7 @@ from anthropic import Anthropic
 
 from coach import UserContext
 from prompts import BRAG_DOC_BASE_PROMPT, GROUP_BY_CLAUSES
+from telemetry import LlmUsage
 from utils import (
     MODEL,
     OutputGuardrailError,
@@ -98,4 +99,8 @@ def generate_brag_doc(
     raw = block.text if block.type == "text" else "{}"
     if canary_leaked(raw, canary):
         raise OutputGuardrailError("system token leaked in brag doc output")
-    return parse_model_json(raw)
+    usage = LlmUsage(
+        input_tokens=message.usage.input_tokens,
+        output_tokens=message.usage.output_tokens,
+    )
+    return parse_model_json(raw), usage

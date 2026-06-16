@@ -7,7 +7,8 @@ from prompts import COACH_STYLE_FRAGMENTS, COACH_TURN_SYSTEM_PROMPT
 
 def _mock_text_response(client: MagicMock, text: str) -> None:
     client.messages.create.return_value = MagicMock(
-        content=[MagicMock(type="text", text=text)]
+        content=[MagicMock(type="text", text=text)],
+        usage=MagicMock(input_tokens=1200, output_tokens=150),
     )
 
 
@@ -363,3 +364,26 @@ class TestCoachOutputCanary:
 
         assert response.status_code == 200
         assert response.json()["text"] == "great work"
+
+
+class TestCoachTelemetry:
+    def test_turn_records_usage_on_success(self, mock_client, http_client, authed_user, monkeypatch):
+        import main
+        recorded = {}
+        monkeypatch.setattr(main, "record_llm_usage", lambda **kw: recorded.update(kw))
+        _mock_text_response(mock_client, json.dumps({"text": "ok", "notes": []}))
+
+        http_client.post("/coach/turn", json=SAMPLE_TURN_BODY)
+
+        assert recorded["endpoint"] == "coach_turn"
+        assert recorded["input_tokens"] == 1200
+
+    def test_turn_blocks_when_over_budget(self, mock_client, http_client, authed_user, monkeypatch):
+        import budget
+        monkeypatch.setattr(budget, "_daily_spend_usd", lambda: 999.0)
+        monkeypatch.setenv("DAILY_BUDGET_USD", "5.00")
+
+        response = http_client.post("/coach/turn", json=SAMPLE_TURN_BODY)
+
+        assert response.status_code == 503
+        mock_client.messages.create.assert_not_called()

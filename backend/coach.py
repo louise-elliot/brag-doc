@@ -4,6 +4,7 @@ from anthropic import Anthropic
 from pydantic import BaseModel, Field
 
 from prompts import COACH_REFRAME_SYSTEM_PROMPT, COACH_TURN_SYSTEM_PROMPT, COACH_STYLE_FRAGMENTS
+from telemetry import LlmUsage
 from utils import (
     MODEL,
     OutputGuardrailError,
@@ -118,7 +119,11 @@ def coach_turn(
     raw = block.text if block.type == "text" else "{}"
     if canary_leaked(raw, canary):
         raise OutputGuardrailError("system token leaked in coach turn output")
-    return parse_model_json(raw)
+    usage = LlmUsage(
+        input_tokens=message.usage.input_tokens,
+        output_tokens=message.usage.output_tokens,
+    )
+    return parse_model_json(raw), usage
 
 
 def coach_reframe(
@@ -150,4 +155,8 @@ def coach_reframe(
     raw = block.text if block.type == "text" else "{}"
     if canary_leaked(raw, canary):
         raise OutputGuardrailError("system token leaked in coach reframe output")
-    return parse_model_json(raw)
+    usage = LlmUsage(
+        input_tokens=message.usage.input_tokens,
+        output_tokens=message.usage.output_tokens,
+    )
+    return parse_model_json(raw), usage
