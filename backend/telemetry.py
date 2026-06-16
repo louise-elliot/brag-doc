@@ -4,8 +4,12 @@ from __future__ import annotations
 import contextvars
 import json
 import logging
+import time
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
+
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger("backend")
 
@@ -78,3 +82,25 @@ def configure_logging() -> None:
     backend_logger.handlers = [handler]
     backend_logger.setLevel(logging.INFO)
     backend_logger.propagate = False
+
+
+class RequestContextMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        request_id = uuid.uuid4().hex
+        request_id_var.set(request_id)
+        user_id_var.set(None)
+        start = time.perf_counter()
+        response = await call_next(request)
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        response.headers["X-Request-ID"] = request_id
+        logger.info(
+            "access",
+            extra={
+                "event": "access",
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": response.status_code,
+                "latency_ms": latency_ms,
+            },
+        )
+        return response

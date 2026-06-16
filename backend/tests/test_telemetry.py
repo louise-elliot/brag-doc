@@ -64,3 +64,43 @@ class TestConfigureLogging:
         assert len(backend_logger.handlers) == 1
         assert isinstance(backend_logger.handlers[0].formatter, telemetry.JSONFormatter)
         assert backend_logger.propagate is False
+
+
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+
+class _ListHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.records: list[logging.LogRecord] = []
+
+    def emit(self, record):
+        self.records.append(record)
+
+
+class TestRequestContextMiddleware:
+    def test_sets_request_id_header_and_emits_access_log(self):
+        app = FastAPI()
+        app.add_middleware(telemetry.RequestContextMiddleware)
+
+        @app.get("/ping")
+        def ping():
+            return {"ok": True}
+
+        handler = _ListHandler()
+        backend_logger = logging.getLogger("backend")
+        backend_logger.addHandler(handler)
+        try:
+            resp = TestClient(app).get("/ping")
+        finally:
+            backend_logger.removeHandler(handler)
+
+        assert resp.status_code == 200
+        assert resp.headers["X-Request-ID"]
+        access = [r for r in handler.records if getattr(r, "event", None) == "access"]
+        assert len(access) == 1
+        assert access[0].method == "GET"
+        assert access[0].path == "/ping"
+        assert access[0].status_code == 200
+        assert isinstance(access[0].latency_ms, int)
