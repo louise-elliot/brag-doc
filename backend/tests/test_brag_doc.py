@@ -4,7 +4,8 @@ from unittest.mock import MagicMock
 
 def _mock_text_response(client: MagicMock, text: str) -> None:
     client.messages.create.return_value = MagicMock(
-        content=[MagicMock(type="text", text=text)]
+        content=[MagicMock(type="text", text=text)],
+        usage=MagicMock(input_tokens=2000, output_tokens=1000),
     )
 
 
@@ -287,3 +288,31 @@ class TestBragDocStructuredOutput:
         item = schema["properties"]["bullets"]["items"]
         assert set(item["properties"]) == {"tag", "points"}
         assert item["additionalProperties"] is False
+
+
+class TestBragDocTelemetry:
+    def test_records_usage_on_success(self, mock_client, http_client, authed_user, monkeypatch):
+        import main
+        recorded = {}
+        monkeypatch.setattr(main, "record_llm_usage", lambda **kw: recorded.update(kw))
+        _mock_text_response(mock_client, '{"bullets": []}')
+
+        _post(http_client, {"entries": []})
+
+        assert recorded["endpoint"] == "brag_doc"
+        assert recorded["input_tokens"] == 2000
+        assert recorded["output_tokens"] == 1000
+        assert recorded["user_id"] == "test-user"
+
+    def test_blocks_when_over_budget_before_calling_anthropic(
+        self, mock_client, http_client, authed_user, monkeypatch
+    ):
+        import budget
+        monkeypatch.setattr(budget, "_daily_spend_usd", lambda: 999.0)
+        monkeypatch.setenv("DAILY_BUDGET_USD", "5.00")
+
+        response = _post(http_client, {"entries": []})
+
+        assert response.status_code == 503
+        assert response.json()["detail"]["error"] == "budget_exceeded"
+        mock_client.messages.create.assert_not_called()
