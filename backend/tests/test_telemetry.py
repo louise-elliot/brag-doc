@@ -19,3 +19,48 @@ class TestLlmUsage:
     def test_holds_token_counts(self):
         u = telemetry.LlmUsage(input_tokens=10, output_tokens=20)
         assert (u.input_tokens, u.output_tokens) == (10, 20)
+
+
+import json
+import logging
+
+
+class TestJSONFormatter:
+    def test_emits_core_fields_as_json(self):
+        rec = logging.LogRecord("backend", logging.INFO, __file__, 1, "hello", None, None)
+        out = json.loads(telemetry.JSONFormatter().format(rec))
+        assert out["message"] == "hello"
+        assert out["level"] == "INFO"
+        assert out["logger"] == "backend"
+        assert "timestamp" in out
+        assert out["request_id"] is None
+        assert out["user_id"] is None
+
+    def test_includes_extra_fields(self):
+        rec = logging.LogRecord("backend", logging.INFO, __file__, 1, "llm_usage", None, None)
+        rec.endpoint = "coach_turn"
+        rec.cost_usd = 0.002
+        out = json.loads(telemetry.JSONFormatter().format(rec))
+        assert out["endpoint"] == "coach_turn"
+        assert out["cost_usd"] == 0.002
+
+    def test_reflects_contextvars(self):
+        token_r = telemetry.request_id_var.set("req-123")
+        token_u = telemetry.user_id_var.set("user-9")
+        try:
+            rec = logging.LogRecord("backend", logging.INFO, __file__, 1, "x", None, None)
+            out = json.loads(telemetry.JSONFormatter().format(rec))
+            assert out["request_id"] == "req-123"
+            assert out["user_id"] == "user-9"
+        finally:
+            telemetry.request_id_var.reset(token_r)
+            telemetry.user_id_var.reset(token_u)
+
+
+class TestConfigureLogging:
+    def test_installs_single_json_handler_on_backend_logger(self):
+        telemetry.configure_logging()
+        backend_logger = logging.getLogger("backend")
+        assert len(backend_logger.handlers) == 1
+        assert isinstance(backend_logger.handlers[0].formatter, telemetry.JSONFormatter)
+        assert backend_logger.propagate is False

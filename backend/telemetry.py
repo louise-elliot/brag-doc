@@ -1,8 +1,11 @@
 """Structured logging and per-request LLM cost/telemetry capture."""
 from __future__ import annotations
 
+import contextvars
+import json
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 logger = logging.getLogger("backend")
 
@@ -30,3 +33,48 @@ def cost_usd(model: str, input_tokens: int, output_tokens: int) -> float:
         + output_tokens / 1_000_000 * rates["output"],
         6,
     )
+
+
+request_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "request_id", default=None
+)
+user_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "user_id", default=None
+)
+
+# Attributes always present on a LogRecord; everything else is treated as an extra.
+_RESERVED = {
+    "name", "msg", "args", "levelname", "levelno", "pathname", "filename",
+    "module", "exc_info", "exc_text", "stack_info", "lineno", "funcName",
+    "created", "msecs", "relativeCreated", "thread", "threadName",
+    "processName", "process", "taskName", "message", "asctime",
+}
+
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "timestamp": datetime.fromtimestamp(
+                record.created, tz=timezone.utc
+            ).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "request_id": request_id_var.get(),
+            "user_id": user_id_var.get(),
+        }
+        for key, value in record.__dict__.items():
+            if key not in _RESERVED and key not in payload:
+                payload[key] = value
+        if record.exc_info:
+            payload["exc_info"] = self.formatException(record.exc_info)
+        return json.dumps(payload, default=str)
+
+
+def configure_logging() -> None:
+    handler = logging.StreamHandler()
+    handler.setFormatter(JSONFormatter())
+    backend_logger = logging.getLogger("backend")
+    backend_logger.handlers = [handler]
+    backend_logger.setLevel(logging.INFO)
+    backend_logger.propagate = False
