@@ -102,3 +102,19 @@ def test_unknown_kid_returns_401(app_with_auth):
     client = TestClient(app_with_auth)
     res = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 401
+
+
+def test_get_current_user_sets_user_id_contextvar(monkeypatch):
+    import auth
+    import telemetry
+    from fastapi.security import HTTPAuthorizationCredentials
+
+    monkeypatch.setattr(auth, "_verify", lambda token: {"sub": "user-42", "email": "a@b.com"})
+    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="tok")
+
+    token = telemetry.user_id_var.set(None)
+    try:
+        auth.get_current_user(request=None, credentials=creds)
+        assert telemetry.user_id_var.get() == "user-42"
+    finally:
+        telemetry.user_id_var.reset(token)
