@@ -190,11 +190,6 @@ export function App() {
     await refreshEntries();
   }
 
-  async function handleCoachDismiss(id: string) {
-    await updateEntry(id, { coachNotes: [] });
-    await refreshEntries();
-  }
-
   async function handleEditEntry(
     id: string,
     updates: { original?: string; reframed?: string; tags?: string[] }
@@ -340,7 +335,6 @@ export function App() {
                   onEditEntry={handleEditEntry}
                   onDeleteEntry={handleDeleteEntry}
                   onCoachAccept={handleCoachAccept}
-                  onCoachDismiss={handleCoachDismiss}
                   onRequireConsent={requireAiConsent}
                 />
               </div>

@@ -16,7 +16,6 @@ interface EntryListProps {
   ) => void;
   onDeleteEntry: (id: string) => void;
   onCoachAccept: (entryId: string, reframed: string, notes: string[]) => void;
-  onCoachDismiss: (entryId: string) => void;
   onRequireConsent: (run: () => void) => void;
 }
 
@@ -28,7 +27,6 @@ export function EntryList({
   onEditEntry,
   onDeleteEntry,
   onCoachAccept,
-  onCoachDismiss,
   onRequireConsent,
 }: EntryListProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -108,7 +106,7 @@ export function EntryList({
                   expanded={expanded.has(entry.id)}
                   onToggleOriginal={() => toggleExpanded(entry.id)}
                 />
-                {entry.coachNotes === null && coachOpenId !== entry.id && (
+                {entry.reframed === null && coachOpenId !== entry.id && (
                   <button
                     type="button"
                     onClick={() =>
@@ -131,10 +129,7 @@ export function EntryList({
                       onCoachAccept(entry.id, reframed, notes);
                       setCoachOpenId(null);
                     }}
-                    onDismiss={() => {
-                      onCoachDismiss(entry.id);
-                      setCoachOpenId(null);
-                    }}
+                    onDismiss={() => setCoachOpenId(null)}
                     onClose={() => setCoachOpenId(null)}
                   />
                 )}

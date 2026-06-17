@@ -45,7 +45,6 @@ function renderList(overrides: Partial<Parameters<typeof EntryList>[0]> = {}) {
     onEditEntry: vi.fn(),
     onDeleteEntry: vi.fn(),
     onCoachAccept: vi.fn(),
-    onCoachDismiss: vi.fn(),
     onRequireConsent: (run: () => void) => run(),
     ...overrides,
   };
@@ -244,28 +243,33 @@ const renderCoachList = (items: Entry[]) =>
       onEditEntry={vi.fn()}
       onDeleteEntry={vi.fn()}
       onCoachAccept={vi.fn()}
-      onCoachDismiss={vi.fn()}
       onRequireConsent={(run) => run()}
     />
   );
 
 describe("EntryList — coach affordance", () => {
-  it("shows the Talk-it-through button when coachNotes is null", () => {
+  it("shows the Coach me button when no reframed version is saved", () => {
     renderCoachList([baseCoachEntry]);
     expect(
       screen.getByRole("button", { name: /coach me/i })
     ).toBeInTheDocument();
   });
 
-  it("hides the Talk-it-through button when coachNotes is an empty array", () => {
-    renderCoachList([{ ...baseCoachEntry, coachNotes: [] }]);
+  it("keeps the Coach me button after a dismissed reframe (no reframed version saved)", () => {
+    renderCoachList([{ ...baseCoachEntry, reframed: null, coachNotes: [] }]);
     expect(
-      screen.queryByRole("button", { name: /coach me/i })
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: /coach me/i })
+    ).toBeInTheDocument();
   });
 
-  it("hides the Talk-it-through button when coachNotes is populated", () => {
-    renderCoachList([{ ...baseCoachEntry, coachNotes: ["minimising-language"] }]);
+  it("hides the Coach me button once a reframed version is saved", () => {
+    renderCoachList([
+      {
+        ...baseCoachEntry,
+        reframed: "Drove the migration end to end",
+        coachNotes: ["minimising-language"],
+      },
+    ]);
     expect(
       screen.queryByRole("button", { name: /coach me/i })
     ).not.toBeInTheDocument();
