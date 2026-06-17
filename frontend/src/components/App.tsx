@@ -321,7 +321,7 @@ export function App() {
               <div className="mt-16 animate-in animate-delay-4">
                 <div className="flex items-baseline gap-3 mb-6">
                   <h2 className="font-display text-2xl font-semibold text-[var(--color-neutral-800)]">
-                    Past entries
+                    Your Wins
                   </h2>
                   {entries.length > 0 && (
                     <span className="font-body text-sm text-[var(--color-neutral-500)]">
