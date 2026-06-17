@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from sentry_setup import init_sentry, scrub_event, capture_exception
 
