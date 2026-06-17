@@ -1,4 +1,5 @@
 import logging
+import sys
 import time
 
 from anthropic import Anthropic
@@ -14,11 +15,13 @@ from brag_doc import GroupBy, generate_brag_doc
 from budget import enforce_budget
 from coach import Message, UserContext, coach_reframe, coach_turn
 from rate_limit import enforce_rate_limit
+from sentry_setup import init_sentry, capture_exception
 from telemetry import RequestContextMiddleware, configure_logging, record_llm_usage
 from utils import MODEL, OutputGuardrailError
 
 load_dotenv()
 configure_logging()
+init_sentry()
 
 logger = logging.getLogger("backend")
 
@@ -121,6 +124,7 @@ def brag_doc_route(
         logger.warning("brag doc output guardrail tripped", extra={"endpoint": "brag_doc"})
         return JSONResponse(status_code=500, content={"error": "Brag doc generation failed"})
     except Exception:
+        capture_exception(sys.exc_info()[1])
         logger.exception("brag doc generation failed")
         return JSONResponse(status_code=500, content={"error": "Brag doc generation failed"})
     record_llm_usage(
@@ -151,6 +155,7 @@ def coach_turn_route(
         logger.warning("coach turn output guardrail tripped", extra={"endpoint": "coach_turn"})
         return CoachTurnResponse(text=COACH_FALLBACK_TEXT, notes=[])
     except Exception:
+        capture_exception(sys.exc_info()[1])
         logger.exception("coach turn call failed")
         return JSONResponse(status_code=500, content={"error": "Coach turn failed"})
     record_llm_usage(
@@ -181,6 +186,7 @@ def coach_reframe_route(
         logger.warning("coach reframe output guardrail tripped", extra={"endpoint": "coach_reframe"})
         return CoachReframeResponse(reframed=COACH_FALLBACK_TEXT, notes=[])
     except Exception:
+        capture_exception(sys.exc_info()[1])
         logger.exception("coach reframe call failed")
         return JSONResponse(status_code=500, content={"error": "Coach reframe failed"})
     record_llm_usage(
