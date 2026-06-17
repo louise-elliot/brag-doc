@@ -142,6 +142,16 @@ export function EntryList({
   );
 }
 
+function formatEntryDate(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 interface EntryRowHeaderProps {
   date: string;
   tags: string[];
@@ -163,7 +173,7 @@ function EntryRowHeader({
         dateTime={date}
         className="font-display text-lg font-medium text-[var(--color-neutral-800)]"
       >
-        {date}
+        {formatEntryDate(date)}
       </time>
       <div className="flex flex-wrap gap-2 items-center justify-end">
         {tags.map((tag) => (
