@@ -26,3 +26,7 @@ To Do:
 - Multi-device sync — falls out of server-side storage but worth UX'ing well.
 - i18n — UK English / US English variations at minimum.
 - Public marketing site at the apex domain, app at app.byline.app.
+
+## Could Do
+
+- Coach transcript: truncate long messages with a "show more" expand. Only if testing shows long entries/replies dominate the bounded scroll area — the scroll container already contains them, so this is a polish item, not a fix.
